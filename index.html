@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Command Accordion with Tabs</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+
+        h1 {
+            font-size: 2rem;
+            color: #ffffff;
+        }
+
+        h2 {
+            font-size: x-small;
+            color: #ff0000d9;
+        }
+
+        .accordion {
+            background-color: #1e1e1e;
+            border: 1px solid #333;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        .accordion-content {
+            display: none;
+            background-color: #121212;
+            padding: 10px;
+            border-top: 1px solid #333;
+        }
+
+        .accordion-button {
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+            padding: 10px;
+            width: 100%;
+            border: none;
+            cursor: pointer;
+            text-align: left;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border-radius: 5px;
+        }
+
+        .accordion-button:hover {
+            background-color: #333;
+        }
+
+        code {
+            display: block;
+            color: #f1f1f1;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 0.7rem;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .tab-container {
+            margin-top: 10px;
+            border: 1px solid #333;
+            background-color: #242424;
+            border-radius: 5px;
+        }
+
+        .tab-buttons {
+            display: flex;
+            border-bottom: 1px solid #333;
+            background-color: #1e1e1e;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 10px;
+            background-color: #1e1e1e;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #e0e0e0;
+        }
+
+        .tab-button.active {
+            background-color: #333;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 10px;
+            background-color: #121212;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        button.copy-btn {
+            background-color: #008CBA;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+            border-radius: 5px;
+        }
+
+        button.copy-btn:hover {
+            background-color: #005f6b;
+        }
+
+        #targetInput {
+            padding: 5px;
+            border: 1px solid #333;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+        }
+
+        #targetInput::placeholder {
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>MegaSheet</h1>
+    <label for="targetInput">Target:</label>
+    <input type="text" id="targetInput" placeholder="Enter target IP" />
+    <input type="file" id="fileInput" accept=".txt" />
+    <div id="accordionContainer"></div>
+
+    <script>
+        const targetInput = document.getElementById('targetInput');
+        const fileInput = document.getElementById('fileInput');
+        const accordionContainer = document.getElementById('accordionContainer');
+        let originalContent = '';
+        let globalSections = [];
+        let openAccordions = {}; // Track the open state of each accordion
+
+        fileInput.addEventListener('change', handleFileSelect, false);
+        targetInput.addEventListener('input', updateDynamicTargets);
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                originalContent = e.target.result;
+                globalSections = parseSections(originalContent);
+                renderAccordion(globalSections);
+            };
+            reader.readAsText(file);
+        }
+
+        function parseSections(content) {
+            const sections = content.split(/^#\s+/gm);
+            sections.shift();
+            return sections.map(section => {
+                const sectionLines = section.split('\n');
+                const sectionHeader = sectionLines.shift().trim();
+                const subSections = parseSubSections(sectionLines);
+                return { header: sectionHeader, subSections };
+            });
+        }
+
+        function parseSubSections(lines) {
+            const subSections = [];
+            let currentSubHeader = '';
+            let currentCode = '';
+            let hasTabs = false;
+
+            lines.forEach(line => {
+                if (line.startsWith('## ')) {
+                    if (currentSubHeader) {
+                        subSections.push({ header: currentSubHeader, code: currentCode, hasTabs });
+                    }
+                    currentSubHeader = line.slice(3).trim();
+                    currentCode = '';
+                    hasTabs = false;
+                } else if (line.startsWith('[*]')) {
+                    hasTabs = true;
+                    currentCode += line + '\n';
+                } else {
+                    currentCode += line + '\n';
+                }
+            });
+
+            if (currentSubHeader) {
+                subSections.push({ header: currentSubHeader, code: currentCode, hasTabs });
+            }
+
+            return subSections;
+        }
+
+        function renderAccordion(sections) {
+            accordionContainer.innerHTML = '';
+
+            sections.forEach((section, sectionIndex) => {
+                const accordion = document.createElement('div');
+                accordion.classList.add('accordion');
+
+                const button = document.createElement('button');
+                button.classList.add('accordion-button');
+                button.textContent = section.header;
+
+                const contentDiv = document.createElement('div');
+                contentDiv.classList.add('accordion-content');
+
+                section.subSections.forEach((subSection, subSectionIndex) => {
+                    const subHeader = document.createElement('h2');
+                    subHeader.textContent = subSection.header;
+
+                    if (subSection.hasTabs) {
+                        const tabContainer = createTabs(subSection.code.trim());
+                        contentDiv.appendChild(subHeader);
+                        contentDiv.appendChild(tabContainer);
+                    } else {
+                        const codeBlock = document.createElement('code');
+                        codeBlock.textContent = subSection.code.trim();
+                        contentDiv.appendChild(subHeader);
+                        contentDiv.appendChild(codeBlock);
+                    }
+                });
+
+                // Set accordion open state based on previously stored value
+                if (openAccordions[sectionIndex]) {
+                    contentDiv.style.display = 'block';
+                }
+
+                button.addEventListener('click', function() {
+                    const content = this.nextElementSibling;
+                    const isOpen = content.style.display === 'block';
+
+                    content.style.display = isOpen ? 'none' : 'block';
+                    openAccordions[sectionIndex] = !isOpen; // Store the new state
+                });
+
+                accordion.appendChild(button);
+                accordion.appendChild(contentDiv);
+                accordionContainer.appendChild(accordion);
+            });
+        }
+
+        function createTabs(content) {
+            const tabContainer = document.createElement('div');
+            tabContainer.classList.add('tab-container');
+
+            const tabButtons = document.createElement('div');
+            tabButtons.classList.add('tab-buttons');
+            const tabContent = document.createElement('div');
+
+            const tabs = content.split(/^\[\*\]/gm).filter(Boolean);
+
+            tabs.forEach((tab, index) => {
+                const tabLines = tab.split('\n');
+                const tabHeader = tabLines.shift().trim();
+                const tabBody = tabLines.join('\n').trim();
+
+                const button = document.createElement('button');
+                button.classList.add('tab-button');
+                button.textContent = tabHeader;
+                button.addEventListener('click', function() {
+                    document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                    button.classList.add('active');
+                    tabContent.children[index].classList.add('active');
+                });
+
+                const contentDiv = document.createElement('div');
+                contentDiv.classList.add('tab-content');
+
+                const codeBlock = document.createElement('code');
+                codeBlock.textContent = tabBody;
+                contentDiv.appendChild(codeBlock);
+
+                if (index === 0) {
+                    button.classList.add('active');
+                    contentDiv.classList.add('active');
+                }
+
+                tabButtons.appendChild(button);
+                tabContent.appendChild(contentDiv);
+            });
+
+            tabContainer.appendChild(tabButtons);
+            tabContainer.appendChild(tabContent);
+
+            return tabContainer;
+        }
+
+        function updateDynamicTargets() {
+            const target = targetInput.value;
+            const updatedContent = originalContent.replace(/\$TARGET/g, target);
+            globalSections = parseSections(updatedContent);
+            renderAccordion(globalSections);
+        }
+    </script>
+
+    <h5>Version 1.0 by DaddyBigFish</h5>
+</body>
+</html>
