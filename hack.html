@@ -11,7 +11,16 @@
             background-color: #121212;
             color: #e0e0e0;
         }
-
+		#header {
+			position: sticky;
+			margin: 0 0 0px -20px;
+			top: 0;
+			background: #121212;
+			left: 0px !important;
+			right: 0;
+			padding: 10px 20px 0 20px;
+			width: calc(100% + 20px);
+		}
         h1 {
             font-size: 2rem;
             color: #ffffff;
@@ -86,7 +95,7 @@
             border: none;
             cursor: pointer;
             text-align: center;
-            font-size: 0.8rem;
+			font-size: 0.75rem;
             color: #e0e0e0;
         }
 
@@ -135,22 +144,25 @@
     </style>
 </head>
 <body>
-
-    <h1>MegaSheet</h1>
-
-    <label for="targetInput">Target:</label>
-    <input type="text" id="targetInput" placeholder="Enter target IP" />
-    
-    <label for="domainInput">Domain:</label>
-    <input type="text" id="domainInput" placeholder="Enter domain" />
-    
-    <label for="dcInput">DC:</label>
-    <input type="text" id="dcInput" placeholder="Enter DC" />
-    
-    <label for="myIpInput">My IP:</label>
-    <input type="text" id="myIpInput" placeholder="Enter My IP" />
-    
-    <input type="file" id="fileInput" accept=".txt" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="75" height="75" style="border-radius: 100%;display: inline-table;">
+  <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="150" fill="#ff0000d9">M</text>
+</svg>
+    <h1 style="display: inline-table; position: absolute; padding: 0 0 0 12px;">MegaSheet</h1>
+	<div id="header">
+		<label for="targetInput">Target:</label>
+		<input type="text" id="targetInput" placeholder="Enter target IP" />
+		
+		<label for="domainInput">Domain:</label>
+		<input type="text" id="domainInput" placeholder="Enter domain" />
+		
+		<label for="dcInput">DC:</label>
+		<input type="text" id="dcInput" placeholder="Enter DC" />
+		
+		<label for="myIpInput">My IP:</label>
+		<input type="text" id="myIpInput" placeholder="Enter My IP" />
+		
+		<input type="file" id="fileInput" accept=".txt" />
+	</div>
     <div id="accordionContainer"></div>
 
     <script>
