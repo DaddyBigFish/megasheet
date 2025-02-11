@@ -10,3 +10,9 @@ $TARGET   $DC   $DOM   $MYIP
 ##    (Double hash to create a heading inside the box)
 [*]   (Enclosed asterix to create tabs within the box)
 ```
+
+#### Future features
+```
+• $USERNAME variable
+• Easy sheet selector
+```
