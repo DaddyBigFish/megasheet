@@ -95,11 +95,13 @@ wpscan --url http://$TARGET/wordpress --enumerate
 Download source > https://develop.svn.wordpress.org/tags/x.x.x/src/
 
 ## Directory Discovery
+[*] ffuf
 ffuf -u http://"$TARGET"/FUZZ -t 800 -rate 20000 \
 -e txt,pdf,conf,config,cnf,html,php,asp,aspx,js \
 -v -recursion -recursion-depth 2 \
 -w /usr/share/seclists/Discovery/Web-Content/raft-medium-directories-lowercase.txt \
 2>/dev/null | grep -oP '(http.*)(?<!/)$'
+[*] feroxbuster
 feroxbuster -u http://$TARGET \
 -w /usr/share/seclists/Discovery/Web-Content/directory-list-2.3-medium.txt \
 -d 4 -k -C 404 \
@@ -120,8 +122,8 @@ gobuster vhost --append-domain -u $DOM -k -r -t200 -q \
 -w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt \
 | grep -oP '(?<=Found: )[^ ]+'
 
-# Exploitation
 
+# Exploitation
 ## Reverse Shell Listeners
 nc -lvnp 4444
 msfconsole -q -x "use multi/handler; set LHOST $MYIP; set LPORT 4444; run"
