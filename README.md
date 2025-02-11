@@ -11,7 +11,9 @@ $TARGET   $DC   $DOM   $MYIP
 [*]   (Enclosed asterix to create tabs within the box)
 ```
 
-#### Future features
+
+
+## Incoming features:
 - $USERNAME variable
 - $PASSWORD variable
 - Easy sheet selector
