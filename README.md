@@ -12,6 +12,6 @@ $TARGET   $DC   $DOM   $MYIP
 ```
 
 #### Future features
-• $USERNAME variable
-• $PASSWORD variable
-• Easy sheet selector
+- $USERNAME variable
+- $PASSWORD variable
+- Easy sheet selector
