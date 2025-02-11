@@ -16,4 +16,4 @@ $TARGET   $DC   $DOM   $MYIP
 ## Incoming features:
 - $USERNAME variable
 - $PASSWORD variable
-- Easy sheet selector
+- Easy sheet switcher
