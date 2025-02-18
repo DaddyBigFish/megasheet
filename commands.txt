@@ -5,22 +5,24 @@ export KRB5CCNAME='/home/user/VICTIM@dc01@EXAMPLE.COM.ccache'
 
 # Host Discovery
 ## External
-sudo nmap -Pn -n "$TARGET" -p- -D 1.1.1.1 -g53 --min-rate 500 --max-rate 1500 --spoof-mac 6C45C4
+sudo nmap -Pn -n -sT "$TARGET" -p- -D 1.1.1.1 -g53 --min-rate 500 --max-rate 1500 --spoof-mac 6C45C4
+sudo nmap -Pn -n -sU "$TARGET" -p- -D 1.1.1.1 -g53 --min-rate 500 --max-rate 1500 --spoof-mac 6C45C4
 
 ## Internal
-sudo nmap -Pn -n "$TARGET" -p- -D 1.1.1.1 -g53 --min-rate 500 --max-rate 1500 --spoof-mac 6C45C4
+sudo nmap -Pn -n -sT "$TARGET" -p- -D 1.1.1.1 -g53 --min-rate 500 --max-rate 1500 --spoof-mac 6C45C4
+sudo nmap -Pn -n -sU "$TARGET" -p- -D 1.1.1.1 -g53 --min-rate 500 --max-rate 1500 --spoof-mac 6C45C4
 
 # Service Enumeration
 ## Nmap All Scripts
-nmap -Pn -sSV "$TARGET" -p22,80,445 --min-rate=3000 --mtu 24 -sC
+sudo nmap -Pn -n -sC "$TARGET" -p22,80,445 -D 1.1.1.1 -g53 --min-rate 500 --max-rate 1500 --spoof-mac 6C45C4
 
 ## LDAP
 nmap --script "ldap* and not brute" -p 389 "$TARGET"
-ldapsearch -H ldap://$TARGET -x -s base namingcontexts
-ldapsearch -H ldap://$TARGET -x -b "DC=xxxxxx,DC=xxx" "(objectClass=*)"
-ldapsearch -H ldap://$TARGET -x -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" | grep -oP '(?<=dn: ).*' | grep -oP '(^[^@]+)'
-ldapsearch -H ldap://$TARGET -x -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" | grep -oP '(?<=userPrincipalName: ).*' | grep -oP '(^[^@]+)'
-ldapsearch -H ldap://$TARGET -x -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" | grep -oP '(?<=description: ).*'
+ldapsearch -H ldap://"$TARGET" -x -s base namingcontexts
+ldapsearch -H ldap://"$TARGET" -x -b "DC=xxxxxx,DC=xxx" "(objectClass=*)"
+ldapsearch -H ldap://"$TARGET" -x -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" | grep -oP '(?<=dn: ).*' | grep -oP '(^[^@]+)'
+ldapsearch -H ldap://"$TARGET" -x -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" | grep -oP '(?<=userPrincipalName: ).*' | grep -oP '(^[^@]+)'
+ldapsearch -H ldap://"$TARGET" -x -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" | grep -oP '(?<=description: ).*'
 ldapsearch -H ldap://$DC/ -D "$DOM\P.Rosa" -w 'Rosaisbest123' -b "" -s base "(objectClass=*)" | grep -v 'supported'
 ldapsearch -H ldap://$DC/ -D "$DOM\P.Rosa" -w 'Rosaisbest123' -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" "*" | grep 'SAM' -B 4 -A 3
 
