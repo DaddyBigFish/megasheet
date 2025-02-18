@@ -162,6 +162,9 @@
 		<input type="text" id="myIpInput" placeholder="Enter My IP" />
 		
 		<input type="file" id="fileInput" accept=".txt" />
+		<select id="fileDropdown">
+        	<option>Loading...</option>
+                </select>
 	</div>
     <div id="accordionContainer"></div>
 
@@ -346,6 +349,40 @@
             globalSections = parseSections(updatedContent);
             renderAccordion(globalSections);
         }
+    </script>
+ <script>
+        async function fetchTxtFiles() {
+            const url = "https://api.github.com/repos/DaddyBigFish/megasheet/contents/sheets";
+            const response = await fetch(url);
+            const files = await response.json();
+            
+            const dropdown = document.getElementById("fileDropdown");
+            dropdown.innerHTML = "<option value=''>Select a file...</option>";
+
+            files
+                .filter(file => file.name.endsWith(".txt"))
+                .forEach(file => {
+                    const option = document.createElement("option");
+                    option.value = file.name;
+                    option.textContent = file.name;
+                    dropdown.appendChild(option);
+                });
+        }
+
+        document.getElementById("fileDropdown").addEventListener("change", async function() {
+            const fileName = this.value;
+            if (!fileName) return;
+
+            const url = `https://raw.githubusercontent.com/DaddyBigFish/megasheet/refs/heads/main/sheets/${fileName}`;
+            const response = await fetch(url);
+            const content = await response.text();
+
+            originalContent = content;
+            globalSections = parseSections(content);
+            renderAccordion(globalSections);
+        });
+
+        fetchTxtFiles();
     </script>
 
     <h5>Version 1.0 by DaddyBigFish</h5>
