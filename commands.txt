@@ -5,10 +5,10 @@ export KRB5CCNAME='/home/user/VICTIM@dc01@EXAMPLE.COM.ccache'
 
 # Host Discovery
 ## External
-nmap -Pn "$TARGET" -p- -D 1.1.1.1 -g53 --min-rate 500 --max-rate 1500 --spoof-mac 6C45C4
+sudo nmap -Pn -n "$TARGET" -p- -D 1.1.1.1 -g53 --min-rate 500 --max-rate 1500 --spoof-mac 6C45C4
 
 ## Internal
-nmap -Pn "$TARGET" -p- -D 1.1.1.1 -g53 --min-rate 500 --max-rate 1500 --spoof-mac 6C45C4
+sudo nmap -Pn -n "$TARGET" -p- -D 1.1.1.1 -g53 --min-rate 500 --max-rate 1500 --spoof-mac 6C45C4
 
 # Service Enumeration
 ## Nmap All Scripts
