@@ -4,8 +4,8 @@ export TARGET="$TARGET"
 export KRB5CCNAME='/home/user/VICTIM@dc01@EXAMPLE.COM.ccache'
 
 # Commands and Navigation
-[*] Windows
-[*] Linux
+## Windows
+## Linux
 cat /etc/passwd | grep -vE 'nologin|false' | cut -d ':' -f '1'
 
 # Host Discovery
