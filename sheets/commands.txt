@@ -3,6 +3,11 @@
 export TARGET="$TARGET"
 export KRB5CCNAME='/home/user/VICTIM@dc01@EXAMPLE.COM.ccache'
 
+# Commands and Navigation
+[*] Windows
+[*] Linux
+cat /etc/passwd | grep -vE 'nologin|false' | cut -d ':' -f '1'
+
 # Host Discovery
 ## External
 sudo nmap -Pn -n -sT "$TARGET" -p- -D 1.1.1.1 -g53 --min-rate 500 --max-rate 1500 --spoof-mac 6C45C4
