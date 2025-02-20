@@ -57,24 +57,31 @@ ldapsearch -H ldap://$DC/ -D "$DOM\$USERNAME" -w '$PASSWORD' -b "" -s base "(obj
 ldapsearch -H ldap://$DC/ -D "$DOM\$USERNAME" -w '$PASSWORD' -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" "*" | grep 'SAM' -B 4 -A 3
 
 [*] Kerberos
-impacket-getST -spn $DC $DOM/'$USERNAME':'$PASSWORD'
+impacket-getTGT $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET
+impacket-getST $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET -spn $DC
 
-nano /etc/krb5.conf
+nano ./custom_krb5.conf
+
 [libdefaults]
-default_realm = $DOM
-dns_lookup_kdc = true
-dns_lookup_realm = false
-[realms]
-$DOM = {
-    kdc = $DC
-    admin_server = $DC
-}
-[domain_realm]
-.$DOM = $DOM
-$DOM = $DOM
+    default_realm = $DOM
+    dns_lookup_realm = true
+    dns_lookup_kdc = true
 
-export KRB5CCNAME='/home/me/$USERNAME@dc01@VINTAGE.HTB.ccache'
-kinit -c '/home/me/$USERNAME@dc01@VINTAGE.HTB.ccache' '$USERNAME@VINTAGE.HTB'
+[realms]
+    $KRB5DOM = {
+        kdc = $DC
+        admin_server = $DC
+        default_domain = $DC
+    }
+
+[domain_realm]
+    $DOM = $KRB5DOM
+    .$DOM = $KRB5DOM
+
+export KRB5_CONFIG="$PWD/custom_krb5.conf"
+
+export KRB5CCNAME="$PWD/$USERNAME@SPN@$KRB5DOM.ccache"
+kinit -c "$PWD/$USERNAME@SPN@$KRB5DOM.ccache" '$USERNAME@$KRB5DOM'
 klist
 
 impacket-GetADUsers -dc-host $DC -k $DOM/
