@@ -129,7 +129,7 @@
             background-color: #005f6b;
         }
 
-        #targetInput, #domainInput, #dcInput, #myIpInput {
+        #targetInput, #domainInput, #dcInput, #myIpInput, #usernameInput, #passwordInput, #hashInput {
             padding: 5px;
             border: 1px solid #333;
             border-radius: 5px;
@@ -141,6 +141,12 @@
         #targetInput::placeholder, #domainInput::placeholder, #dcInput::placeholder, #myIpInput::placeholder {
             color: #888;
         }
+input[type="text"] {
+  width:10px;
+  resize: none;
+  overflow: hidden;
+}
+#fileInput{display:none;}
     </style>
 </head>
 <body>
@@ -149,30 +155,67 @@
 </svg>
     <h1 style="display: inline-table; position: absolute; padding: 0 0 0 12px;">MegaSheet</h1>
 	<div id="header">
-		<label for="targetInput">Target:</label>
-		<input type="text" id="targetInput" placeholder="Enter target IP" />
+		<label class="input-header" for="targetInput">Target:</label>
+		<input type="text" id="targetInput" placeholder="" />
 		
 		<label for="domainInput">Domain:</label>
-		<input type="text" id="domainInput" placeholder="Enter domain" />
+		<input type="text" id="domainInput" placeholder="" />
 		
 		<label for="dcInput">DC:</label>
-		<input type="text" id="dcInput" placeholder="Enter DC" />
+		<input type="text" id="dcInput" placeholder="" />
 		
 		<label for="myIpInput">My IP:</label>
-		<input type="text" id="myIpInput" placeholder="Enter My IP" />
+		<input type="text" id="myIpInput" placeholder="" />
 		
+        <label for="usernameInput">Username:</label>
+        <input type="text" id="usernameInput" placeholder="" />
+        
+        <label for="passwordInput">Password:</label>
+        <input type="text" id="passwordInput" placeholder="" />
+        
+        <label for="hashInput">Hash:</label>
+        <input type="text" id="hashInput" placeholder="" />		
+        
 		<input type="file" id="fileInput" accept=".txt" />
 		<select id="fileDropdown">
         	<option>Loading...</option>
                 </select>
+
 	</div>
+<script>
+document.querySelectorAll('input[type="text"]').forEach(input => {
+    input.addEventListener("input", function () {
+        this.style.width = "0";
+        this.style.width = (this.scrollWidth) + "px";
+    });
+});
+</script>
     <div id="accordionContainer"></div>
 
     <script>
-        const targetInput = document.getElementById('targetInput');
-        const domainInput = document.getElementById('domainInput');
-        const dcInput = document.getElementById('dcInput');
-        const myIpInput = document.getElementById('myIpInput');
+    
+        function updateDynamicTargets() {
+			const target = document.getElementById('targetInput').value;
+			const domain = document.getElementById('domainInput').value;
+			const dc = document.getElementById('dcInput').value;
+			const myIp = document.getElementById('myIpInput').value;
+			const username = document.getElementById('usernameInput').value;
+			const password = document.getElementById('passwordInput').value;
+			const hash = document.getElementById('hashInput').value;
+
+            let updatedContent = originalContent
+                .replace(/\$TARGET/g, target)
+                .replace(/\$DOM/g, domain)
+                .replace(/\$DC/g, dc)
+                .replace(/\$MYIP/g, myIp)
+                .replace(/\$USERNAME/g, username)
+                .replace(/\$PASSWORD/g, password)
+                .replace(/\$HASH/g, hash);
+
+            globalSections = parseSections(updatedContent);
+            renderAccordion(globalSections);
+        }
+
         const fileInput = document.getElementById('fileInput');
         const accordionContainer = document.getElementById('accordionContainer');
         let originalContent = '';
@@ -180,10 +223,13 @@
         let openAccordions = {}; // Track the open state of each accordion
 
         fileInput.addEventListener('change', handleFileSelect, false);
-        targetInput.addEventListener('input', updateDynamicTargets);
-        domainInput.addEventListener('input', updateDynamicTargets);
-        dcInput.addEventListener('input', updateDynamicTargets);
-        myIpInput.addEventListener('input', updateDynamicTargets);
+        document.getElementById('targetInput').addEventListener('input', updateDynamicTargets);
+        document.getElementById('domainInput').addEventListener('input', updateDynamicTargets);
+        document.getElementById('dcInput').addEventListener('input', updateDynamicTargets);
+        document.getElementById('myIpInput').addEventListener('input', updateDynamicTargets);
+        document.getElementById('usernameInput').addEventListener('input', updateDynamicTargets);
+        document.getElementById('passwordInput').addEventListener('input', updateDynamicTargets);
+        document.getElementById('hashInput').addEventListener('input', updateDynamicTargets);
 
         function handleFileSelect(event) {
             const file = event.target.files[0];
@@ -332,22 +378,6 @@
             tabContainer.appendChild(tabContent);
 
             return tabContainer;
-        }
-
-        function updateDynamicTargets() {
-            const target = targetInput.value;
-            const domain = domainInput.value;
-            const dc = dcInput.value;
-            const myIp = myIpInput.value;
-
-            let updatedContent = originalContent
-                .replace(/\$TARGET/g, target)
-                .replace(/\$DOM/g, domain)
-                .replace(/\$DC/g, dc)
-                .replace(/\$MYIP/g, myIp);
-
-            globalSections = parseSections(updatedContent);
-            renderAccordion(globalSections);
         }
     </script>
  <script>
