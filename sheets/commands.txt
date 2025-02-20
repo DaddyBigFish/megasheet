@@ -63,7 +63,7 @@ impacket-getST $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET -spn $DC
 nano ./custom_krb5.conf
 
 [libdefaults]
-    default_realm = $DOM
+    default_realm = $KRB5DOM
     dns_lookup_realm = true
     dns_lookup_kdc = true
 
