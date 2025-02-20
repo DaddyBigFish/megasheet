@@ -320,6 +320,7 @@ reset
 
 ## Linux
 cat /etc/passwd | grep -vE 'nologin' | cut -d ':' -f '1'
+find / -readable -name 'root.txt' -exec echo {} \; -exec cat {} \; 2>/dev/null
 su evelyn --preserve-environment
 ssh bob@$TARGET -i sshkey.pub -L 33060:Localhost:33060 -L 5000:Localhost:5000
 netstat -tuln
