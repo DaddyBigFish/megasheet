@@ -305,7 +305,7 @@ sessions -i 1
 [*] impacket
 impacket-changepasswd -debug -dc-ip $TARGET $DC/'$USERNAME':'$PASSWORD'@$TARGET -newpass 'NewPassword123!'
 
-## Post-Exploitation 
+# Post-Exploitation 
 
 ## Upgrade TTY
 python3 -c 'import pty; pty.spawn("/bin/bash")';
