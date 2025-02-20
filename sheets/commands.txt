@@ -1,15 +1,15 @@
 # Discovery
 ## External
-sudo nmap -Pn -n -sT "$TARGET" -p- -D 1.1.1.1 -g53 --min-rate 500 --max-rate 1500 --spoof-mac 6C45C4
-sudo nmap -Pn -n -sU "$TARGET" -p- -D 1.1.1.1 -g53 --min-rate 500 --max-rate 1500 --spoof-mac 6C45C4
+sudo nmap -Pn -n -sS "$TARGET" -p- -D 8.8.8.8 -g53 --min-rate 500 --max-rate 1500 --spoof-mac 089E08
+sudo nmap -Pn -n -sU "$TARGET" -p- -D 8.8.8.8 -g53 --min-rate 500 --max-rate 1500 --spoof-mac 089E08
 
 ## Internal
-sudo nmap -Pn -n -sT "$TARGET" -p- -D 1.1.1.1 -g53 --min-rate 500 --max-rate 1500 --spoof-mac 6C45C4
-sudo nmap -Pn -n -sU "$TARGET" -p- -D 1.1.1.1 -g53 --min-rate 500 --max-rate 1500 --spoof-mac 6C45C4
+sudo nmap -Pn -n -sS "$TARGET" -p- -D 8.8.8.8 -g53 --min-rate 500 --max-rate 1500 --spoof-mac 089E08
+sudo nmap -Pn -n -sU "$TARGET" -p- -D 8.8.8.8 -g53 --min-rate 500 --max-rate 1500 --spoof-mac 089E08
 
 # Enumeration
 ## nmap
-sudo nmap -Pn -n -sC "$TARGET" -p22,80,445 -D 1.1.1.1 -g53 --min-rate 500 --max-rate 1500 --spoof-mac 6C45C4
+sudo nmap -Pn -n -sC "$TARGET" -p22,80,445 -D 8.8.8.8 -g53 --min-rate 500 --max-rate 1500 --spoof-mac 089E08
 
 ## Web
 [*] Technology
