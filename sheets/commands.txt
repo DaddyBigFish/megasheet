@@ -5,25 +5,7 @@ sudo nmap -Pn -n -sU "$TARGET" -p- -D 8.8.8.8 -g53 --min-rate 500 --max-rate 150
 
 ## Internal
 cat /etc/NetworkManager/system-connections/Wired\ connection\ 2.nmconnection 
-[connection]
-id=Wired connection 2
 uuid=e06de7a8-e79d-3cce-8063-fcaba7c7d6d0
-type=ethernet
-autoconnect-priority=-999
-interface-name=eth1
-
-[ethernet]
-auto-negotiate=true
-
-[ipv4]
-address1=172.16.1.200/24
-method=auto
-
-[ipv6]
-addr-gen-mode=stable-privacy
-method=auto
-
-[proxy]
 ip route
 sudo nmcli con modify e06de7a8-e79d-3cce-8063-fcaba7c7d6d0 ipv4.addresses 172.16.1.201/24
 sudo nmcli con modify e06de7a8-e79d-3cce-8063-fcaba7c7d6d0 ipv4.gateway 172.16.1.1
