@@ -394,6 +394,7 @@ ipconfig
 sysinfo
 getuid
 getprivs
+run post/windows/gather/credentials/windows_autologin
 hashdump
 use priv
 getsystem
