@@ -397,6 +397,7 @@ getprivs
 hashdump
 use priv
 getsystem
+load kiwi
 background
 sessions
 sessions -i 1
