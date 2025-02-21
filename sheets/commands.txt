@@ -301,7 +301,7 @@ KRB5_FILE="custom_krb5.conf";export KRB5_CONFIG="$PWD/$KRB5_FILE"; nano ./"$KRB5
 
 impacket-getTGT $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET; export KRB5CCNAME="$USERNAME.ccache"; chmod 0600 $KRB5CCNAME; echo '$PASSWORD' > kpassfile; kinit --password-file='kpassfile' -c "$KRB5CCNAME" '$USERNAME@$KRB5DOM'; klist
 
-SPN=DC; impacket-getST $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET -spn $SPN; export KRB5CCNAME='$USERNAME@'"$SPN"'@KRB5DOM.ccache'; chmod 0600 $KRB5CCNAME; echo '$PASSWORD' > kpassfile; kinit --password-file='kpassfile' -c "$KRB5CCNAME" '$USERNAME@$KRB5DOM'; klist
+SPN=DC; impacket-getST $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET -spn $SPN; export KRB5CCNAME='$USERNAME@'"$SPN"'@$KRB5DOM.ccache'; chmod 0600 $KRB5CCNAME; echo '$PASSWORD' > kpassfile; kinit --password-file='kpassfile' -c "$KRB5CCNAME" '$USERNAME@$KRB5DOM'; klist
 
 impacket-GetADUsers $DOM/ -dc-host $DC -k -no-pass
 impacket-GetNPUsers $DOM/ -dc-ip "$TARGET" -usersfile usernames
