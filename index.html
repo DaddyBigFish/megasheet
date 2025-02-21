@@ -390,7 +390,7 @@ document.querySelectorAll('input[type="text"]').forEach(input => {
             const files = await response.json();
             
             const dropdown = document.getElementById("fileDropdown");
-            dropdown.innerHTML = "<option value=''>Select a file...</option>";
+            dropdown.innerHTML = "<option value=''>Load from repo...</option>";
 
             files
                 .filter(file => file.name.endsWith(".txt"))
