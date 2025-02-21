@@ -278,6 +278,8 @@ shares
 use
 
 [*] Kerberos
+sudo apt install -y heimdal-clients libsasl2-modules-gssapi-heimdal
+
 KRB5_FILE="custom_krb5.conf";export KRB5_CONFIG="$PWD/$KRB5_FILE"; nano ./"$KRB5_FILE"
 [libdefaults]
     default_realm = $KRB5DOM
@@ -295,9 +297,7 @@ KRB5_FILE="custom_krb5.conf";export KRB5_CONFIG="$PWD/$KRB5_FILE"; nano ./"$KRB5
     $DOM = $KRB5DOM
     .$DOM = $KRB5DOM
 
-impacket-getTGT $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET
-export KRB5CCNAME="$USERNAME.ccache"; chmod 0600 $KRB5CCNAME; kinit -c "$KRB5CCNAME" '$USERNAME@$KRB5DOM'
-klist
+impacket-getTGT $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET; export KRB5CCNAME="$USERNAME.ccache"; chmod 0600 $KRB5CCNAME; echo '$PASSWORD' > kpassfile; kinit --password-file='kpassfile' -c "$KRB5CCNAME" '$USERNAME@$KRB5DOM'; klist
 
 impacket-changepasswd $DOM/'$USERNAME':'$PASSWORD'@$TARGET -dc-ip $TARGET -newpass 'Password12345!'
 impacket-getST $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET -spn $DC
