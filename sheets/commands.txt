@@ -5,6 +5,7 @@ sudo nmap -Pn -n -sU "$TARGET" -p- -D 8.8.8.8 -g53 --min-rate 500 --max-rate 150
 
 ## Internal
 netdiscover
+ipcalc 172.16.1.73/24     Netmask:   255.255.255.0 = 24
 sudo nmap -Pn -n -sS "$TARGET" -p- -D 8.8.8.8 -g53 --min-rate 500 --max-rate 1500 --spoof-mac 089E08
 sudo nmap -Pn -n -sU "$TARGET" -p- -D 8.8.8.8 -g53 --min-rate 500 --max-rate 1500 --spoof-mac 089E08
 
