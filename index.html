@@ -206,6 +206,8 @@ document.querySelectorAll('input[type="text"]').forEach(input => {
 			const password = document.getElementById('passwordInput').value;
 			const hash = document.getElementById('hashInput').value;
 
+		
+	    let KRB5DOM = domain.toUpperCase();
             let updatedContent = originalContent
                 .replace(/\$TARGET/g, target)
                 .replace(/\$DOM/g, domain)
@@ -213,7 +215,8 @@ document.querySelectorAll('input[type="text"]').forEach(input => {
                 .replace(/\$MYIP/g, myIp)
                 .replace(/\$USERNAME/g, username)
                 .replace(/\$PASSWORD/g, password)
-                .replace(/\$HASH/g, hash);
+                .replace(/\$HASH/g, hash)
+		.replace(/\$KRB5DOM/g, KRB5DOM);
 
             globalSections = parseSections(updatedContent);
             renderAccordion(globalSections);
