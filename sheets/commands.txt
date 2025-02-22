@@ -62,6 +62,7 @@ Download source > https://develop.svn.wordpress.org/tags/x.x.x/src/
 ## Infrastructure
 [*] LDAP
 nmap --script "ldap* and not brute" -p 389 "$TARGET"
+nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M get-desc-users
 ldapsearch -H ldap://"$TARGET" -x -s base namingcontexts
 ldapsearch -H ldap://"$TARGET" -x -b "DC=xxxxxx,DC=xxx" "(objectClass=*)"
 ldapsearch -H ldap://"$TARGET" -x -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" | grep -oP '(?<=dn: ).*' | grep -oP '(^[^@]+)'
@@ -72,6 +73,8 @@ ldapsearch -H ldap://$DC/ -D "$DOM\$USERNAME" -w '$PASSWORD' -b "DC=xxxxxx,DC=xx
 
 [*] bloodhound
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound -c all
+nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M adcs
+impacket-GetADComputers retro.vl/ -dc-ip 10.10.117.117 -k -no-pass
 bloodhound-python -c all -u '$USERNAME' -p '$PASSWORD' -d "$DOM" -dc "$DC" -ns "$TARGET"
 bloodhound-python -c default -u '$USERNAME' -p '$PASSWORD' -d "$DOM" -dc "$DC" -ns "$TARGET"
 
