@@ -70,7 +70,8 @@ ldapsearch -H ldap://"$TARGET" -x -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" | grep
 ldapsearch -H ldap://$DC/ -D "$DOM\$USERNAME" -w '$PASSWORD' -b "" -s base "(objectClass=*)" | grep -v 'supported'
 ldapsearch -H ldap://$DC/ -D "$DOM\$USERNAME" -w '$PASSWORD' -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" "*" | grep 'SAM' -B 4 -A 3
 
-[*] bloodhound-python
+[*] bloodhound
+nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound -c all
 bloodhound-python -c all -u '$USERNAME' -p '$PASSWORD' -d "$DOM" -dc "$DC" -ns "$TARGET"
 bloodhound-python -c default -u '$USERNAME' -p '$PASSWORD' -d "$DOM" -dc "$DC" -ns "$TARGET"
 
