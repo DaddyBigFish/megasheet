@@ -33,7 +33,7 @@ whatweb http://$TARGET
 wafw00f http://$TARGET
 
 [*] Subdomain
-gobuster vhost --append-domain -u $DOM -k -r -t200 -q \
+gobuster vhost --append-domain -u $DOM -k -r -t200 -q --exclude-length 282 \
 -w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt \
 | grep -oP '(?<=Found: )[^ ]+'
 
