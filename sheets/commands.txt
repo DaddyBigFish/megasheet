@@ -87,9 +87,9 @@ binary
 ascii
 
 [*] SMB
+nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
+nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --rid-brute 10000 | grep -oP '(?<=\\)[^ (\n]+(?=.*\(SidTypeUser\))'
 impacket-samrdump "$TARGET"
-nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORDS' --rid-brute 10000
-nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORDS' --shares
 
 [*] MySQL
 mysql -h "$TARGET" -u root@localhost -e 'show databases;'
