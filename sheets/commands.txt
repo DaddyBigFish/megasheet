@@ -61,7 +61,7 @@ Download source > https://develop.svn.wordpress.org/tags/x.x.x/src/
 
 ## Infrastructure
 [*] LDAP
-nmap --script "ldap* and not brute" -p 389 "$TARGET"
+(nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET' &)
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M get-desc-users
 ldapsearch -H ldap://"$TARGET" -x -s base namingcontexts
 ldapsearch -H ldap://"$TARGET" -x -b "DC=xxxxxx,DC=xxx" "(objectClass=*)"
