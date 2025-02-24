@@ -65,24 +65,6 @@ wpscan --url http://$TARGET/wordpress --enumerate
 Download source > https://develop.svn.wordpress.org/tags/x.x.x/src/
 
 ## Infrastructure
-[*] (389) LDAP
-(nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET' &)
-nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M get-desc-users
-ldapsearch -H ldap://"$TARGET" -x -s base namingcontexts
-ldapsearch -H ldap://"$TARGET" -x -b "DC=xxxxxx,DC=xxx" "(objectClass=*)"
-ldapsearch -H ldap://"$TARGET" -x -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" | grep -oP '(?<=dn: ).*' | grep -oP '(^[^@]+)'
-ldapsearch -H ldap://"$TARGET" -x -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" | grep -oP '(?<=userPrincipalName: ).*' | grep -oP '(^[^@]+)'
-ldapsearch -H ldap://"$TARGET" -x -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" | grep -oP '(?<=description: ).*'
-ldapsearch -H ldap://$DC/ -D "$DOM\$USERNAME" -w '$PASSWORD' -b "" -s base "(objectClass=*)" | grep -v 'supported'
-ldapsearch -H ldap://$DC/ -D "$DOM\$USERNAME" -w '$PASSWORD' -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" "*" | grep 'SAM' -B 4 -A 3
-
-[*] bloodhound
-nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound -c all
-nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M adcs
-impacket-GetADComputers retro.vl/ -dc-ip 10.10.117.117 -k -no-pass
-bloodhound-python -c all -u '$USERNAME' -p '$PASSWORD' -d "$DOM" -dc "$DC" -ns "$TARGET"
-bloodhound-python -c default -u '$USERNAME' -p '$PASSWORD' -d "$DOM" -dc "$DC" -ns "$TARGET"
-
 [*] (21) FTP
 nxc ftp "$TARGET" --port 21 -u '$USERNAME' -p '$PASSWORD' --ls
 ftp '$USERNAME'@"$TARGET"
@@ -95,6 +77,17 @@ get file.txt -
 [*] (79) Finger
 finger '$USERNAME'@$TARGET
 while read -r user; do finger "$user"@$TARGET; done < usernames
+
+[*] (389) LDAP
+(nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET' &)
+nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M get-desc-users
+ldapsearch -H ldap://"$TARGET" -x -s base namingcontexts
+ldapsearch -H ldap://"$TARGET" -x -b "DC=xxxxxx,DC=xxx" "(objectClass=*)"
+ldapsearch -H ldap://"$TARGET" -x -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" | grep -oP '(?<=dn: ).*' | grep -oP '(^[^@]+)'
+ldapsearch -H ldap://"$TARGET" -x -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" | grep -oP '(?<=userPrincipalName: ).*' | grep -oP '(^[^@]+)'
+ldapsearch -H ldap://"$TARGET" -x -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" | grep -oP '(?<=description: ).*'
+ldapsearch -H ldap://$DC/ -D "$DOM\$USERNAME" -w '$PASSWORD' -b "" -s base "(objectClass=*)" | grep -v 'supported'
+ldapsearch -H ldap://$DC/ -D "$DOM\$USERNAME" -w '$PASSWORD' -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" "*" | grep 'SAM' -B 4 -A 3
 
 [*] (445) SMB
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
@@ -113,6 +106,13 @@ done
 sudo adduser -u 1002 mntuser
 sudo usermod -u 1003 mntuser
 setpriv --reuid=1002 --regid=1002 --clear-groups -- ls -laR
+
+[*] bloodhound
+nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound -c all
+nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M adcs
+impacket-GetADComputers retro.vl/ -dc-ip 10.10.117.117 -k -no-pass
+bloodhound-python -c all -u '$USERNAME' -p '$PASSWORD' -d "$DOM" -dc "$DC" -ns "$TARGET"
+bloodhound-python -c default -u '$USERNAME' -p '$PASSWORD' -d "$DOM" -dc "$DC" -ns "$TARGET"
 
 # Exploitation
 ## Reverse Shell Listeners
