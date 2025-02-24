@@ -85,6 +85,7 @@ anonymous
 ls -a
 binary
 ascii
+get file.txt -
 
 [*] SMB
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
