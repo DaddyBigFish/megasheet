@@ -65,7 +65,7 @@ wpscan --url http://$TARGET/wordpress --enumerate
 Download source > https://develop.svn.wordpress.org/tags/x.x.x/src/
 
 ## Infrastructure
-[*] LDAP
+[*] (389) LDAP
 (nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET' &)
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M get-desc-users
 ldapsearch -H ldap://"$TARGET" -x -s base namingcontexts
@@ -83,7 +83,7 @@ impacket-GetADComputers retro.vl/ -dc-ip 10.10.117.117 -k -no-pass
 bloodhound-python -c all -u '$USERNAME' -p '$PASSWORD' -d "$DOM" -dc "$DC" -ns "$TARGET"
 bloodhound-python -c default -u '$USERNAME' -p '$PASSWORD' -d "$DOM" -dc "$DC" -ns "$TARGET"
 
-[*] FTP
+[*] (21) FTP
 nxc ftp "$TARGET" --port 21 -u '$USERNAME' -p '$PASSWORD' --ls
 ftp '$USERNAME'@"$TARGET"
 anonymous
@@ -92,7 +92,9 @@ binary
 ascii
 get file.txt -
 
-[*] SMB
+[*] (79) Finger
+
+[*] (445) SMB
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --rid-brute 10000 | grep -oP '(?<=\\)[^ (\n]+(?=.*\(SidTypeUser\))'
 impacket-samrdump "$TARGET"
@@ -100,7 +102,7 @@ impacket-samrdump "$TARGET"
 [*] MySQL
 mysql -h "$TARGET" -u root@localhost -e 'show databases;'
 
-[*] NFS
+[*] (2049) NFS
 for x in $(showmount -e "$TARGET" | awk '{print $1}' | grep -v 'Export')
     do mkdir -p "/dev/shm"/mnt"$x"
     sudo mount -t nfs "$TARGET":"$x" "/dev/shm"/mnt"$x" -o nolock
