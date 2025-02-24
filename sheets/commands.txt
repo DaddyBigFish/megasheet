@@ -93,6 +93,8 @@ ascii
 get file.txt -
 
 [*] (79) Finger
+finger '$USERNAME'@$TARGET
+while read -r user; do finger "$user"@$TARGET; done < usernames
 
 [*] (445) SMB
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
