@@ -121,6 +121,7 @@ impacket-samrdump "$TARGET"
 mysql -h "$TARGET" -u root@localhost -e 'show databases;'
 
 [*] (2049) NFS
+showmount -e $TARGET
 for x in $(showmount -e "$TARGET" | awk '{print $1}' | grep -v 'Export')
     do mkdir -p "/dev/shm"/mnt"$x"
     sudo mount -t nfs "$TARGET":"$x" "/dev/shm"/mnt"$x" -o nolock
