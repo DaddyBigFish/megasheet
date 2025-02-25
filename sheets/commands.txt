@@ -129,6 +129,7 @@ for x in $(showmount -e "$TARGET" | awk '{print $1}' | grep -v 'Export')
 done
 sudo adduser -u 1002 mntuser
 sudo usermod -u 1003 mntuser
+sudo su mntuser
 setpriv --reuid=1002 --regid=1002 --clear-groups -- ls -laR
 
 [*] bloodhound
