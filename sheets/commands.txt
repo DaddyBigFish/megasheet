@@ -98,6 +98,9 @@ telnet --user $USERNAME $TARGET
 finger '$USERNAME'@$TARGET
 while read -r user; do finger "$user"@$TARGET; done < usernames
 
+[*] (161) SNMP
+snmpwalk -v1 -c public $TARGET | grep 'STRING:'
+
 [*] (389) LDAP
 (nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET' &)
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M get-desc-users
