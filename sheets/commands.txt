@@ -27,8 +27,8 @@ ipcalc 172.16.1.73/24     Netmask:   255.255.255.0 = 24
 PORTS=$(cat *_$TARGET.nmap | cut -d '/' -f 1 | sort -u | awk '/^[0-9]/ {printf "%s,", $1}' | sed 's/,$//')
 (sudo nmap -Pn -n -sC "$TARGET" -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'SCRIPTS_$TARGET' &)
 (sudo nmap -Pn -n -A --script=vulners "$TARGET" -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VULNERS_$TARGET' &)
-cat *100*.nmap
 cat *1000*.nmap
+cat *ALL*.nmap
 
 ## enum4linux
 enum4linux $TARGET -u '$USERNAME' -p '$PASSWORD' -A
