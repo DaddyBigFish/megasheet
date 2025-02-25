@@ -1,3 +1,5 @@
+# New Project
+mkdir -p ~/Projects/"$TARGET"; cd ~/Projects/"$TARGET"
 # Discovery
 ## External
 (sudo nmap -Pn -n -sS "$TARGET" -g53 --min-rate 500 --max-rate 1500 -oA 'TCP_1000_$TARGET' &)
