@@ -1,7 +1,9 @@
 # Discovery
 ## External
-(sudo nmap -Pn -n -sS "$TARGET" -p- -D 1.1.1.1 -g53 --min-rate 500 --max-rate 1500 --spoof-mac 6C45C4 -oA 'TCP_$TARGET' &)
-(sudo nmap -Pn -n -sU "$TARGET" -p- -D 1.1.1.1 -g53 --min-rate 500 --max-rate 1500 --spoof-mac 6C45C4 -oA 'UDP_$TARGET' &)
+(sudo nmap -Pn -n -sS "$TARGET" -g53 --min-rate 500 --max-rate 1500 -oA 'TCP_1000_$TARGET' &)
+(sudo nmap -Pn -n -sU "$TARGET" -g53 --min-rate 500 --max-rate 1500 -oA 'UDP_1000_$TARGET' &)
+(sudo nmap -Pn -n -sS "$TARGET" -p- -g53 --min-rate 500 --max-rate 1500 -oA 'TCP_ALL_$TARGET' &)
+(sudo nmap -Pn -n -sS "$TARGET" -p- -g53 --min-rate 500 --max-rate 1500 -oA 'TCP_ALL_$TARGET' &)
 
 ## Internal
 cat /etc/NetworkManager/system-connections/Wired\ connection\ 2.nmconnection 
@@ -15,14 +17,16 @@ sudo systemctl restart NetworkManager.service
 sudo systemctl restart networking.service 
 netdiscover
 ipcalc 172.16.1.73/24     Netmask:   255.255.255.0 = 24
-(sudo nmap -Pn -n -sS "$TARGET" -p- -D 1.1.1.1 -g53 --min-rate 500 --max-rate 1500 --spoof-mac 6C45C4 -oA 'TCP_$TARGET' &)
-(sudo nmap -Pn -n -sU "$TARGET" -p- -D 1.1.1.1 -g53 --min-rate 500 --max-rate 1500 --spoof-mac 6C45C4 -oA 'UDP_$TARGET' &)
+(sudo nmap -Pn -n -sS "$TARGET" -g53 --min-rate 500 --max-rate 1500 -oA 'TCP_1000_$TARGET' &)
+(sudo nmap -Pn -n -sU "$TARGET" -g53 --min-rate 500 --max-rate 1500 -oA 'UDP_1000_$TARGET' &)
+(sudo nmap -Pn -n -sS "$TARGET" -p- -g53 --min-rate 500 --max-rate 1500 -oA 'TCP_ALL_$TARGET' &)
+(sudo nmap -Pn -n -sS "$TARGET" -p- -g53 --min-rate 500 --max-rate 1500 -oA 'TCP_ALL_$TARGET' &)
 
 # Information Gathering
 ## nmap
-PORTS=$(cat *_$TARGET.nmap | cut -d '/' -f 1 | awk '/^[0-9]/ {printf "%s,", $1}' | sed 's/,$//')
-(sudo nmap -Pn -n -sC "$TARGET" -p"$PORTS" -D 1.1.1.1 -g53 --min-rate 500 --max-rate 1500 --spoof-mac 6C45C4 -oA 'SCRIPTS_$TARGET' &)
-(sudo nmap -Pn -n -A --script=vulners "$TARGET" -p"$PORTS" -D 1.1.1.1 -g53 --min-rate 500 --max-rate 1500 --spoof-mac 6C45C4 -oA 'VULNERS_$TARGET' &)
+PORTS=$(cat *_$TARGET.nmap | cut -d '/' -f 1 | sort -u | awk '/^[0-9]/ {printf "%s,", $1}' | sed 's/,$//')
+(sudo nmap -Pn -n -sC "$TARGET" -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'SCRIPTS_$TARGET' &)
+(sudo nmap -Pn -n -A --script=vulners "$TARGET" -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VULNERS_$TARGET' &)
 
 ## enum4linux
 enum4linux $TARGET -u '$USERNAME' -p '$PASSWORD' -A
