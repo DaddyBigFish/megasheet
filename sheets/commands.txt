@@ -320,7 +320,7 @@ ssh-keygen -f sshkey -N ''; cat sshkey.pub
 echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINzZbkLBUl5mk0AW8lPkWRXrupSiydDr8GJauiEAu3Ze' > $TARGET ~/.ssh/authorized_keys
 ssh-add -D
 $USERNAME@$TARGET -i sshkey.pub
-$USERNAME@$TARGET
+nano id_rsa; chmod 600 id_rsa; $USERNAME@$TARGET -i id_rsa -o PubkeyAcceptedAlgorithms=ssh-rsa
 
 [*] (88) Kerberos
 sudo apt install -y heimdal-clients libsasl2-modules-gssapi-heimdal
