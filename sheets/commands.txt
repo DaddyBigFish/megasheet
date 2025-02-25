@@ -102,6 +102,7 @@ finger '$USERNAME'@$TARGET
 while read -r user; do finger "$user"@$TARGET; done < usernames
 
 [*] (161) SNMP
+sudo nmap -sU -p161 --script "snmp* and not snmp-brute" $TARGET
 snmpwalk -v1 -c public $TARGET | grep 'STRING:'
 
 [*] (389) LDAP
