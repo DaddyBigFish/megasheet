@@ -27,7 +27,7 @@ ipcalc 172.16.1.73/24     Netmask:   255.255.255.0 = 24
 
 # Information Gathering
 ## enum4linux
-(enum4linux $TARGET -u '$USERNAME' -p '$PASSWORD' -A > enum4linux_$TARGET $)
+(enum4linux $TARGET -u '$USERNAME' -p '$PASSWORD' -A > enum4linux_$TARGET &)
 cat usernames | sed -n 's/.*\\//p' | cut -d ' ' -f 1
 
 ## nmap
