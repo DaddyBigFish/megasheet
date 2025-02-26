@@ -38,6 +38,7 @@ PORTS=$(cat *_$TARGET.nmap | cut -d '/' -f 1 | sort -u | awk '/^[0-9]/ {printf "
 (sudo nmap -Pn -n -A --script=vulners "$TARGET" -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VULNERS_$TARGET' &)
 cat *1000*.nmap
 cat *ALL*.nmap
+find . -name '*.nmap' -readable -exec echo {} \; -exec cat {} \;
 
 ## hosts
 echo "$TARGET $DOM $DC" | sudo tee -a /etc/hosts
