@@ -19,6 +19,7 @@ sudo nmcli con modify e06de7a8-e79d-3cce-8063-fcaba7c7d6d0 ipv4.method manual
 sudo systemctl restart NetworkManager.service
 sudo systemctl restart networking.service 
 nbtscan 10.129.121.0/24
+nbtscan-unixwiz 10.129.121.0/24 -m -n -w 0 | sort -k2
 netdiscover
 ipcalc 172.16.1.73/24     Netmask:   255.255.255.0 = 24
 (sudo nmap -Pn -n -sS "$TARGET" -g53 --min-rate 500 --max-rate 1500 -oA 'TCP_1000_$TARGET' &)
