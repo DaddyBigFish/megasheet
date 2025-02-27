@@ -197,30 +197,67 @@ document.querySelectorAll('input[type="text"]').forEach(input => {
 
     <script>
     
-        function updateDynamicTargets() {
-			const target = document.getElementById('targetInput').value;
-			const domain = document.getElementById('domainInput').value;
-			const dc = document.getElementById('dcInput').value;
-			const myIp = document.getElementById('myIpInput').value;
-			const username = document.getElementById('usernameInput').value;
-			const password = document.getElementById('passwordInput').value;
-			const hash = document.getElementById('hashInput').value;
-
-		
-	    let KRB5DOM = domain.toUpperCase();
-            let updatedContent = originalContent
-                .replace(/\$TARGET/g, target)
-                .replace(/\$DOM/g, domain)
-                .replace(/\$DC/g, dc)
-                .replace(/\$MYIP/g, myIp)
-                .replace(/\$USERNAME/g, username)
-                .replace(/\$PASSWORD/g, password)
-                .replace(/\$HASH/g, hash)
-		.replace(/\$KRB5DOM/g, KRB5DOM);
-
-            globalSections = parseSections(updatedContent);
-            renderAccordion(globalSections);
+function updateDynamicTargets() {
+    // Store the currently open accordion index
+    let openAccordionIndex = -1;
+    document.querySelectorAll('.accordion-content').forEach((content, index) => {
+        if (content.style.display === 'block') {
+            openAccordionIndex = index;
         }
+    });
+
+    // Store the active tab indices for each tab container
+    const activeTabs = new Map();
+    document.querySelectorAll('.tab-container').forEach((tabContainer, index) => {
+        const activeTab = tabContainer.querySelector('.tab-button.active');
+        if (activeTab) {
+            activeTabs.set(index, [...tabContainer.querySelectorAll('.tab-button')].indexOf(activeTab));
+        }
+    });
+
+    // Update content dynamically
+    const target = document.getElementById('targetInput').value;
+    const domain = document.getElementById('domainInput').value;
+    const dc = document.getElementById('dcInput').value;
+    const myIp = document.getElementById('myIpInput').value;
+    const username = document.getElementById('usernameInput').value;
+    const password = document.getElementById('passwordInput').value;
+    const hash = document.getElementById('hashInput').value;
+
+    let KRB5DOM = domain.toUpperCase();
+    let updatedContent = originalContent
+        .replace(/\$TARGET/g, target)
+        .replace(/\$DOM/g, domain)
+        .replace(/\$DC/g, dc)
+        .replace(/\$MYIP/g, myIp)
+        .replace(/\$USERNAME/g, username)
+        .replace(/\$PASSWORD/g, password)
+        .replace(/\$HASH/g, hash)
+        .replace(/\$KRB5DOM/g, KRB5DOM);
+
+    globalSections = parseSections(updatedContent);
+    renderAccordion(globalSections);
+
+    // Restore the previously open accordion
+    document.querySelectorAll('.accordion-content').forEach((content, index) => {
+        content.style.display = index === openAccordionIndex ? 'block' : 'none';
+    });
+
+    // Restore the active tabs while collapsing inactive ones
+    document.querySelectorAll('.tab-container').forEach((tabContainer, index) => {
+        const tabButtons = tabContainer.querySelectorAll('.tab-button');
+        const tabContents = tabContainer.querySelectorAll('.tab-content');
+
+        tabButtons.forEach((btn, btnIndex) => btn.classList.remove('active'));
+        tabContents.forEach((content, contentIndex) => content.classList.remove('active'));
+
+        if (activeTabs.has(index)) {
+            tabButtons[activeTabs.get(index)].classList.add('active');
+            tabContents[activeTabs.get(index)].classList.add('active');
+        }
+    });
+}
+
 
         const fileInput = document.getElementById('fileInput');
         const accordionContainer = document.getElementById('accordionContainer');
@@ -290,55 +327,59 @@ document.querySelectorAll('input[type="text"]').forEach(input => {
             return subSections;
         }
 
-        function renderAccordion(sections) {
-            accordionContainer.innerHTML = '';
+function renderAccordion(sections) {
+    accordionContainer.innerHTML = '';
 
-            sections.forEach((section, sectionIndex) => {
-                const accordion = document.createElement('div');
-                accordion.classList.add('accordion');
+    sections.forEach((section, sectionIndex) => {
+        const accordion = document.createElement('div');
+        accordion.classList.add('accordion');
 
-                const button = document.createElement('button');
-                button.classList.add('accordion-button');
-                button.textContent = section.header;
+        const button = document.createElement('button');
+        button.classList.add('accordion-button');
+        button.textContent = section.header;
 
-                const contentDiv = document.createElement('div');
-                contentDiv.classList.add('accordion-content');
+        const contentDiv = document.createElement('div');
+        contentDiv.classList.add('accordion-content');
 
-                section.subSections.forEach((subSection, subSectionIndex) => {
-                    const subHeader = document.createElement('h2');
-                    subHeader.textContent = subSection.header;
+        section.subSections.forEach((subSection) => {
+            const subHeader = document.createElement('h2');
+            subHeader.textContent = subSection.header;
 
-                    if (subSection.hasTabs) {
-                        const tabContainer = createTabs(subSection.code.trim());
-                        contentDiv.appendChild(subHeader);
-                        contentDiv.appendChild(tabContainer);
-                    } else {
-                        const codeBlock = document.createElement('code');
-                        codeBlock.textContent = subSection.code.trim();
-                        contentDiv.appendChild(subHeader);
-                        contentDiv.appendChild(codeBlock);
-                    }
-                });
+            if (subSection.hasTabs) {
+                const tabContainer = createTabs(subSection.code.trim());
+                contentDiv.appendChild(subHeader);
+                contentDiv.appendChild(tabContainer);
+            } else {
+                const codeBlock = document.createElement('code');
+                codeBlock.textContent = subSection.code.trim();
+                contentDiv.appendChild(subHeader);
+                contentDiv.appendChild(codeBlock);
+            }
+        });
 
-                // Set accordion open state based on previously stored value
-                if (openAccordions[sectionIndex]) {
-                    contentDiv.style.display = 'block';
-                }
-
-                button.addEventListener('click', function() {
-                    const content = this.nextElementSibling;
-                    const isOpen = content.style.display === 'block';
-
-                    content.style.display = isOpen ? 'none' : 'block';
-                    openAccordions[sectionIndex] = !isOpen; // Store the new state
-                });
-
-                accordion.appendChild(button);
-                accordion.appendChild(contentDiv);
-                accordionContainer.appendChild(accordion);
+        button.addEventListener('click', function() {
+            // Close all accordions first
+            document.querySelectorAll('.accordion-content').forEach(content => {
+                content.style.display = 'none';
             });
-        }
 
+            // Close all tabs by removing active classes
+            document.querySelectorAll('.tab-button').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+
+            // Toggle only the clicked accordion (if it was closed)
+            if (contentDiv.style.display === 'block') {
+                contentDiv.style.display = 'none';
+            } else {
+                contentDiv.style.display = 'block';
+            }
+        });
+
+        accordion.appendChild(button);
+        accordion.appendChild(contentDiv);
+        accordionContainer.appendChild(accordion);
+    });
+}
         function createTabs(content) {
             const tabContainer = document.createElement('div');
             tabContainer.classList.add('tab-container');
