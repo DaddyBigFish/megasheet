@@ -129,9 +129,6 @@ nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --rid-brute 10000 | grep -oP '(?<=\\)[^ (\n]+(?=.*\(SidTypeUser\))'
 impacket-samrdump "$TARGET"
 
-[*] MySQL
-mysql -h "$TARGET" -u root@localhost -e 'show databases;'
-
 [*] (2049) NFS
 showmount -e $TARGET
 for x in $(showmount -e "$TARGET" | awk '{print $1}' | grep -v 'Export')
@@ -143,6 +140,12 @@ sudo adduser -u 1002 mntuser
 sudo usermod -u 1003 mntuser
 sudo su mntuser
 setpriv --reuid=1002 --regid=1002 --clear-groups -- ls -laR
+
+[*] (3306) MySQL
+mysql -h "$TARGET" -u root@localhost -e 'show databases;'
+
+[*] (3389) RDP
+msfconsole -q -x "use auxiliary/scanner/rdp/cve_2019_0708_bluekeep; set RHOSTS $TARGET; run"
 
 [*] bloodhound
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound -c all
