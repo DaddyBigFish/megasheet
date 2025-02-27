@@ -214,66 +214,124 @@ document.querySelectorAll('input[type="text"]').forEach(input => {
 
     <script>
     
-function updateDynamicTargets() {
-    // Store the currently open accordion index
-    let openAccordionIndex = -1;
-    document.querySelectorAll('.accordion-content').forEach((content, index) => {
-        if (content.style.display === 'block') {
-            openAccordionIndex = index;
-        }
+document.addEventListener('DOMContentLoaded', function () {
+    // Save the initial state of the checkboxes
+    const checkboxStates = {};
+    const checkboxes = document.querySelectorAll('.toggle-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkboxStates[checkbox.getAttribute('data-toggle')] = checkbox.checked;
     });
 
-    // Store the active tab indices for each tab container
-    const activeTabs = new Map();
-    document.querySelectorAll('.tab-container').forEach((tabContainer, index) => {
-        const activeTab = tabContainer.querySelector('.tab-button.active');
-        if (activeTab) {
-            activeTabs.set(index, [...tabContainer.querySelectorAll('.tab-button')].indexOf(activeTab));
-        }
-    });
+    // Function to toggle visibility based on checkbox status
+    function toggleVisibility() {
+        const checkboxes = document.querySelectorAll('.toggle-checkbox');
+        checkboxes.forEach(checkbox => {
+            const sectionType = checkbox.getAttribute('data-toggle');
+            const headers = document.querySelectorAll('h2');
+            headers.forEach(header => {
+                if (header.textContent === sectionType) {
+                    const contentDiv = header.nextElementSibling;
+                    if (checkbox.checked) {
+                        header.style.display = 'block';
+                        contentDiv.style.display = 'block';
+                    } else {
+                        header.style.display = 'none';
+                        contentDiv.style.display = 'none';
+                    }
+                }
+            });
+        });
+    }
 
-    // Update content dynamically
-    const target = document.getElementById('targetInput').value;
-    const domain = document.getElementById('domainInput').value;
-    const dc = document.getElementById('dcInput').value;
-    const myIp = document.getElementById('myIpInput').value;
-    const username = document.getElementById('usernameInput').value;
-    const password = document.getElementById('passwordInput').value;
-    const hash = document.getElementById('hashInput').value;
+    // Function to update dynamic targets
+    function updateDynamicTargets() {
+        // Get the current checkbox states
+        const currentCheckboxStates = {};
+        checkboxes.forEach(checkbox => {
+            currentCheckboxStates[checkbox.getAttribute('data-toggle')] = checkbox.checked;
+        });
 
-    let KRB5DOM = domain.toUpperCase();
-    let updatedContent = originalContent
-        .replace(/\$TARGET/g, target)
-        .replace(/\$DOM/g, domain)
-        .replace(/\$DC/g, dc)
-        .replace(/\$MYIP/g, myIp)
-        .replace(/\$USERNAME/g, username)
-        .replace(/\$PASSWORD/g, password)
-        .replace(/\$HASH/g, hash)
-        .replace(/\$KRB5DOM/g, KRB5DOM);
+        // Store the currently open accordion index
+        let openAccordionIndex = -1;
+        document.querySelectorAll('.accordion-content').forEach((content, index) => {
+            if (content.style.display === 'block') {
+                openAccordionIndex = index;
+            }
+        });
 
-    globalSections = parseSections(updatedContent);
-    renderAccordion(globalSections);
+        // Store the active tab indices for each tab container
+        const activeTabs = new Map();
+        document.querySelectorAll('.tab-container').forEach((tabContainer, index) => {
+            const activeTab = tabContainer.querySelector('.tab-button.active');
+            if (activeTab) {
+                activeTabs.set(index, [...tabContainer.querySelectorAll('.tab-button')].indexOf(activeTab));
+            }
+        });
 
-    // Restore the previously open accordion
-    document.querySelectorAll('.accordion-content').forEach((content, index) => {
-        content.style.display = index === openAccordionIndex ? 'block' : 'none';
-    });
+        // Update content dynamically
+        const target = document.getElementById('targetInput').value;
+        const domain = document.getElementById('domainInput').value;
+        const dc = document.getElementById('dcInput').value;
+        const myIp = document.getElementById('myIpInput').value;
+        const username = document.getElementById('usernameInput').value;
+        const password = document.getElementById('passwordInput').value;
+        const hash = document.getElementById('hashInput').value;
 
-    // Restore the active tabs while collapsing inactive ones
-    document.querySelectorAll('.tab-container').forEach((tabContainer, index) => {
-        const tabButtons = tabContainer.querySelectorAll('.tab-button');
-        const tabContents = tabContainer.querySelectorAll('.tab-content');
+        let KRB5DOM = domain.toUpperCase();
+        let updatedContent = originalContent
+            .replace(/\$TARGET/g, target)
+            .replace(/\$DOM/g, domain)
+            .replace(/\$DC/g, dc)
+            .replace(/\$MYIP/g, myIp)
+            .replace(/\$USERNAME/g, username)
+            .replace(/\$PASSWORD/g, password)
+            .replace(/\$HASH/g, hash)
+            .replace(/\$KRB5DOM/g, KRB5DOM);
 
-        tabButtons.forEach((btn, btnIndex) => btn.classList.remove('active'));
-        tabContents.forEach((content, contentIndex) => content.classList.remove('active'));
+        globalSections = parseSections(updatedContent);
+        renderAccordion(globalSections);
 
-        if (activeTabs.has(index)) {
-            tabButtons[activeTabs.get(index)].classList.add('active');
-            tabContents[activeTabs.get(index)].classList.add('active');
-        }
-    });
-}
+        // Restore the previously open accordion
+        document.querySelectorAll('.accordion-content').forEach((content, index) => {
+            content.style.display = index === openAccordionIndex ? 'block' : 'none';
+        });
+
+        // Restore the active tabs while collapsing inactive ones
+        document.querySelectorAll('.tab-container').forEach((tabContainer, index) => {
+            const tabButtons = tabContainer.querySelectorAll('.tab-button');
+            const tabContents = tabContainer.querySelectorAll('.tab-content');
+
+            tabButtons.forEach((btn, btnIndex) => btn.classList.remove('active'));
+            tabContents.forEach((content, contentIndex) => content.classList.remove('active'));
+
+            if (activeTabs.has(index)) {
+                tabButtons[activeTabs.get(index)].classList.add('active');
+                tabContents[activeTabs.get(index)].classList.add('active');
+            }
+        });
+
+        // Restore checkbox states
+        checkboxes.forEach(checkbox => {
+            const sectionType = checkbox.getAttribute('data-toggle');
+            checkbox.checked = currentCheckboxStates[sectionType];
+        });
+
+        // Re-run toggle visibility after content update to ensure the correct sections are shown
+        toggleVisibility();
+    }
+
+    // Attach event listeners to inputs
+    document.getElementById('targetInput').addEventListener('input', updateDynamicTargets);
+    document.getElementById('domainInput').addEventListener('input', updateDynamicTargets);
+    document.getElementById('dcInput').addEventListener('input', updateDynamicTargets);
+    document.getElementById('myIpInput').addEventListener('input', updateDynamicTargets);
+    document.getElementById('usernameInput').addEventListener('input', updateDynamicTargets);
+    document.getElementById('passwordInput').addEventListener('input', updateDynamicTargets);
+    document.getElementById('hashInput').addEventListener('input', updateDynamicTargets);
+
+    // Initial call to set visibility based on default checked state
+    toggleVisibility();
+});
 
 
         const fileInput = document.getElementById('fileInput');
