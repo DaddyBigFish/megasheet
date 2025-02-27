@@ -149,7 +149,17 @@ input[type="text"] {
 #fileInput{
 /* 	    display:none;*/
 	    width: 90px;
-	    } 
+	    }
+.checkbox-container {
+  margin-bottom: 10px;
+}
+
+.checkbox-container label {
+  margin-right: 15px;
+}
+input[type="checkbox"] {
+    accent-color: rgba(255, 0, 0, 0.85);
+}
     </style> 
 </head>
 <body>
@@ -158,6 +168,13 @@ input[type="text"] {
 </svg>
     <h1 style="display: inline-table; position: absolute; padding: 0 0 0 12px;">MegaSheet</h1>
 	<div id="header">
+		<div class="checkbox-container">
+  			<label><input type="checkbox" class="toggle-checkbox" data-toggle="Linux" checked> Linux</label>
+  			<label><input type="checkbox" class="toggle-checkbox" data-toggle="Windows" checked> Windows</label>
+  			<label><input type="checkbox" class="toggle-checkbox" data-toggle="Web" checked> Web</label>
+  			<label><input type="checkbox" class="toggle-checkbox" data-toggle="Infrastructure" checked> Infrastructure</label>
+		</div>
+
 		<label class="input-header" for="targetInput">Target:</label>
 		<input type="text" id="targetInput" placeholder="" />
 		
@@ -462,6 +479,51 @@ function renderAccordion(sections) {
         fetchTxtFiles();
     </script>
 
-    <h5>Version 1.0 by DaddyBigFish</h5>
+<script>
+
+document.addEventListener('DOMContentLoaded', function () {
+  // Function to toggle visibility based on checkbox status
+  function toggleVisibility() {
+    // Get all checkboxes
+    const checkboxes = document.querySelectorAll('.toggle-checkbox');
+
+    checkboxes.forEach(checkbox => {
+      const sectionType = checkbox.getAttribute('data-toggle');
+      
+      // Find all h2 elements
+      const headers = document.querySelectorAll('h2');
+
+      headers.forEach(header => {
+        // Check if the header's text content matches the checkbox
+        if (header.textContent === sectionType) {
+          const contentDiv = header.nextElementSibling;
+
+          // If checkbox is checked, show content
+          if (checkbox.checked) {
+            header.style.display = 'block';
+            contentDiv.style.display = 'block';
+          } else {
+            header.style.display = 'none';
+            contentDiv.style.display = 'none';
+          }
+        }
+      });
+    });
+  }
+
+  // Attach event listeners to checkboxes
+  const checkboxes = document.querySelectorAll('.toggle-checkbox');
+  checkboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', toggleVisibility);
+  });
+
+  // Initial call to set visibility based on default checked state
+  toggleVisibility();
+});
+
+
+</script>
+
+    <h5>Version 2.0 by DaddyBigFish</h5>
 </body>
 </html>
