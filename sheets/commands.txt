@@ -145,7 +145,7 @@ setpriv --reuid=1002 --regid=1002 --clear-groups -- ls -laR
 mysql -h "$TARGET" -u root@localhost -e 'show databases;'
 
 [*] (3389) RDP
-msfconsole -q -x "use auxiliary/scanner/rdp/cve_2019_0708_bluekeep; set RHOSTS $TARGET; run"
+msfconsole -q -x "use auxiliary/scanner/rdp/cve_2019_0708_bluekeep; set RHOSTS $TARGET; run; exit"
 
 [*] bloodhound
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound -c all
