@@ -110,7 +110,11 @@ snmpwalk -v1 -c public $TARGET | grep 'STRING:'
 
 [*] (389) LDAP
 (nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET' &)
+
+nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --dc-list
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M get-desc-users
+nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --query "(SAMAccountType=805306369)" "SAMAccountName"
+
 ldapsearch -H ldap://"$TARGET" -x -s base namingcontexts
 ldapsearch -H ldap://"$TARGET" -x -b "DC=xxxxxx,DC=xxx" "(objectClass=*)"
 ldapsearch -H ldap://"$TARGET" -x -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" | grep -oP '(?<=dn: ).*' | grep -oP '(^[^@]+)'
