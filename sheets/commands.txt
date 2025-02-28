@@ -1,14 +1,8 @@
-# Discovery
+# Setup
 ## New Project
 mkdir -p ~/Projects/"$TARGET"; cd ~/Projects/"$TARGET"
 
-## External
-(sudo nmap -Pn -n -sS "$TARGET" -g53 --min-rate 500 --max-rate 1500 -oA 'TCP_1000_$TARGET' &)
-(sudo nmap -Pn -n -sU "$TARGET" -g53 --min-rate 500 --max-rate 1500 -oA 'UDP_1000_$TARGET' &)
-(sudo nmap -Pn -n -sS "$TARGET" -p- -g53 --min-rate 500 --max-rate 1500 -oA 'TCP_ALL_$TARGET' &)
-(sudo nmap -Pn -n -sU "$TARGET" -p- -g53 --min-rate 500 --max-rate 1500 -oA 'UDP_ALL_$TARGET' &)
-
-## Internal
+## Configuring Adapter
 cat /etc/NetworkManager/system-connections/Wired\ connection\ 2.nmconnection 
 uuid=e06de7a8-e79d-3cce-8063-fcaba7c7d6d0
 ip route
@@ -17,15 +11,20 @@ sudo nmcli con modify e06de7a8-e79d-3cce-8063-fcaba7c7d6d0 ipv4.gateway 172.16.1
 sudo nmcli con modify e06de7a8-e79d-3cce-8063-fcaba7c7d6d0 ipv4.dns "8.8.8.8"
 sudo nmcli con modify e06de7a8-e79d-3cce-8063-fcaba7c7d6d0 ipv4.method manual
 sudo systemctl restart NetworkManager.service
-sudo systemctl restart networking.service 
+sudo systemctl restart networking.service
+
+# Discovery
+## External
+(sudo nmap -Pn -n -sS "$TARGET" -g53 --min-rate 500 --max-rate 1500 -oA 'TCP_1000_$TARGET' &)
+(sudo nmap -Pn -n -sU "$TARGET" -g53 --min-rate 500 --max-rate 1500 -oA 'UDP_1000_$TARGET' &)
+(sudo nmap -Pn -n -sS "$TARGET" -p- -g53 --min-rate 500 --max-rate 1500 -oA 'TCP_ALL_$TARGET' &)
+(sudo nmap -Pn -n -sU "$TARGET" -p- -g53 --min-rate 500 --max-rate 1500 -oA 'UDP_ALL_$TARGET' &)
+
+## Internal
 nbtscan 10.129.121.0/24
 nbtscan-unixwiz 10.129.121.0/24 -m -n -w 0 | sort -k2
 netdiscover
 ipcalc 172.16.1.73/24     Netmask:   255.255.255.0 = 24
-(sudo nmap -Pn -n -sS "$TARGET" -g53 --min-rate 500 --max-rate 1500 -oA 'TCP_1000_$TARGET' &)
-(sudo nmap -Pn -n -sU "$TARGET" -g53 --min-rate 500 --max-rate 1500 -oA 'UDP_1000_$TARGET' &)
-(sudo nmap -Pn -n -sS "$TARGET" -p- -g53 --min-rate 500 --max-rate 1500 -oA 'TCP_ALL_$TARGET' &)
-(sudo nmap -Pn -n -sS "$TARGET" -p- -g53 --min-rate 500 --max-rate 1500 -oA 'TCP_ALL_$TARGET' &)
 
 # Information Gathering
 ## enum4linux
