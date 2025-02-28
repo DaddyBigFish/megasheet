@@ -14,35 +14,33 @@ sudo systemctl restart NetworkManager.service
 sudo systemctl restart networking.service
 
 # Discovery
-## External
+## External Scan
 (sudo nmap -Pn -n -sS "$TARGET" -g53 --min-rate 500 --max-rate 1500 -oA 'TCP_1000_$TARGET' &)
 (sudo nmap -Pn -n -sU "$TARGET" -g53 --min-rate 500 --max-rate 1500 -oA 'UDP_1000_$TARGET' &)
 (sudo nmap -Pn -n -sS "$TARGET" -p- -g53 --min-rate 500 --max-rate 1500 -oA 'TCP_ALL_$TARGET' &)
 (sudo nmap -Pn -n -sU "$TARGET" -p- -g53 --min-rate 500 --max-rate 1500 -oA 'UDP_ALL_$TARGET' &)
 
-## Internal
+## Internal Scan
 nbtscan 10.129.121.0/24
 nbtscan-unixwiz 10.129.121.0/24 -m -n -w 0 | sort -k2
 netdiscover
 ipcalc 172.16.1.73/24     Netmask:   255.255.255.0 = 24
 
 # Information Gathering
+## Service Scan
+PORTS=$(cat *_$TARGET.nmap | cut -d '/' -f 1 | sort -u | awk '/^[0-9]/ {printf "%s,", $1}' | sed 's/,$//')
+(sudo nmap -Pn -n -sC "$TARGET" -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'SCRIPTS_$TARGET' &)
+(sudo nmap -Pn -n -A --script=vulners "$TARGET" -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VULNERS_$TARGET' &)
+cat *.nmap
+
 ## enum4linux
 (enum4linux $TARGET -u '$USERNAME' -p '$PASSWORD' -A > enum4linux_$TARGET &)
 cat usernames | sed -n 's/.*\\//p' | cut -d ' ' -f 1
 
-## nmap
-PORTS=$(cat *_$TARGET.nmap | cut -d '/' -f 1 | sort -u | awk '/^[0-9]/ {printf "%s,", $1}' | sed 's/,$//')
-(sudo nmap -Pn -n -sC "$TARGET" -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'SCRIPTS_$TARGET' &)
-(sudo nmap -Pn -n -A --script=vulners "$TARGET" -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VULNERS_$TARGET' &)
-cat *1000*.nmap
-cat *ALL*.nmap
-find . -name '*.nmap' -readable -exec echo {} \; -exec cat {} \;
-
-## hosts
+## Hosts
 echo "$TARGET $DOM $DC" | sudo tee -a /etc/hosts
 
-## spraying
+## Spraying
 hydra -L usernames -P passwords ftp://$TARGET -t35
 hydra -L usernames -P passwords ssh://$TARGET -t35
 hydra -L usernames -P passwords smb://$TARGET -t35
