@@ -404,10 +404,13 @@ msfconsole -x -q "use auxiliary/admin/mssql/mssql_exec; set RHOSTS $TARGET; set 
 sessions -i 1
 
 [*] (3389) RDP
-xfreerdp /v:'$TARGET' -sec-nla /tls-seclevel:0 /dynamic-resolution +clipboard +drive:Downloads,"$HOME/Downloads/
-xfreerdp /v:'$TARGET' /d:'$DOM' -sec-nla /tls-seclevel:0 /dynamic-resolution +clipboard +drive:Downloads,"$HOME/Downloads/
-xfreerdp /u:'$USERNAME' /p:'$PASSWORD' /v:'$TARGET' -sec-nla /tls-seclevel:0 /dynamic-resolution +clipboard +drive:Downloads,"$HOME/Downloads/
-xfreerdp /u:'$USERNAME' /p:'$PASSWORD' /v:'$TARGET' /d:'$DOM' -sec-nla /tls-seclevel:0 /dynamic-resolution +clipboard +drive:Downloads,"$HOME/Downloads/
+xfreerdp /v:'$TARGET' -sec-nla /tls-seclevel:0 /dynamic-resolution +clipboard +drive:Downloads,"$HOME/Downloads/"
+
+xfreerdp /v:'$TARGET' /d:'$DOM' -sec-nla /tls-seclevel:0 /dynamic-resolution +clipboard +drive:Downloads,"$HOME/Downloads/"
+
+xfreerdp /u:'$USERNAME' /p:'$PASSWORD' /v:'$TARGET' -sec-nla /tls-seclevel:0 /dynamic-resolution +clipboard +drive:Downloads,"$HOME/Downloads/"
+
+xfreerdp /u:'$USERNAME' /p:'$PASSWORD' /v:'$TARGET' /d:'$DOM' -sec-nla /tls-seclevel:0 /dynamic-resolution +clipboard +drive:Downloads,"$HOME/Downloads/"
 
 [*] (5985) WINRM
 evil-winrm -i "$TARGET" -u '$USERNAME' -p '$PASSWORD'
