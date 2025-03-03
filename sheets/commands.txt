@@ -1,6 +1,6 @@
 # Setup
 ## New Project
-mkdir -p ~/Projects/"$TARGET"; cd ~/Projects/"$TARGET"; echo "cd $PWD" >> .zshrc; echo 'administrator\nguest\nkrbtgt\ndomain\nadmins\nroot\nbin\nwww-data\nnone' > usernames; touch passwords; tmux list-windows -F '#{window_id}' | xargs -I {} tmux list-panes -t {} -F '#{pane_id}' | xargs -I {} tmux send-keys -t {} 'clear; source ~/.zshrc' C-m
+mkdir -p ~/Projects/"$TARGET"; cd ~/Projects/"$TARGET"; echo "cd $PWD" >> ~/.zshrc; echo 'administrator\nguest\nkrbtgt\ndomain\nadmins\nroot\nbin\nwww-data\nnone' > usernames; touch passwords; tmux list-windows -F '#{window_id}' | xargs -I {} tmux list-panes -t {} -F '#{pane_id}' | xargs -I {} tmux send-keys -t {} 'source ~/.zshrc; clear' C-m
 
 ## Configuring Adapter
 cat /etc/NetworkManager/system-connections/Wired\ connection\ 2.nmconnection 
