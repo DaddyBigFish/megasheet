@@ -64,7 +64,7 @@ gobuster vhost --append-domain -u $DOM -k -r -t200 -q --exclude-length 282 \
 | grep -oP '(?<=Found: )[^ ]+'
 
 [*] Directory
-dirsearch -u 10.129.120.54
+dirsearch -u $TARGET
 
 ffuf -u http://"$TARGET"/FUZZ -t 800 -rate 20000 \
 -e txt,pdf,conf,config,cnf,html,php,asp,aspx,js \
