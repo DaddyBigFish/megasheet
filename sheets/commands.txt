@@ -3,6 +3,12 @@
 mkdir -p ~/Projects/"$TARGET"; cd ~/Projects/"$TARGET"; echo "cd $PWD" >> ~/.zshrc; echo 'administrator\nguest\nkrbtgt\ndomain\nadmins\nroot\nbin\nwww-data\nnone' > usernames; touch passwords; tmux list-windows -F '#{window_id}' | xargs -I {} tmux list-panes -t {} -F '#{pane_id}' | while read pane_id; do tmux send-keys -t $pane_id 'source ~/.zshrc' C-m; tmux send-keys -t $pane_id C-l; done
 
 ## Configuring Adapter
+vmware
+Edit --> Virtual Network Adapter --> Change Settings
+Add Network --> VMnet10
+Bridged --> Bridged to: Realtek USB GbE Family Controller #2
+Rename Network --> Hard Bridged --> OK
+
 cat /etc/NetworkManager/system-connections/Wired\ connection\ 2.nmconnection 
 uuid=e06de7a8-e79d-3cce-8063-fcaba7c7d6d0
 ip route
