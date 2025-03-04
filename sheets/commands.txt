@@ -4,10 +4,8 @@ mkdir -p ~/Projects/"$TARGET"; cd ~/Projects/"$TARGET"; echo "cd $PWD" >> ~/.zsh
 
 ## Configuring Adapter
 vmware
-Edit --> Virtual Network Adapter --> Change Settings
-Add Network --> VMnet10
-Bridged --> Bridged to: Realtek USB GbE Family Controller #2
-Rename Network --> Hard Bridged --> OK
+Edit --> Virtual Network Adapter --> Change Settings --> Add Network --> VMnet10
+Bridged --> Bridged to: Realtek USB GbE Family Controller #2 --> Rename Network --> Hard Bridged --> OK
 VM --> Settings --> Network Adapter --> Custom: Hard Bridge
 
 cat /etc/NetworkManager/system-connections/Wired\ connection\ 2.nmconnection 
