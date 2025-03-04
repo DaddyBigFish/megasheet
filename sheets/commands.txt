@@ -444,6 +444,7 @@ evil-winrm -i "$TARGET" -u '$USERNAME' -H '$HASH'
 
 # Post-Exploitation 
 ## Fileserver
+mkdir -p ~/Upload/linux; mkdir -p ~/Upload/windows
 python3 -m http.server 80 -d ~/Upload
 
 ## Linux
