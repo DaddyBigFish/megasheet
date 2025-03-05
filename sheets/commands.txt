@@ -592,6 +592,12 @@ run post/multi/manage/autoroute
 run post/multi/manage/autoroute ACTION=delete
 run auxiliary/scanner/netbios/nbname RHOSTS=10.10.10.0/24
 
+
+run auxiliary/server/socks_proxy SRVPORT=9050
+cp /etc/proxychains.conf /etc/proxychains.conf.backup
+echo "socks5 127.0.0.1 9050" > /etc/proxychains.conf
+proxychains nmap 10.10.2.10,20,200
+
 portfwd add -l 445 -r 10.10.10.1 -p 445
 portfwd list
 portfwd flush
