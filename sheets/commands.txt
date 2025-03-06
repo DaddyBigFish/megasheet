@@ -21,6 +21,9 @@ sudo systemctl restart networking.service
 sudo ifconfig tun0 down
 sudo ip link delete tun0
 
+## Extra commands
+wget -r -np -k https://<username>.github.io
+
 # Discovery
 ## External Scan
 (sudo nmap -Pn -n -sS "$TARGET" -g53 --min-rate 500 --max-rate 1500 -oA 'TCP_1000_$TARGET' &)
