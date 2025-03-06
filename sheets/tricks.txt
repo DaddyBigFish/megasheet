@@ -1,0 +1,3 @@
+# Useful Tricks
+## Download Website as Local Copy
+wget -r -np -k https://<username>.github.io
