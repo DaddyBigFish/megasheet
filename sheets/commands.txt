@@ -1,6 +1,6 @@
 # Setup
 ## New Project
-mkdir -p ~/Projects/"$TARGET"; cd ~/Projects/"$TARGET"; echo "cd $PWD" >> ~/.zshrc; echo 'administrator\nguest\nkrbtgt\ndomain\nadmins\nroot\nbin\nwww-data\nnone' > usernames; touch passwords; tmux list-windows -F '#{window_id}' | xargs -I {} tmux list-panes -t {} -F '#{pane_id}' | while read pane_id; do tmux send-keys -t $pane_id 'source ~/.zshrc' C-m; tmux send-keys -t $pane_id C-l; done
+mkdir -p ~/Projects/"$TARGET"; cd ~/Projects/"$TARGET"; echo "cd $PWD" >> ~/.zshrc; echo ' \nadministrator\nguest\nkrbtgt\ndomain\nadmins\nroot\nbin\nwww-data\nnone' > usernames; touch passwords; tmux list-windows -F '#{window_id}' | xargs -I {} tmux list-panes -t {} -F '#{pane_id}' | while read pane_id; do tmux send-keys -t $pane_id 'source ~/.zshrc' C-m; tmux send-keys -t $pane_id C-l; done
 
 ## Configuring Adapter
 vmware
@@ -24,10 +24,10 @@ sudo ip link delete tun0
 
 # Discovery
 ## External Scan
-(sudo nmap -Pn -n -sS "$TARGET" -g53 --min-rate 500 --max-rate 1500 -oA 'TCP_1000_$TARGET' &)
-(sudo nmap -Pn -n -sU "$TARGET" -g53 --min-rate 500 --max-rate 1500 -oA 'UDP_1000_$TARGET' &)
-(sudo nmap -Pn -n -sS "$TARGET" -p- -g53 --min-rate 500 --max-rate 1500 -oA 'TCP_ALL_$TARGET' &)
-(sudo nmap -Pn -n -sU "$TARGET" -p- -g53 --min-rate 500 --max-rate 1500 -oA 'UDP_ALL_$TARGET' &)
+(sudo nmap -Pn -n -sS "$TARGET" --open -g53 --min-rate 500 --max-rate 1500 -oA 'TCP_1000_$TARGET' &)
+(sudo nmap -Pn -n -sU "$TARGET" --open -g53 --min-rate 500 --max-rate 1500 -oA 'UDP_1000_$TARGET' &)
+(sudo nmap -Pn -n -sS "$TARGET" --open -p- -g53 --min-rate 500 --max-rate 1500 -oA 'TCP_ALL_$TARGET' &)
+(sudo nmap -Pn -n -sU "$TARGET" --open -p- -g53 --min-rate 500 --max-rate 1500 -oA 'UDP_ALL_$TARGET' &)
 
 ## Internal Scan
 nbtscan 10.129.121.0/24
@@ -38,8 +38,13 @@ ipcalc 172.16.1.73/24     Netmask:   255.255.255.0 = 24
 # Information Gathering
 ## Service Scan
 PORTS=$(cat *_$TARGET.nmap | cut -d '/' -f 1 | sort -u | awk '/^[0-9]/ {printf "%s,", $1}' | sed 's/,$//')
+
 (sudo nmap -Pn -n -sC "$TARGET" -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'SCRIPTS_$TARGET' &)
+
+(sudo nmap -Pn -n --script=vuln "$TARGET" -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VULN_$TARGET' &)
+
 (sudo nmap -Pn -n -A --script=vulners "$TARGET" -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VULNERS_$TARGET' &)
+
 cat *.nmap
 
 ## enum4linux
