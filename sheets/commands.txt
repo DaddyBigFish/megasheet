@@ -21,8 +21,12 @@ sudo systemctl restart networking.service
 sudo ifconfig tun0 down
 sudo ip link delete tun0
 
-
 # Discovery
+## Nessus
+systemctl status nessusd
+systemctl start nessusd
+chromium "https://localhost:8834"
+
 ## External Scan
 (sudo nmap -Pn -n -sS "$TARGET" --open -g53 --min-rate 500 --max-rate 1500 -oA 'TCP_1000_$TARGET' &)
 (sudo nmap -Pn -n -sU "$TARGET" --open -g53 --min-rate 500 --max-rate 1500 -oA 'UDP_1000_$TARGET' &)
