@@ -60,8 +60,8 @@ cat usernames | sed -n 's/.*\\//p' | cut -d ' ' -f 1
 echo "$TARGET $DOM $DC" | sudo tee -a /etc/hosts
 
 ## bloodhound
-neo4j console
-http://localhost:7474
+sudo neo4j start
+chromium "http://localhost:7474"
 neo4j:bloodhound
 
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound -c all
