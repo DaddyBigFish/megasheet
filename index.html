@@ -190,11 +190,7 @@ input[type="checkbox"] {
 		
         <label for="usernameInput">Username:</label>
         <input type="text" id="usernameInput" placeholder="" />
-	<script>
-  		window.onload = function() {
-			document.getElementById("usernameInput").value = "anonymous";
-		};
-	</script>        
+      
         <label for="passwordInput">Password:</label>
         <input type="text" id="passwordInput" placeholder="" />
         
@@ -524,8 +520,9 @@ function renderAccordion(sections) {
                     option.textContent = file.name;
                     dropdown.appendChild(option);
                 });
+		document.getElementById("usernameInput").value = "anonymous";
         }
-
+	 
         document.getElementById("fileDropdown").addEventListener("change", async function() {
             const fileName = this.value;
             if (!fileName) return;
@@ -538,7 +535,7 @@ function renderAccordion(sections) {
             globalSections = parseSections(content);
             renderAccordion(globalSections);
         });
-
+	 
         fetchTxtFiles();
     </script>
 
