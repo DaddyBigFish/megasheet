@@ -384,10 +384,6 @@ godap $TARGET -u '$USERNAME' -p '$PASSWORD'
 
 [*] (445) SMB
 hydra smb2://$TARGET -L usernames -e ns -t35 
-nxc smb "$TARGET" -u 'anonymous' -p '' --shares
-nxc smb "$TARGET" -u 'anonymous' -p '' --rid-brute 10000 | grep -oP '(?<=\\)[^ (\n]+(?=.*\(SidTypeUser\))' | tee -a usernames
-
-
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --rid-brute 10000 | grep -oP '(?<=\\)[^ (\n]+(?=.*\(SidTypeUser\))' | tee -a usernames
 
