@@ -383,9 +383,12 @@ nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --query "(SA
 godap $TARGET -u '$USERNAME' -p '$PASSWORD'
 
 [*] (445) SMB
-hydra smb2://$TARGET -L usernames -e ns -t35 
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --rid-brute 10000 | grep -oP '(?<=\\)[^ (\n]+(?=.*\(SidTypeUser\))' | tee -a usernames
+
+hydra smb2://$TARGET -L usernames -e ns -t35
+
+impacket-smbclient /'$USERNAME':'$PASSWORD'@$TARGET
 
 smbmap -H $TARGET -u '$USERNAME' -p '$PASSWORD' | grep -vE 'Authenticating|Enumerating|Closing|Checking|Detected' | awk '/Disk/{f=1;next} f {print $1" "$2" "$3}' | sed '1d' | awk '{print "use " $1 "\n"$2 $3"\ntree\n\n"}' > SMBcommands ; impacket-smbclient /'$USERNAME':'$PASSWORD'@$TARGET -inputfile SMBcommands | grep -vE '[-]|# tree|\*\*\*' | sed 's/^[ \t]*//' | tee SMBfiles
 
