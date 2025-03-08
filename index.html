@@ -520,7 +520,6 @@ function renderAccordion(sections) {
                     option.textContent = file.name;
                     dropdown.appendChild(option);
                 });
-		document.getElementById("usernameInput").value = "anonymous";
         }
 	 
         document.getElementById("fileDropdown").addEventListener("change", async function() {
@@ -534,6 +533,7 @@ function renderAccordion(sections) {
             originalContent = content;
             globalSections = parseSections(content);
             renderAccordion(globalSections);
+	    document.getElementById("usernameInput").value = "anonymous";
         });
 	 
         fetchTxtFiles();
