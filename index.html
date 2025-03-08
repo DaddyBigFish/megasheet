@@ -189,8 +189,12 @@ input[type="checkbox"] {
 		<input type="text" id="myIpInput" placeholder="" />
 		
         <label for="usernameInput">Username:</label>
-        <input type="text" id="usernameInput" placeholder="" value="anonymous" />
-        
+        <input type="text" id="usernameInput" placeholder="" />
+	<script>
+  		window.onload = function() {
+			document.getElementById("usernameInput").value = "anonymous";
+		};
+	</script>        
         <label for="passwordInput">Password:</label>
         <input type="text" id="passwordInput" placeholder="" />
         
