@@ -441,15 +441,9 @@ mysql -h "$TARGET" -u root@localhost -e 'show databases;'
 [*] (3389) RDP
 hydra rdp://$TARGET -L usernames -P passwords -t35
 
-msfconsole -q -x "use auxiliary/scanner/rdp/cve_2019_0708_bluekeep; set RHOSTS $TARGET; run; exit"
+xfreerdp /v:'$TARGET' /d:'$DOM' -sec-nla /tls-seclevel:0 /dynamic-resolution +clipboard +drive:Downloads,"$HOME/Upload/"
 
-xfreerdp /v:'$TARGET' -sec-nla /tls-seclevel:0 /dynamic-resolution +clipboard +drive:Downloads,"$HOME/Downloads/"
-
-xfreerdp /v:'$TARGET' /d:'$DOM' -sec-nla /tls-seclevel:0 /dynamic-resolution +clipboard +drive:Downloads,"$HOME/Downloads/"
-
-xfreerdp /u:'$USERNAME' /p:'$PASSWORD' /v:'$TARGET' -sec-nla /tls-seclevel:0 /dynamic-resolution +clipboard +drive:Downloads,"$HOME/Downloads/"
-
-xfreerdp /u:'$USERNAME' /p:'$PASSWORD' /v:'$TARGET' /d:'$DOM' -sec-nla /tls-seclevel:0 /dynamic-resolution +clipboard +drive:Downloads,"$HOME/Downloads/"
+xfreerdp /u:'$USERNAME' /p:'$PASSWORD' /v:'$TARGET' /d:'$DOM' -sec-nla /tls-seclevel:0 /dynamic-resolution +clipboard +drive:Downloads,"$HOME/Upload/"
 
 [*] (5985) WINRM
 evil-winrm -i "$TARGET" -u '$USERNAME' -p '$PASSWORD'
