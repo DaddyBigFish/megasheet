@@ -309,6 +309,9 @@ hydra telnet://$TARGET  -L usernames -P passwords -t35
 
 telnet --user $USERNAME $TARGET
 
+[*] (53) DNS
+dig axfr @$TARGET $DOM
+
 [*] (79) Finger
 finger '$USERNAME'@$TARGET
 while read -r user; do finger "$user"@$TARGET; done < usernames
