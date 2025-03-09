@@ -378,11 +378,11 @@ snmpwalk -v2c -c COMMUNITY $TARGET | grep 'STRING:'
 [*] (389) LDAP
 (nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET' &)
 
+godap $TARGET -u '$USERNAME' -p '$PASSWORD' -d '$DOM'
+
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --dc-list
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M get-desc-users
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --query "(SAMAccountType=805306369)" "SAMAccountName"
-
-godap $TARGET -u '$USERNAME' -p '$PASSWORD'
 
 [*] (445) SMB
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
