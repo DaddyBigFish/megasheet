@@ -59,16 +59,6 @@ cat usernames | sed -n 's/.*\\//p' | cut -d ' ' -f 1
 ## Hosts
 echo "$TARGET $DOM $DC" | sudo tee -a /etc/hosts
 
-## bloodhound
-nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound -c all
-bloodhound-python -c all -u '$USERNAME' -p '$PASSWORD' -d "$DOM" -dc "$DC" -ns "$TARGET"
-
-sudo neo4j start
-chromium "http://localhost:7474"
-neo4j:bloodhound
-
-MATCH (u:User) RETURN u
-
 ## Web
 [*] Technology
 whatweb http://$TARGET
@@ -377,12 +367,17 @@ snmpwalk -v2c -c COMMUNITY $TARGET | grep 'STRING:'
 
 [*] (389) LDAP
 (nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET' &)
+nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M get-desc-users
+nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --dc-list --query "(SAMAccountType=805306369)" "SAMAccountName"
+nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound -c all
+
+sudo neo4j start
+chromium "http://localhost:7474"
+bloodhound
+neo4j:bloodhound
+MATCH (u:User) RETURN u
 
 godap $TARGET -u '$USERNAME' -p '$PASSWORD' -d '$DOM'
-
-nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --dc-list
-nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M get-desc-users
-nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --query "(SAMAccountType=805306369)" "SAMAccountName"
 
 [*] (445) SMB
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
