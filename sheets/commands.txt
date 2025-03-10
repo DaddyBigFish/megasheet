@@ -49,8 +49,6 @@ PORTS=$(cat *_$TARGET.nmap | cut -d '/' -f 1 | sort -u | awk '/^[0-9]/ {printf "
 
 (sudo nmap -Pn -n --script=vuln "$TARGET" -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VULN_$TARGET' &)
 
-(sudo nmap -Pn -n -A --script=vulners "$TARGET" -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VULNERS_$TARGET' &)
-
 cat *.nmap
 
 ## enum4linux
@@ -592,6 +590,7 @@ nano hashes; cat hashes | awk '{$1=$1}1' | tr -d '\n' | tee hashes; john hashes 
 [*] Meterpreter
 run post/multi/manage/autoroute
 run auxiliary/server/socks_proxy SRVHOST=127.0.0.1 SRVPORT=9050 VERSION=4a
+run auxiliary/scanner/netbios/nbname RHOSTS=10.10.10.0/24
 
 route
 run post/multi/manage/autoroute ACTION=delete
