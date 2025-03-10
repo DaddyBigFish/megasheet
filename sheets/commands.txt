@@ -8,7 +8,7 @@ Edit ➜ Virtual Network Adapter ➜ Change Settings ➜ Add Network ➜ VMnet10
 Bridged ➜ Bridged to: Realtek USB GbE Family Controller #2 ➜ Rename Network ➜ Hard Bridged ➜ OK
 VM ➜ Settings ➜ Network Adapter ➜ Custom: Hard Bridge
 
-cat /etc/NetworkManager/system-connections/Wired\ connection\ 2.nmconnection 
+sudo nmcli connection show
 uuid=e06de7a8-e79d-3cce-8063-fcaba7c7d6d0
 ip route
 sudo nmcli con modify e06de7a8-e79d-3cce-8063-fcaba7c7d6d0 ipv4.addresses 172.16.1.201/24
