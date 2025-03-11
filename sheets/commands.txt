@@ -508,6 +508,15 @@ Get-ScheduledTask | Where-Object {($_.Author -notmatch "Microsoft")} | Select-Ob
 icacls C:\Windows\System32\Config
 whoami /priv
 cd C:\users; tree /f
+
+Get-WmiObject -Class Win32_ComputerSystem | Select-Object Domain
+Get-ADComputer -Filter * | Select-Object Name
+systeminfo | Select-String "Domain"
+net view
+net group "Domain Computers" /domain
+net view /domain
+net user /domain
+
 wmic useraccount get name,sid
 powershell -c "Set-ExecutionPolicy unrestricted"
 services.msc
