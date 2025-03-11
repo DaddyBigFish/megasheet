@@ -45,9 +45,8 @@ ipcalc 172.16.1.73/24     Netmask:   255.255.255.0 = 24
 ## Service Scan
 PORTS=$(cat *_$TARGET.nmap | cut -d '/' -f 1 | sort -u | awk '/^[0-9]/ {printf "%s,", $1}' | sed 's/,$//')
 
-(sudo nmap -Pn -n -sC "$TARGET" -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'SCRIPTS_$TARGET' &)
-
-(sudo nmap -Pn -n --script=vuln "$TARGET" -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VULN_$TARGET' &)
+(sudo nmap -Pn -n -sC "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'SCRIPTS_$TARGET' &)
+(sudo nmap -Pn -n --script=vuln "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VULN_$TARGET' &)
 
 cat *.nmap
 
