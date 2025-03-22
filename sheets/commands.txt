@@ -348,6 +348,11 @@ TGT=$(impacket-getTGT $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET | grep -oP '(?
 
 ST='cifs/$DC'; F=$(impacket-getST $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET -spn $ST | grep -oP '(?<=\[\*\] Saving ticket in ).*'); echo "[*] Saving ticket in $F"; export KRB5CCNAME="$F"; chmod 0600 "$F"; echo '$PASSWORD' > kpassfile; kinit --password-file='kpassfile' -c "$KRB5CCNAME" '$USERNAME@$KRB5DOM'; klist
 
+## Ticket Attacks
+
+## Silver Ticket
+
+
 [*] (161) SNMP
 (onesixtyone $TARGET -c /usr/share/wordlists/seclists/Discovery/SNMP/snmp.txt -w 5 -o SNMPsmall.onesixtyone &)
 (onesixtyone $TARGET -c /usr/share/wordlists/seclists/Usernames/xato-net-10-million-usernames.txt -w 5 -o SNMPhuge.onesixtyone &)
