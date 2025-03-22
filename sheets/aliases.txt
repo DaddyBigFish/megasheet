@@ -1,0 +1,3 @@
+2ntlm() {
+    tr -d '\n' | iconv -t UTF-16LE | openssl dgst -md4 | cut -d ' ' -f 2 | sed 's/.*/\U&/'
+}
