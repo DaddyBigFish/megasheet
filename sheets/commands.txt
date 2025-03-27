@@ -459,6 +459,10 @@ for x in $(showmount -e "$TARGET" | awk '{print $1}' | grep -v 'Export')
     sudo mount -t nfs "$TARGET":"$x" "/dev/shm"/mnt"$x" -o nolock
     tree -puga "/dev/shm"/mnt"$x"
 done
+
+sudo open file.txt
+sudo open file.png
+
 sudo adduser -u 1002 mntuser
 sudo usermod -u 1003 mntuser
 sudo su mntuser
