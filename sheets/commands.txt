@@ -384,6 +384,10 @@ snmpwalk -v2c -c COMMUNITY $TARGET | grep 'STRING:'
 
 [*] (389) LDAP
 nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET'
+
+nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords --continue-on-success
+nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords --continue-on-success -k
+
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M get-desc-users
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --get-sid
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --query "(servicePrincipalName=*)" "cn sAMAccountName servicePrincipalName"
