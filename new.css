@@ -11,7 +11,9 @@ This is the css to style any <b>
 b {
     margin-bottom: -30px;
     display: flex;
-    margin-top: 10px;
+    margin-top: 3px;
     color: #ff0000;
     font-weight: bolder;
+    font-size: x-small;
+    font-family: Arial, sans-serif;
 }
