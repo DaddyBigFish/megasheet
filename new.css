@@ -1,0 +1,17 @@
+To create a new tag like '[.]' that will create make a break in the code block to make a header with <b></b> tags
+
+[.] Title
+
+this will create a </code> to complete the break in the code block up to now, then it will add the <b>Title</b> tags and open a sincle <code> tag since the other </code> was already been created.
+
+So it will be like:
+</code><b>Title</b><code>
+
+This is the css to style any <b>
+b {
+    margin-bottom: -30px;
+    display: flex;
+    margin-top: 10px;
+    color: #ff0000;
+    font-weight: bolder;
+}
