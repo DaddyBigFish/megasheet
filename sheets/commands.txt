@@ -186,6 +186,24 @@ username=target';-- # &password1=test&password2=test
 logname=;cat /etc/passwd > log.txt
 &amp;id
 
+[*] Content Types
+application/x-httpd-php
+application/json
+application/javascript
+application/xml
+application/x-www-form-urlencoded
+application/pdf
+application/zip
+application/x-tar
+application/x-gzip
+multipart/form-data
+image/jpeg
+image/png
+image/gif
+text/html
+text/plain
+text/css
+
 [*] HTTP Methods
 GET
 HEAD
