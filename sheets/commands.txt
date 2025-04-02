@@ -606,7 +606,7 @@ reset
 powershell -c "Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher"
 Get-ScheduledTask | Where-Object {($_.Author -notmatch "Microsoft")} | Select-Object TaskName, TaskPath, State, Author
 dir C:\inetpub\wwwroot
-
+dir C:\xampp
 icacls C:\Windows\System32\Config
 whoami /priv
 cd C:\users; tree /f
