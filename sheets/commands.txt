@@ -631,6 +631,8 @@ load priv
 getuid
 getprivs
 sysinfo
+ps
+migrate
 execute -H -i -f powershell.exe -a "-Command Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher"
 
 arp
