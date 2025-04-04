@@ -361,7 +361,7 @@ sendemail \
         -o tls=no \
         -u "Subject: Important Document" \
         -m "This is the document you asked for. Thanks again" \
-        -a /home/consultant/.msf4/local/msf.odt
+        -a "$HOME/.msf4/local/msf.odt"
 
 [*] (53) DNS
 dig axfr @$TARGET $DOM
