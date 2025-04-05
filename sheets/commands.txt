@@ -363,7 +363,7 @@ hashcat -m 13721 FILENAME.hc mutated.list
 9600	MS Office 2013
 
 [*] (21) FTP
-wget -P ftp ftp://$TARGET -m --ftp-user='$USERNAME' --ftp-password='$PASSWORD' -q --no-parent --cut-dirs=1 --no-directories
+wget ftp://$TARGET --ftp-user='$USERNAME' --ftp-password='$PASSWORD' -m -q --no-parent --cut-dirs=1 --no-directories -P ftp
 
 hydra -L usernames -P passwords ftp://$TARGET -t35
 nxc ftp "$TARGET" -u '$USERNAME' -p '$PASSWORD' --ls
