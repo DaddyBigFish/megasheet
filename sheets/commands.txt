@@ -428,8 +428,6 @@ certipy-ad req -dc-ip $TARGET -target $DC -u '$USERNAME' -p '$PASSWORD' -ca '$CA
 
 [*] (88) Kerberos
 +---------- .Ccache ----------+
-
-+---------- .Ccache ----------+
 export KRB5CCNAME="$PWD/Guest.ccache"; chmod 0600 "$KRB5CCNAME"
 impacket-describeTicket Guest.ccache | grep 'Ticket Session Key' | cut -d ':' -f 2 | xargs
 
