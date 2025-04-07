@@ -677,6 +677,8 @@ reset
 [*] Privilege Escalation
 Get-ScheduledTask | Where-Object {($_.Author -notmatch "Microsoft") -and ($_.TaskPath -notmatch "Microsoft")} | Select-Object TaskName, TaskPath, State, Author
 powershell -c "Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher"
+$task = Get-ScheduledTask -TaskName "Ownership"; $task.Actions; $task.Triggers; $task.Settings; $task | Format-List *
+
 dir C:\inetpub\wwwroot
 dir C:\xampp
 icacls C:\Windows\System32\Config
