@@ -591,7 +591,7 @@ sessions -i 1
 [*] (2049) NFS
 showmount -e $TARGET
 
-mkdir nfs mnt
+mkdir nfs mnt 2>/dev/null
 for x in $(showmount -e "$TARGET" | awk '{print $1}' | grep -v 'Export' | cut -d '/' -f 2)
     do echo "Mounting: $x"
     sudo mount -t nfs "$TARGET":"/$x" "./mnt" -o nolock
@@ -600,6 +600,7 @@ for x in $(showmount -e "$TARGET" | awk '{print $1}' | grep -v 'Export' | cut -d
     echo "Unmounting: $x"
     sudo umount --lazy "./mnt"
 done
+rm -rf "./mnt"
 tree -puga "./nfs"
 
 sudo open file.txt
