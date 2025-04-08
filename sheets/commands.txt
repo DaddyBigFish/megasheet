@@ -590,15 +590,17 @@ sessions -i 1
 
 [*] (2049) NFS
 showmount -e $TARGET
+
+mkdir nfs mnt
 for x in $(showmount -e "$TARGET" | awk '{print $1}' | grep -v 'Export' | cut -d '/' -f 2)
     do echo "Mounting: $x"
-    sudo mount -t nfs "$TARGET":"/$x" "/mnt" -o nolock
+    sudo mount -t nfs "$TARGET":"/$x" "./mnt" -o nolock
     echo "Copying: $x"
-    sudo cp -r /mnt .
-    tree -puga "./mnt/$x"
+    sudo cp -r "./mnt/$x" "./nfs"
     echo "Unmounting: $x"
-    sudo umount --lazy "/mnt"
+    sudo umount --lazy "./mnt"
 done
+tree -puga "./nfs"
 
 sudo open file.txt
 sudo open file.png
