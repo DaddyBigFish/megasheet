@@ -93,7 +93,7 @@ Download source > https://develop.svn.wordpress.org/tags/x.x.x/src/
 echo "$TARGET $DOM $DC" | sudo tee -a /etc/hosts
 
 ## Scans
-HOST=213; mousepad TCP_ALL*.$HOST.nmap UDP_ALL*.$HOST.nmap SCRIPTS*.$HOST.nmap VULN*.$HOST.nmap
+HOST=10.7; mousepad TCP_ALL_*"$HOST".nmap UDP_ALL_*"$HOST".nmap SCRIPTS_*"$HOST".nmap VULN_*"$HOST".nmap
 cat *.nmap
 
 ## Sorting Files
