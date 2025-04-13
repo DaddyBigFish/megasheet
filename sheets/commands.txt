@@ -94,7 +94,6 @@ echo "$TARGET $DOM $DC" | sudo tee -a /etc/hosts
 
 ## Scans
 HOST=$TARGET; mousepad TCP_ALL_*"$HOST".nmap UDP_ALL_*"$HOST".nmap SCRIPTS_*"$HOST".nmap VULN_*"$HOST".nmap
-cat *.nmap
 
 ## Sorting Files
 sort -u usernames | tee usernames
