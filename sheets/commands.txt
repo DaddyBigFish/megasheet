@@ -45,10 +45,11 @@ ipcalc 172.16.1.73/24     Netmask:   255.255.255.0 = 24
 ## Set Ports List
 PORTS=$(cat *_$TARGET.nmap | cut -d '/' -f 1 | sort -nu | awk '/^[0-9]/ {printf "%s,", $1}' | sed 's/,$//'); echo $PORTS
 
-## Version, Banner, Script and Vuln Scan
-(sudo nmap -Pn -n -sV --script=banner "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VERSIONS_$TARGET' &)
+## Script, Vuln and Version Scan
 (sudo nmap -Pn -n -sC "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'SCRIPTS_$TARGET' &)
 (sudo nmap -Pn -n --script=vuln "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VULN_$TARGET' &)
+(sudo nmap -Pn -n -sV "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VERSIONS_$TARGET' &)
+
 
 ## enum4linux
 (enum4linux $TARGET -u '$USERNAME' -p '$PASSWORD' -A > enum4linux_$TARGET &)
@@ -95,7 +96,7 @@ Download source > https://develop.svn.wordpress.org/tags/x.x.x/src/
 echo "$TARGET $DOM $DC" | sudo tee -a /etc/hosts
 
 ## Scans
-HOST=$TARGET; mousepad TCP_ALL_*"$HOST".nmap UDP_ALL_*"$HOST".nmap VERSIONS_*"$HOST".nmap SCRIPTS_*"$HOST".nmap VULN_*"$HOST".nmap
+HOST=$TARGET; mousepad TCP_ALL_*"$HOST".nmap UDP_ALL_*"$HOST".nmap SCRIPTS_*"$HOST".nmap VULN_*"$HOST".nmap VERSIONS_*"$HOST".nmap
 
 ## Sorting Files
 sort -u usernames | tee usernames
