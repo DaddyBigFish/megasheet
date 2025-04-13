@@ -577,7 +577,7 @@ nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --rid-brute 10000 | grep -oP '(?
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --groups | grep 'membercount' | cut -d':' -f1 | sed 's/^[^ ]* *[^ ]* *[^ ]* *[^ ]* *//' | sed 's/ *membercount.*//' >> groups
 
-NXCSPIDER=$(nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' -M spider_plus | grep -oP '(?<=Saved share-file metadata to ")[^"]+');cat $NXCSPIDER | grep -vE 'epoch|size' | sed -E 's/[{}\",:]//g' | sed '/^        $/d'
+NXCSPIDER=$(nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' -M spider_plus | grep -oP '(?<=Saved share-file metadata to ")[^"]+');cat $NXCSPIDER | grep -vE 'epoch|size' | sed -E 's/[{}\",:]//g' | sed '/^        $/d' | tee smbfiles_$USERNAME
 mkdir smb; smbclient //$TARGET/SHARE -N -D . -c 'lcd smb; recurse; prompt; mget *'
 mkdir smb; smbclient //$TARGET/SHARE -U '$USERNAME'%'$PASSWORD' -D . -c 'lcd smb; recurse; prompt; mget *'
 
