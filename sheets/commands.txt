@@ -638,8 +638,8 @@ mysql -h "$TARGET" -u root --skip-ssl -p -e "SELECT @@version, @@hostname, user(
 mysql -h "$TARGET" -u root --skip-ssl -p -e "SELECT LOAD_FILE('/etc/passwd')\G;"
 
 [*] (3389) RDP
-xfreerdp /v:'$TARGET' /d:'$DOM' -sec-nla /tls-seclevel:0 /dynamic-resolution +clipboard +drive:Downloads,"$HOME/Upload/"
-xfreerdp /u:'$USERNAME' /p:'$PASSWORD' /v:'$TARGET' /d:'$DOM' -sec-nla /tls-seclevel:0 /dynamic-resolution +clipboard +drive:Downloads,"$HOME/Upload/"
+xfreerdp3 /v:'$TARGET' /d:'$DOM' -sec-nla /tls-seclevel:0 /dynamic-resolution +clipboard +drive:Downloads,"$HOME/Upload/"
+xfreerdp3 /u:'$USERNAME' /p:'$PASSWORD' /v:'$TARGET' /d:'$DOM' -sec-nla /tls-seclevel:0 /dynamic-resolution +clipboard +drive:Downloads,"$HOME/Upload/"
 
 [*] (5985) WINRM
 evil-winrm -i "$TARGET" -u '$USERNAME' -p '$PASSWORD'
