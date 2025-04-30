@@ -59,7 +59,7 @@ echo '$TARGET' > pc-hosts
 echo "$TARGET $DOM $DC" | sudo tee -a /etc/hosts
 
 ## Open nmap scans
-HOST=$TARGET; mousepad TCP_ALL_*"$HOST".nmap UDP_ALL_*"$HOST".nmap SCRIPTS_*"$HOST".nmap VULN_*"$HOST".nmap VERSIONS_*"$HOST".nmap
+HOST=$TARGET; open TCP_ALL_*"$HOST".nmap; open UDP_ALL_*"$HOST".nmap; open SCRIPTS_*"$HOST".nmap; open VULN_*"$HOST".nmap; open VERSIONS_*"$HOST".nmap
 
 ## Web
 [*] Technology
