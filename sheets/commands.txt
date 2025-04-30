@@ -50,6 +50,7 @@ PORTS=$(cat *_$TARGET.nmap | cut -d '/' -f 1 | sort -nu | awk '/^[0-9]/ {printf 
 (sudo nmap -Pn -n -sV "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VERSIONS_$TARGET' &)
 
 # RPC - Usernames
+for host in $(cat ~/dc-hosts); do echo "================[   $host   ]==============="; rpcclient -U "" $host -N -c "enumdomusers"; done
 for host in $(cat ~/dc-hosts); do rpcclient -U "" $host -N -c "enumdomusers"; done | grep -oP 'user:\[\K[^]]+'
 
 ## Spray Services
