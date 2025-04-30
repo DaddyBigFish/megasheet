@@ -651,12 +651,13 @@ sessions -i 1
 
 [*] (2049) NFS
 mkdir nfs 2>/dev/null; showmount -e $TARGET
-sudo mount -t nfs "$TARGET":"/" "./nfs" -o nolock
+for v in 2 3 4; do sudo mount -t nfs -o vers=$v,nolock $TARGET:/DIRECTORY ./nfs && echo "vers=$v SUCCESS" && sudo umount ./nfs || echo "vers=$v FAILED"; done
+sudo mount -t nfs -o vers=3,nolock "$TARGET":"/DIRECTORY" "./nfs"
+sudo tree -puga "./nfs/"
 sudo umount --lazy "./nfs"
 rm -rf "./nfs"
-sudo tree -puga "./nfs/"
-sudo cp -r ./nfs/. .
 
+sudo cp -r ./nfs/. .
 sudo open file.txt
 sudo open file.png
 
@@ -664,7 +665,6 @@ sudo adduser -u 1002 mntuser
 sudo usermod -u 1003 mntuser
 sudo su mntuser
 setpriv --reuid=1002 --regid=1002 --clear-groups -- ls -laR
-
 
 [*] (3306) MySQL
 mysql -h localhost -u root --skip-ssl -e 'show databases;'
