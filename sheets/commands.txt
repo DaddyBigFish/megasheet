@@ -434,12 +434,38 @@ ascii
 get file.txt -
 
 [*] (22) SSH
++---------- Key Types ----------+
+ssh -Q key
+ssh-ed25519
+ssh-rsa
+ssh-dss
+ssh-ed25519-cert-v01@openssh.com
+ssh-rsa-cert-v01@openssh.com
+ssh-dss-cert-v01@openssh.com
+ecdsa-sha2-nistp256
+ecdsa-sha2-nistp384
+ecdsa-sha2-nistp521
+ecdsa-sha2-nistp256-cert-v01@openssh.com
+ecdsa-sha2-nistp384-cert-v01@openssh.com
+ecdsa-sha2-nistp521-cert-v01@openssh.com
+
++---------- Remove Existing Keys ----------+
 ssh-add -D
-ssh-keygen -t ed25519 -f key -N ''; chmod 600 key key.pub; cat key.pub
-echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINzZbkLBUl5mk0AW8lPkWRXrupSiydDr8GJauiEAu3Ze' > $TARGET ~/.ssh/authorized_keys
-(ssh-rsa, ecdsa-sha2-nistp256, ecdsa-sha2-nistp384, ecdsa-sha2-nistp521, ssh-ed25519, ssh-dss)
-$USERNAME@$TARGET -i key.pub -oHostKeyAlgorithms=+ssh-ed25519 -oPubkeyAcceptedKeyTypes=+ssh-ed25519
-$USERNAME@$TARGET -i key.pub -oHostKeyAlgorithms=+ssh-rsa -oPubkeyAcceptedKeyTypes=+ssh-rsa
+
++---------- Create New Key Pairs ----------+
+ssh-keygen -t ed25519 -f key -N ''; chmod 600 ed25519 ed25519.pub; cat ed25519.pub
+ssh-keygen -t rsa -f key -N ''; chmod 600 rsa rsa.pub; cat rsa.pub
+ssh-keygen -t dss -f key -N ''; chmod 600 dss dss.pub; cat dss.pub
+
++---------- Add Key to Authorized Keys ----------+
+echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINzZbkLBUl5mk0AW8lPkWRXrupSiydDr8GJauiEAu3Ze' > TARGET > ~/.ssh/authorized_keys
+
++---------- Logging In With Different Keys ----------+
+$USERNAME@$TARGET -i ed25519.pub -oHostKeyAlgorithms=+ssh-ed25519 -oPubkeyAcceptedKeyTypes=+ssh-ed25519
+$USERNAME@$TARGET -i rsa.pub -oHostKeyAlgorithms=+ssh-rsa -oPubkeyAcceptedKeyTypes=+ssh-rsa
+$USERNAME@$TARGET -i dss.pub -oHostKeyAlgorithms=+ssh-dss -oPubkeyAcceptedKeyTypes=+ssh-dss
+
++---------- Port Forwarding ----------+
 ssh $USERNAME@$TARGET -i key.pub -L 33060:Localhost:33060 -L 5000:Localhost:5000
 
 [*] (23) Telnet
