@@ -10,19 +10,21 @@ VM ➜ Settings ➜ Network Adapter ➜ Custom: Hard Bridge
 
 ip route
 sudo nmcli con show
+sudo nmcli con del $uuid
 sudo nmcli con add type ethernet ifname eth0 con-name eth0 autoconnect yes
 uuid=e06de7a8-e79d-3cce-8063-fcaba7c7d6d0
-sudo nmcli con modify $uuid ipv4.addresses 172.16.1.201/24
-sudo nmcli con modify $uuid ipv4.gateway 172.16.1.1
-sudo nmcli con modify $uuid ipv4.dns 8.8.8.8
-sudo nmcli con modify $uuid ipv4.method manual
-sudo nmcli con delete $uuid
+sudo nmcli con mod $uuid ipv4.addresses 172.16.1.201/24
+sudo nmcli con mod $uuid ipv4.gateway 172.16.1.1
+sudo nmcli con mod $uuid +ipv4.dns 1.1.1.1
+sudo nmcli con mod $uuid +ipv4.dns 10.130.108.1
+sudo nmcli con mod $uuid -ipv4.dns 8.8.8.8
+sudo nmcli con mod $uuid ipv4.method manual
+sudo nmcli con mod $uuid ipv6.method ignore
+sudo nmcli con mod $uuid ipv4.route-metric 100
+sudo nmcli con up $uuid
 
 sudo systemctl restart NetworkManager.service
 sudo systemctl restart networking.service
-
-sudo ip link delete adapter0
-sudo ip addr del 10.130.108.117/24 dev adapter0
 
 # Discovery
 ## Nessus scan
