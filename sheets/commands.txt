@@ -453,9 +453,9 @@ ecdsa-sha2-nistp521-cert-v01@openssh.com
 ssh-add -D
 
 +---------- Create New Key Pairs ----------+
-ssh-keygen -t ed25519 -f key -N ''; chmod 600 ed25519 ed25519.pub; cat ed25519.pub
-ssh-keygen -t rsa -f key -N ''; chmod 600 rsa rsa.pub; cat rsa.pub
-ssh-keygen -t dss -f key -N ''; chmod 600 dss dss.pub; cat dss.pub
+ssh-keygen -t ed25519 -f ed25519 -N ''; chmod 600 ed25519 ed25519.pub; cat ed25519.pub
+ssh-keygen -t rsa -f rsa -N ''; chmod 600 rsa rsa.pub; cat rsa.pub
+ssh-keygen -t dss -f dss -N ''; chmod 600 dss dss.pub; cat dss.pub
 
 +---------- Add Key to Authorized Keys ----------+
 echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINzZbkLBUl5mk0AW8lPkWRXrupSiydDr8GJauiEAu3Ze' > TARGET > ~/.ssh/authorized_keys
