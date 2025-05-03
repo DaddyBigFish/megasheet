@@ -31,6 +31,7 @@ sudo ip route add default via 10.129.123.1 metric 300
 sudo ip route add default via 10.130.108.1 metric 200
 sudo ip route add default via 172.28.240.1 metric 100
 sudo nmcli con up $uuid
+sudo nmcli con show $uuid | grep 'ipv4'
 sudo systemctl restart NetworkManager.service
 sudo systemctl restart networking.service
 
