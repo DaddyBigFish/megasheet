@@ -8,7 +8,10 @@ Edit ➜ Virtual Network Adapter ➜ Change Settings ➜ Add Network ➜ VMnet10
 Bridged ➜ Bridged to: Realtek USB GbE Family Controller #2 ➜ Rename Network ➜ Hard Bridged ➜ OK
 VM ➜ Settings ➜ Network Adapter ➜ Custom: Hard Bridge
 
-ip route
+sudo ip link set eth2 down
+sudo ip link delete eth2
+sudo ip link set eth2 name eth0
+
 sudo nmcli con show
 sudo nmcli con del $uuid
 sudo nmcli con add type ethernet ifname eth0 con-name eth0 autoconnect yes
@@ -21,8 +24,13 @@ sudo nmcli con mod $uuid -ipv4.dns 8.8.8.8
 sudo nmcli con mod $uuid ipv4.method manual
 sudo nmcli con mod $uuid ipv6.method ignore
 sudo nmcli con mod $uuid ipv4.route-metric 100
+sudo nmcli con mod $uuid ipv4.routes "0.0.0.0/0 10.129.123.1"
+sudo nmcli con mod $uuid ipv4.routes "0.0.0.0/0 10.130.108.1"
+sudo nmcli con mod $uuid ipv4.routes "0.0.0.0/0 172.28.240.1"
+sudo ip route add default via 10.129.123.1 metric 300
+sudo ip route add default via 10.130.108.1 metric 200
+sudo ip route add default via 172.28.240.1 metric 100
 sudo nmcli con up $uuid
-
 sudo systemctl restart NetworkManager.service
 sudo systemctl restart networking.service
 
