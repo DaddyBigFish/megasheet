@@ -19,8 +19,9 @@ uuid=e06de7a8-e79d-3cce-8063-fcaba7c7d6d0
 sudo nmcli con mod $uuid ipv4.addresses 172.16.1.201/24
 sudo nmcli con mod $uuid ipv4.gateway 172.16.1.1
 sudo nmcli con mod $uuid +ipv4.dns 1.1.1.1
-sudo nmcli con mod $uuid +ipv4.dns 10.130.108.1
-sudo nmcli con mod $uuid -ipv4.dns 8.8.8.8
+sudo nmcli con mod $uuid +ipv4.dns 8.8.8.8
+sudo nmcli con mod $uuid +ipv4.dns 10.129.123.1
+sudo nmcli con mod $uuid -ipv4.dns 1.2.3.4
 sudo nmcli con mod $uuid ipv4.method manual
 sudo nmcli con mod $uuid ipv6.method ignore
 sudo nmcli con mod $uuid ipv4.route-metric 100
