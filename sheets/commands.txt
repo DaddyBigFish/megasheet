@@ -545,8 +545,8 @@ export KRB5CCNAME="$PWD/Administrator.ccache"; chmod 0600 "$KRB5CCNAME"
 impacket-describeTicket Administrator.ccache
 
 [*] (135) RPC
-for host in $(cat ~/dc-hosts); do echo "================[   $host   ]==============="; rpcclient -U "" $host -N -c "enumdomusers"; done
-for host in $(cat ~/dc-hosts); do rpcclient -U "" $host -N -c "enumdomusers"; done | grep -oP 'user:\[\K[^]]+'
+for host in $(cat dc-hosts); do echo "================[   $host   ]==============="; rpcclient -U "" $host -N -c "enumdomusers"; done
+for host in $(cat dc-hosts); do rpcclient -U "" $host -N -c "enumdomusers"; done | grep -oP 'user:\[\K[^]]+'
 
 [*] (161) SNMP
 (onesixtyone $TARGET -c /usr/share/wordlists/seclists/Discovery/SNMP/snmp.txt -w 5 -o SNMPsmall.onesixtyone &)
