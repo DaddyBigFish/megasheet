@@ -93,12 +93,12 @@ gobuster vhost --append-domain -u $DOM -k -r -t 30 -q --exclude-length 282 \
 | grep -oP '(?<=Found: )[^ ]+'
 
 [*] Directory
-dirsearch -u http://$TARGET -w /usr/share/wordlists/assetnote/directories.txt -x 400,404
+dirsearch -u http://$TARGET -w /usr/share/wordlists/assetnote/directories.txt -x 400,403,404
 
 ffuf -u http://"$TARGET"/FUZZ -t 30 -rate 300 \
 -e txt,pdf,conf,config,cnf,html,php,asp,aspx,js,bak,backup,log \
 -v -recursion -recursion-depth 2 \
--fc 400,404 -fs 0
+-fc 400,403,404 -fs 0 \
 -w /usr/share/seclists/Discovery/Web-Content/raft-medium-directories-lowercase.txt \
 2>/dev/null | grep -oP '(http.*)(?<!/)$'
 
