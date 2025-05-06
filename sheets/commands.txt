@@ -88,27 +88,22 @@ whatweb http://$TARGET
 wafw00f http://$TARGET
 
 [*] Subdomain
-gobuster vhost --append-domain -u $DOM -k -r -t200 -q --exclude-length 282 \
+gobuster vhost --append-domain -u $DOM -k -r -t 30 -q --exclude-length 282 \
 -w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt \
 | grep -oP '(?<=Found: )[^ ]+'
 
 [*] Directory
 dirsearch -u http://$TARGET -w /usr/share/wordlists/assetnote/directories.txt -x 400,404
 
-ffuf -u http://"$TARGET"/FUZZ -t 800 -rate 20000 \
--e txt,pdf,conf,config,cnf,html,php,asp,aspx,js \
+ffuf -u http://"$TARGET"/FUZZ -t 30 -rate 300 \
+-e txt,pdf,conf,config,cnf,html,php,asp,aspx,js,bak,backup,log \
 -v -recursion -recursion-depth 2 \
+-fc 400,404 -fs 0
 -w /usr/share/seclists/Discovery/Web-Content/raft-medium-directories-lowercase.txt \
 2>/dev/null | grep -oP '(http.*)(?<!/)$'
 
-feroxbuster -u http://$TARGET \
--w /usr/share/seclists/Discovery/Web-Content/directory-list-2.3-medium.txt \
--d 4 -k -C 404 \
--x pdf txt bak backup conf config cnf php asp aspx js \
---dont-scan '(?i)(vendor|img|.*(min|gif|css|images|png|jpg)$)'
-
 [*] Traversal
-ffuf -u 'http://$TARGET/nav.php?page=FUZZ' -t 400 -rate 10000 -v -mc 200 \
+ffuf -u 'http://$TARGET/nav.php?page=FUZZ' -t 30 -rate 300 -v -mc 200 \
 -w /usr/share/seclists/Fuzzing/LFI/LFI-Jhaddix.txt \
 2>/dev/null | grep -oP '(http.*)(?<!/)$'
 
