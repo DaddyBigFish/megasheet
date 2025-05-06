@@ -75,18 +75,10 @@ PORTS=$(cat *_$TARGET.nmap | cut -d '/' -f 1 | sort -nu | awk '/^[0-9]/ {printf 
 echo '$TARGET' > hosts
 echo '$TARGET' > dc-hosts
 echo '$TARGET' > pc-hosts
+cat dc-hosts pc-hosts > hosts
 
 ## Add domains to /etc/hosts
 echo "$TARGET $DOM $DC" | sudo tee -a /etc/hosts
-
-## Open nmap scans
-HOST=$TARGET; open TCP_ALL_*"$HOST".nmap; open UDP_ALL_*"$HOST".nmap; open SCRIPTS_*"$HOST".nmap; open VULN_*"$HOST".nmap; open VERSIONS_*"$HOST".nmap
-cat *1000*nmap | grep -E 'open|report for' | grep -vE '///|#|shown:' | sed 's/Nmap scan/\nNmap scan/g'
-cat *ALL*nmap | grep -E 'open|report for' | grep -vE '///|#|shown:' | sed 's/Nmap scan/\nNmap scan/g'
-cat *TCP*1000*nmap | grep -E 'open|report for' | grep -vE '///|#|shown:' | sed 's/Nmap scan/\nNmap scan/g'
-cat *TCP*ALL*nmap | grep -E 'open|report for' | grep -vE '///|#|shown:' | sed 's/Nmap scan/\nNmap scan/g'
-cat *UDP*1000*nmap | grep -E 'open|report for' | grep -vE '///|#|shown:' | sed 's/Nmap scan/\nNmap scan/g'
-cat *UDP*ALL*nmap | grep -E 'open|report for' | grep -vE '///|#|shown:' | sed 's/Nmap scan/\nNmap scan/g'
 
 ## Web
 [*] Technology
@@ -132,6 +124,13 @@ sort -u passwords | tee passwords
 ## Decompressing files
 tar -xzvf backup.tar.gz -C .
 unzip backup.zip -d .
+
+## Open nmap scans
+cat *TCP*1000*nmap | grep -E 'open|report for' | grep -vE '///|#|shown:' | sed 's/Nmap scan/\nNmap scan/g'
+cat *UDP*1000*nmap | grep -E 'open|report for' | grep -vE '///|#|shown:' | sed 's/Nmap scan/\nNmap scan/g'
+cat *TCP*ALL*nmap | grep -E 'open|report for' | grep -vE '///|#|shown:' | sed 's/Nmap scan/\nNmap scan/g'
+cat *UDP*ALL*nmap | grep -E 'open|report for' | grep -vE '///|#|shown:' | sed 's/Nmap scan/\nNmap scan/g'
+HOST=$TARGET; open TCP_ALL_*"$HOST".nmap; open UDP_ALL_*"$HOST".nmap; open SCRIPTS_*"$HOST".nmap; open VULN_*"$HOST".nmap; open VERSIONS_*"$HOST".nmap
 
 ## Web
 [*] Curl
