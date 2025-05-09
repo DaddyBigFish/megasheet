@@ -570,6 +570,7 @@ impacket-describeTicket Administrator.ccache
 [*] (135) RPC
 rpcclient -U "" -N $TARGET -c "enumdomusers"
 rpcclient -U '$USERNAME'%'$PASSWORD' $TARGET -c "enumdomusers"
+rpcclient -U '$USERNAME'%'$PASSWORD' $TARGET -c "lsaquery"
 rpcclient -U '$USERNAME'%'$PASSWORD' $TARGET -c "querydispinfo" | grep -oP 'Account:.*' | sed 's/Name:.*Desc:/Desc:/'
 
 for host in $(cat dc-hosts); do echo "================[   $host   ]==============="; rpcclient -U "" $host -N -c "enumdomusers"; done
