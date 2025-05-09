@@ -122,9 +122,13 @@ unzip backup.zip -d .
 ## Open nmap scans
 cat *TCP*1000*nmap | grep -E 'open|report for' | grep -vE '///|#|shown:' | sed 's/Nmap scan/\nNmap scan/g'
 cat *UDP*1000*nmap | grep -E 'open|report for' | grep -vE '///|#|shown:' | sed 's/Nmap scan/\nNmap scan/g'
+
 cat *TCP*ALL*nmap | grep -E 'open|report for' | grep -vE '///|#|shown:' | sed 's/Nmap scan/\nNmap scan/g'
 cat *UDP*ALL*nmap | grep -E 'open|report for' | grep -vE '///|#|shown:' | sed 's/Nmap scan/\nNmap scan/g'
-HOST=$TARGET; open TCP_ALL_*"$HOST".nmap; open UDP_ALL_*"$HOST".nmap; open SCRIPTS_*"$HOST".nmap; open VULN_*"$HOST".nmap; open VERSIONS_*"$HOST".nmap
+
+cat *SCRIPTS*nmap | grep -E 'open|report for|script results||' | grep -vE '///|#|shown:|Status:|done:|latency|scanned in' | sed 's/Nmap scan/\nNmap scan/g'
+cat *VULN*nmap | grep -E 'open|report for|script results||' | grep -vE '///|#|shown:|Status:|done:|latency|scanned in|ratelimit' | sed '/Pre-scan/,/vulnerable)\./d' | sed 's/Nmap scan/\nNmap scan/g'
+cat *VERSIONS*nmap | grep -E 'open|report for|script results||' | grep -vE '///|#|shown:|Status:|done:|latency|scanned in|unrecognized|report any|\(\)|SF-|SF:' | sed 's/Nmap scan/\nNmap scan/g'
 
 ## Web
 [*] Curl
