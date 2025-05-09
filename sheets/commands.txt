@@ -1,6 +1,6 @@
 # Setup
 ## New Project
-PROJECT="$HOME/Projects/$TARGET"; mkdir -p "$PROJECT"; cd "$PROJECT"; echo "PROJECT="$PROJECT"" >> ~/.zshrc; echo "cd $PROJECT" >> ~/.zshrc; touch usernames passwords; echo "\nadministrator\nguest\nkrbtgt\ndomain admins\nroot\nbin\nnone" > usernames; echo "\n" > passwords; tmux list-windows -F '#{window_id}' | xargs -I {} tmux list-panes -t {} -F '#{pane_id}' | while read pane_id; do tmux send-keys -t $pane_id 'source ~/.zshrc' C-m; tmux send-keys -t $pane_id C-l; done; sudo -v
+PROJECT="$HOME/Projects/$TARGET"; sudo -v; mkdir -p "$PROJECT"; cd "$PROJECT"; echo "PROJECT="$PROJECT"" >> ~/.zshrc; echo "cd $PROJECT" >> ~/.zshrc; touch usernames passwords; echo "\nadministrator\nguest\nkrbtgt\ndomain admins\nroot\nbin\nnone" > usernames; echo "\n" > passwords; tmux list-windows -F '#{window_id}' | xargs -I {} tmux list-panes -t {} -F '#{pane_id}' | while read pane_id; do tmux send-keys -t $pane_id 'source ~/.zshrc' C-m; tmux send-keys -t $pane_id C-l; done;
 
 ## Configuring Adapter
 vmware
@@ -59,8 +59,8 @@ chromium "https://localhost:8834"
 
 
 ## Internal scans
-nbtscan 10.129.121.0/24
-nbtscan-unixwiz 10.129.121.0/24 -m -n -w 0 | sort -k2
+nmap -n -sn -PR 10.0.5.0/24
+nbtscan-unixwiz 10.0.5.0/24 -m -n -w 0 | sort -k2
 netdiscover
 ipcalc 172.16.1.73/24     Netmask:   255.255.255.0 = 24
 
