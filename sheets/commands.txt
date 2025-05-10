@@ -758,7 +758,7 @@ evil-winrm -i "$TARGET" -u '$USERNAME' -H '$HASH'
 python3 -m http.server 8888 -d ~/Upload
 
 ## Transfer Tools to a Proxy Box
-scp -r ~/Upload user@proxybox:/ ; ssh user@proxybox; python3 -m http.server 8888 -d /Upload
+scp -C -r ~/Upload user@proxybox:/ ; ssh user@proxybox; python3 -m http.server 8888 -d /Upload
 
 ## Linux
 [*] File Transfer
