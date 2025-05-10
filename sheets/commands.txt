@@ -108,9 +108,8 @@ wafw00f http://$TARGET
 dirsearch -u http://$TARGET -w /usr/share/wordlists/assetnote/directories.txt -x 400,403,404
 
 [*] Subdomain
-gobuster vhost --append-domain -u $DOM -k -r -t 30 -q --exclude-length 282 \
--w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt \
-| grep -oP '(?<=Found: )[^ ]+'
+gobuster vhost --append-domain -u $DOM -k -r -t 30 --exclude-length 0 \
+-w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt
 
 [*] WordPress
 wpscan --url http://$TARGET/wordpress --enumerate
