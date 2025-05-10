@@ -76,8 +76,9 @@ echo '$TARGET' > dc-hosts
 echo '$TARGET' > pc-hosts
 cat dc-hosts pc-hosts > hosts
 
-## Add domains to /etc/hosts
+## Add domains to hosts file
 echo "$TARGET $DOM $DC" | sudo tee -a /etc/hosts
+C:\Windows\System32\drivers\etc\hosts
 
 # Exploitation
 ## Sorting files
