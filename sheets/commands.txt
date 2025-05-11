@@ -962,11 +962,10 @@ powershell_execute "Start-ScheduledTask -TaskName 'Ownership'"
 
 +---------- Network Environment ----------+
 powershell_execute "powershell -c \"& { Get-NetTCPConnection -State Listen,Established | Where-Object { `$_."LocalAddress" -notin @('0.0.0.0','127.0.0.1') -and `$_."RemoteAddress" -notmatch '::' } | Sort-Object LocalAddress,LocalPort | Select-Object LocalAddress,LocalPort,RemoteAddress,RemotePort,State | Format-Table -AutoSize }\""
-powershell_execute "arp"
+powershell_execute "arp -a"
+powershell_execute "arp -a -N 10.1.5.4"
 powershell_execute "route print"
-run post/multi/manage/autoroute
-run auxiliary/scanner/netbios/nbname RHOSTS=10.10.10.0/24
-ifconfig
+powershell_execute "ipconfig /all"
 
 +---------- Exploit Suggester ----------+
 run multi/recon/local_exploit_suggester
