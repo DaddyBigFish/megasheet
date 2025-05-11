@@ -1053,7 +1053,7 @@ nano hashes; cat hashes | awk '{$1=$1}1' | tr -d '\n' | tee hashes; john hashes 
 run post/multi/manage/autoroute
 
 +---------- Scan For Hosts ----------+
-run auxiliary/scanner/netbios/nbname RHOSTS=10.10.10.0/24
+run auxiliary/scanner/netbios/nbname RHOSTS=10.10.10.0/24 BATCHSIZE=32 THREADS=24
 
 +---------- Setup Socks Proxy ----------+
 run auxiliary/server/socks_proxy SRVHOST=127.0.0.1 SRVPORT=9050 VERSION=4a
