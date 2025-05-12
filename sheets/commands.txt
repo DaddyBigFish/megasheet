@@ -21,6 +21,8 @@ sudo nano /etc/resolv.conf
 nameserver 1.1.1.1
 nameserver 192.168.1.254
 
+ipcalc 10.0.2.4 255.255.255.0
+
 sudo nmcli con show
 sudo nmcli con del $uuid
 sudo nmcli con add type ethernet ifname eth0 con-name eth0 autoconnect yes
@@ -62,7 +64,7 @@ chromium "https://localhost:8834"
 nmap -n -sn -PR 10.0.5.0/24
 nbtscan-unixwiz 10.0.5.0/24 -m -n -w 0 | sort -k2
 netdiscover
-ipcalc 172.16.1.73/24     Netmask:   255.255.255.0 = 24
+
 
 # Information Gathering
 ## Scan specified ports
