@@ -1054,6 +1054,7 @@ nano hashes; cat hashes | awk '{$1=$1}1' | tr -d '\n' | tee hashes; john hashes 
 run post/multi/manage/autoroute
 
 +---------- Scan For Hosts ----------+
+run post/windows/gather/enum_domain
 run auxiliary/scanner/netbios/nbname RHOSTS=10.10.10.0/24 BATCHSIZE=32 THREADS=24
 
 +---------- Setup Socks Proxy ----------+
