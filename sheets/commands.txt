@@ -56,7 +56,7 @@ chromium "https://localhost:8834"
 (sudo nmap -Pn -n -sU "$TARGET" --open -g53 --min-rate 500 --max-rate 1500 -oA 'UDP_1000_$TARGET' &)
 (sudo nmap -Pn -n -sS "$TARGET" --open -p- -g53 --min-rate 500 --max-rate 1500 -oA 'TCP_ALL_$TARGET' &)
 (sudo nmap -Pn -n -sU "$TARGET" --open -p- -g53 --min-rate 500 --max-rate 1500 -oA 'UDP_ALL_$TARGET' &)
-(udpy_proto_scanner.py $TARGET | tee UDP_PROTO_$TARGET &)
+(udpy_proto_scanner.py $TARGET | tee udpy_proto_scanner_$TARGET &)
 (enum4linux-ng -A $TARGET | tee enum4linux_$TARGET &)
 
 ## Internal scans
