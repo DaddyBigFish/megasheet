@@ -407,8 +407,10 @@ for host in $(cat hosts); do
 +---------- List Files ----------+
 nxc ftp "$TARGET" -u '$USERNAME' -p '$PASSWORD' --ls
 
-+---------- Download Locally ----------+
++---------- Download Directory ----------+
 wget ftp://$TARGET --ftp-user='$USERNAME' --ftp-password='$PASSWORD' -np -nH -m -q -P ftp
+
++---------- Upload File ----------+
 curl ftp://$TARGET -u '$USERNAME':'$PASSWORD' -T filename.txt
 
 +---------- Login to Service ----------+
