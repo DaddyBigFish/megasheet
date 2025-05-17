@@ -821,8 +821,11 @@ sudo -l
 +---------- Cron Jobs ----------+
 cat /etc/crontab
 
-+---------- Custom Installed Apps ----------+
++---------- Installed Apps ----------+
 ls -la /opt
+
++---------- Services Running ----------+
+systemctl list-units --type=service --state=running
 
 +---------- Network Listening ----------+
 netstat -tuln
