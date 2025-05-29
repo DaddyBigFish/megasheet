@@ -771,8 +771,8 @@ setpriv --reuid=1002 --regid=1002 --clear-groups -- ls -laR
 curl -s -X DELETE http://$TARGET:2375/containers/7d9f2df890e2ce4a9c8342a64c33c01755b800b2c6b7b6106fce93fe056da256?force=true
 
 +---------- List Images ----------+
-curl -s http://$TARGET:2375/images/json
-"RepoTags":["alpine:latest"]
+curl -s http://$TARGET:2375/images/json | jq -r .[].RepoTags[]
+alpine:latest
 
 +---------- Create Image ----------+
 curl -s -X POST http://10.129.121.211:2375/images/create?fromImage=alpine&tag=latest
