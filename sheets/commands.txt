@@ -2,11 +2,21 @@
 ## New Project
 PROJECT="$HOME/Projects/$TARGET"; sudo -v; mkdir -p "$PROJECT"; cd "$PROJECT"; echo "PROJECT="$PROJECT"" >> ~/.zshrc; echo "cd $PROJECT" >> ~/.zshrc; touch usernames passwords; echo "\nadministrator\nguest\nkrbtgt\nroot\nbin\nnone" > usernames; echo "\n" > passwords; tmux list-windows -F '#{window_id}' | xargs -I {} tmux list-panes -t {} -F '#{pane_id}' | while read pane_id; do tmux send-keys -t $pane_id 'source ~/.zshrc' C-m; tmux send-keys -t $pane_id C-l; done;
 
-## Configuring Adapter
+## Configure VMWare Adapter
 vmware
 Edit ➜ Virtual Network Adapter ➜ Change Settings ➜ Add Network ➜ VMnet10
 Bridged ➜ Bridged to: Realtek USB GbE Family Controller #2 ➜ Rename Network ➜ Hard Bridged ➜ OK
 VM ➜ Settings ➜ Network Adapter ➜ Custom: Hard Bridge
+
+## Configure WSL2
+%USERPROFILE%\.wslconfig
+
+[wsl2]
+networkingMode=bridged
+vmSwitch="BridgeEth2"
+dnsTunneling=true
+dhcp=true
+ipv6=false
 
 sudo nano /etc/wsl.conf
 [network]
@@ -17,12 +27,15 @@ generateHosts = false
 systemd = true
 command = sudo chattr -i /etc/resolv.conf; while read -r ns; do echo $ns | sudo tee -a /etc/resolv.conf; sort -u /etc/resolv.conf | sudo tee /etc/resolv.conf; done < /nameservers
 
+## Configure DNS
 sudo nano /etc/resolv.conf
 nameserver 1.1.1.1
 nameserver 192.168.1.254
 
+## Calculate Subnet
 ipcalc 10.0.2.4 255.255.255.0
 
+## Configure Network Connection
 sudo nmcli con show
 sudo nmcli con del $uuid
 sudo nmcli con add type ethernet ifname eth0 con-name eth0 autoconnect yes
