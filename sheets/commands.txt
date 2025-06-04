@@ -2,13 +2,24 @@
 ## New Project
 PROJECT="$HOME/Projects/$TARGET"; sudo -v; mkdir -p "$PROJECT"; cd "$PROJECT"; echo "PROJECT="$PROJECT"" >> ~/.zshrc; echo "cd $PROJECT" >> ~/.zshrc; touch usernames passwords; echo "\nadministrator\nguest\nkrbtgt\nroot\nbin\nnone" > usernames; echo "\n" > passwords; tmux list-windows -F '#{window_id}' | xargs -I {} tmux list-panes -t {} -F '#{pane_id}' | while read pane_id; do tmux send-keys -t $pane_id 'source ~/.zshrc' C-m; tmux send-keys -t $pane_id C-l; done;
 
-## Configure VMWare Adapter
+## Create hosts lists
+echo '$TARGET' > hosts
+echo '$TARGET' > dc-hosts
+echo '$TARGET' > pc-hosts
+cat dc-hosts pc-hosts > hosts
+
+## Add domains to hosts file
+echo "$TARGET $DOM $DC" | sudo tee -a /etc/hosts
+C:\Windows\System32\drivers\etc\hosts
+
+## Configurations
+[*] VMWare
 vmware
 Edit ➜ Virtual Network Adapter ➜ Change Settings ➜ Add Network ➜ VMnet10
 Bridged ➜ Bridged to: Realtek USB GbE Family Controller #2 ➜ Rename Network ➜ Hard Bridged ➜ OK
 VM ➜ Settings ➜ Network Adapter ➜ Custom: Hard Bridge
 
-## Configure WSL2
+[*] WSL2
 %USERPROFILE%\.wslconfig
 
 [wsl2]
@@ -27,15 +38,15 @@ generateHosts = false
 systemd = true
 command = sudo chattr -i /etc/resolv.conf; while read -r ns; do echo $ns | sudo tee -a /etc/resolv.conf; sort -u /etc/resolv.conf | sudo tee /etc/resolv.conf; done < /nameservers
 
-## Configure DNS
+[*] DNS
 sudo nano /etc/resolv.conf
 nameserver 1.1.1.1
 nameserver 192.168.1.254
 
-## Calculate Subnet
+[*] Subnets
 ipcalc 10.0.2.4 255.255.255.0
 
-## Configure Network Connection
+[*] Network Adapters
 sudo nmcli con show
 sudo nmcli con del $uuid
 sudo nmcli con add type ethernet ifname eth0 con-name eth0 autoconnect yes
@@ -98,19 +109,6 @@ dirsearch -u http://$TARGET -w /usr/share/wordlists/assetnote/directories.txt -x
 [*] Subdomains
 gobuster vhost --append-domain -u $DOM -k -r -t 30 --exclude-length 0 \
 -w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt
-
-
-
-
-## Create hosts lists
-echo '$TARGET' > hosts
-echo '$TARGET' > dc-hosts
-echo '$TARGET' > pc-hosts
-cat dc-hosts pc-hosts > hosts
-
-## Add domains to hosts file
-echo "$TARGET $DOM $DC" | sudo tee -a /etc/hosts
-C:\Windows\System32\drivers\etc\hosts
 
 # Exploitation
 ## Sorting files
