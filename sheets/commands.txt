@@ -882,7 +882,7 @@ sudo -l
 cat /etc/crontab
 
 +---------- Environment Variables ----------+
-cat /proc/self/environ
+strings /proc/self/environ | tr '\0' '\n' | sort
 
 +---------- Installed Apps ----------+
 ls -la /opt
