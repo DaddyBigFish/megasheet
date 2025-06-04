@@ -875,6 +875,12 @@ find / -perm /4000 2>/dev/null | xargs ls -la
 +---------- Group Files ----------+
 find / -group developer 2>/dev/null
 
++---------- Home Files ----------+
+ls -laR /home
+
++---------- Installed Apps ----------+
+ls -laR /opt
+
 +---------- Sudo Permissions ----------+
 sudo -l
 
@@ -883,9 +889,6 @@ cat /etc/crontab
 
 +---------- Environment Variables ----------+
 strings /proc/self/environ | tr '\0' '\n' | sort
-
-+---------- Installed Apps ----------+
-ls -la /opt
 
 +---------- Polkit Version ----------+
 rpm -qa | grep -i polkit | grep -i "0.11[3-9]"
