@@ -877,6 +877,7 @@ ls -la /opt
 
 +---------- Polkit Version ----------+
 rpm -qa | grep -i polkit | grep -i "0.11[3-9]"
+apt list --installed 2>/dev/null | grep -i policykit
 
 +---------- Services Running ----------+
 systemctl list-units --type=service --state=running
