@@ -872,6 +872,9 @@ sudo -l
 +---------- Cron Jobs ----------+
 cat /etc/crontab
 
++---------- Environment Variables ----------+
+cat /proc/self/environ
+
 +---------- Installed Apps ----------+
 ls -la /opt
 
@@ -907,7 +910,7 @@ password
 find / -name '*secret0*' -readable 2>/dev/null | xargs ls -la
 find / -name 'root.txt' -readable -exec echo {} \; -exec cat {} \; 2>/dev/null
 
-+---------- Looking at /etc/shadow ----------+
++---------- /etc/shadow ----------+
 cat /etc/shadow
 
 [*] Containers
