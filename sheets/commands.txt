@@ -520,6 +520,9 @@ finger '$USERNAME'@$TARGET
 while read -r user; do finger "$user"@$TARGET; done < usernames
 
 [*] (88) Kerberos
++---------- Domain Information ----------+
+nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET'
+
 +---------- Clock skew ----------+
 sudo ntpdate -u $TARGET
 
