@@ -1133,6 +1133,7 @@ powershell -c "whoami /groups|?{$_ -match '^\S+\s+Group'}"
 powershell -c "cd \users; tree /a /f"
 powershell -c "cd \inetpub; tree /a /f"
 powershell -c "Import-Module ActiveDirectory"
+powershell -c "Get-ADComputer DC01 -property *"
 powershell -c "Get-ADObject -Filter 'isDeleted -eq $true' -IncludeDeletedObjects"
 powershell -c "(Get-WmiObject Win32_ComputerSystem).Domain"
 
