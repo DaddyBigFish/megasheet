@@ -443,6 +443,50 @@ john hashes -w=/usr/share/seclists/Passwords/Leaked-Databases/rockyou-75.txt
 john hashes -w=rockyou
 john hashes --show
 
++---------- *2john ----------+
+/usr/bin/1password2john
+/usr/bin/7z2john
+/usr/sbin/bitlocker2john
+/usr/bin/ccache2john
+/usr/bin/cisco2john
+/usr/bin/dashlane2john
+/usr/bin/diskcryptor2john
+/usr/bin/DPAPImk2john
+/usr/bin/ecryptfs2john
+/usr/bin/enpass2john
+/usr/bin/filezilla2john
+/usr/sbin/gpg2john
+/usr/sbin/hccap2john
+/usr/bin/htdigest2john
+/usr/bin/kdcdump2john
+/usr/sbin/keepass2john
+/usr/bin/keychain2john
+/usr/bin/keyring2john
+/usr/bin/keystore2john
+/usr/bin/kirbi2john
+/usr/bin/krb2john
+/usr/bin/lastpass2john
+/usr/bin/libreoffice2john
+/usr/bin/luks2john
+/usr/bin/mozilla2john
+/usr/bin/office2john
+/usr/bin/openssl2john
+/usr/bin/padlock2john
+/usr/bin/pcap2john
+/usr/bin/pdf2john
+/usr/bin/pem2john
+/usr/bin/pfx2john
+/usr/sbin/putty2john
+/usr/bin/pwsafe2john
+/usr/bin/radius2john
+/usr/sbin/rar2john
+/usr/bin/sap2john
+/usr/bin/ssh2john
+/usr/bin/telegram2john
+/usr/bin/truecrypt2john
+/usr/bin/vmx2john
+/usr/sbin/zip2john
+
 +---------- Hashcat ----------+
 hashcat -h | grep -A 475 "Hash modes" | grep -i 'kerberos'
 hashcat -h | grep -A 475 "Hash modes" | grep -i 'ntlm'
