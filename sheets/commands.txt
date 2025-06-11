@@ -371,8 +371,8 @@ bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add add uac 'TARGET'
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add dnsRecord 'xxx.domain.example' '8.8.8.8'
 
 +---------- LDAP Queries ----------+
-bloodyAD --dc-ip 10.10.11.45 --host dc01.vintage.htb -d vintage.htb -k get search --filter "(&(objectClass=user)(!(sAMAccountType=805306368)))" | grep -v 'nTSecurityDescriptor:' | tee out_computers-info)
-bloodyAD --dc-ip 10.10.11.45 --host dc01.vintage.htb -d vintage.htb -k get search --filter "(&(objectClass=user)(!(sAMAccountType=805306369)))" | grep -v 'nTSecurityDescriptor:' | tee out_users-info
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=user)(!(sAMAccountType=805306368)))" | grep -av 'nTSecurityDescriptor:' | tee out_computers-info
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=user)(!(sAMAccountType=805306369)))" | grep -av 'nTSecurityDescriptor:' | tee out_users-info
 
 +---------- Check for Permissions ----------+
 adminCount
