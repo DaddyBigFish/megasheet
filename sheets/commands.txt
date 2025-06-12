@@ -71,10 +71,10 @@ sudo systemctl restart networking.service
 
 # Discovery
 ## External scans
-(sudo nmap -n -Pn -sS "$TARGET" -oA 'TCP_1000_$TARGET' &)
-(sudo nmap -n -Pn -sU "$TARGET" -oA 'UDP_1000_$TARGET' --min-rate 500 &)
-(sudo nmap -n -Pn -sS "$TARGET" -oA 'TCP_ALL_$TARGET' -p- &)
-(sudo nmap -n -Pn -sU "$TARGET" -oA 'UDP_ALL_$TARGET' -p- --min-rate 500 &)
+(sudo nmap -n -Pn -sS "$TARGET" -oA 'TCP_1000_$TARGET' --min-rate 800 &)
+(sudo nmap -n -Pn -sU "$TARGET" -oA 'UDP_1000_$TARGET' --min-rate 800 &)
+(sudo nmap -n -Pn -sS "$TARGET" -oA 'TCP_ALL_$TARGET' --min-rate 800 -p- &)
+(sudo nmap -n -Pn -sU "$TARGET" -oA 'UDP_ALL_$TARGET' --min-rate 800 -p- &)
 (udpy_proto_scanner.py $TARGET | tee udpy_proto_scanner_$TARGET &)
 (enum4linux-ng -A $TARGET | tee enum4linux_$TARGET &)
 
