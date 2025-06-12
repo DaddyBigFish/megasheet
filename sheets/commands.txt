@@ -111,7 +111,7 @@ gobuster vhost --append-domain -u $DOM -k -r -t 30 --exclude-length 0 \
 -w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt
 
 # Exploitation
-# Custom usernames file
+## Custom usernames file
 username-anarchy --input-file usernames --select-format first,flast,f.last,first.last,firstlast > .tmp; cat .tmp | tee usernames; rm .tmp
 
 ## Sorting files
