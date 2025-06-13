@@ -133,6 +133,14 @@ nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -k -M adcs
 certipy-ad find -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -vulnerable -enabled -stdout | grep -vE '\[\*\]|Error|stacktrace'
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound -c all
 
+## Start Bloodhound
+.\bloodhound-cli resetpwd
+http://127.0.0.1:7474
+neo4j:bloodhoundcommunityedition
+http://127.0.0.1:8080
+admin:RANDOM_PASSWORD
+
+
 ## Create Custom Usernames
 username-anarchy --input-file usernames --select-format first,flast,f.last,first.last,firstlast > .tmp; cat .tmp | tee usernames; rm .tmp
 
