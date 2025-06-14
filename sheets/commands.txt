@@ -110,28 +110,18 @@ cat *SCRIPTS*nmap | grep -E 'open|report for|script results||' | grep -vE '///|#
 cat *VULN*nmap | grep -E 'open|report for|script results||' | grep -vE '///|#|shown:|Status:|done:|latency|scanned in|ratelimit' | sed '/Pre-scan/,/vulnerable)\./d' | sed 's/Nmap scan/\nNmap scan/g'
 cat *VERSIONS*nmap | grep -E 'open|report for|script results||' | grep -vE '///|#|shown:|Status:|done:|latency|scanned in|unrecognized|report any|\(\)|SF-|SF:' | sed 's/Nmap scan/\nNmap scan/g'
 
-## Web
-[*] Technologies
-whatweb http://$TARGET
-wafw00f http://$TARGET
-
-[*] Directories
-dirsearch -u http://$TARGET -w /usr/share/wordlists/assetnote/directories.txt -x 400,403,404 --exclude-sizes 12B
-
-[*] Subdomains
-gobuster vhost --append-domain -u $DOM -k -r -t 30 --exclude-length 0 \
--w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt
-
 # Exploitation
-## Enumerate
+## Initial Enumeration
+dirsearch -u http://$TARGET -w /usr/share/wordlists/assetnote/directories.txt -x 400,403,404 --exclude-sizes 12B
+ffuf -u https://$DOM/ -H "Host: FUZZ.$DOM" -w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt -fs 4242 -t 50 -rate 5000
 nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET'; echo ''
+nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
 impacket-getTGT -dc-ip $TARGET $DOM/Guest -no-pass; export KRB5CCNAME=`pwd`/Guest.ccache
 sudo ntpdate -u $TARGET
 impacket-getTGT -dc-ip $TARGET $DOM/Guest -no-pass; export KRB5CCNAME=`pwd`/Guest.ccache
 impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'; export KRB5CCNAME=`pwd`/$USERNAME.ccache
 impacket-GetADUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -all | awk '/---/{flag=1;next} flag {print $1}'
 impacket-smbclient -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass
-nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
 impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M adcs
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -k -M adcs
@@ -166,6 +156,10 @@ tar -xzvf backup.tar.gz -C .
 unzip backup.zip -d .
 
 ## Web
+[*] Technologies
+whatweb http://$TARGET
+wafw00f http://$TARGET
+
 [*] WordPress
 wpscan --url http://$TARGET/wordpress --enumerate
 Download source > https://develop.svn.wordpress.org/tags/x.x.x/src/
