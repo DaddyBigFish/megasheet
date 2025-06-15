@@ -1107,6 +1107,7 @@ Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | W
 powershell -c "tree \users /a /f"
 powershell -c "tree \inetpub /a /f"
 powershell -c "tree \xampp /a /f"
+powershell -c "tree $env:APPDATA/.. /a /f"
 powershell -c "type $env:APPDATA\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt"
 powershell -c "Get-ScheduledTask | Where-Object {($_.Author -notmatch 'Microsoft') -and ($_.TaskPath -notmatch 'Microsoft')} | Select-Object TaskName, TaskPath, State, Author"
 powershell -c "Get-Service | Where-Object { $_.CanStop -eq $true -and $_.DisplayName -notmatch 'Microsoft|Windows' } | Sort-Object DisplayName"
