@@ -991,7 +991,7 @@ echo -e '\n\n'; netstat -tuln
 echo -e '\n\n'; sudo -l
 
 +---------- Find Usernames / Passwords ----------+
-(grep -rinE 'DBUser|DBPass' / 2>/dev/null &)
+(grep -IrinE '^\s*db[-_]?user\s*=?|^\s*db[-_]?pass\s*=?' / 2>/dev/null &)
 
 +---------- Polkit Version ----------+
 rpm -qa | grep -i polkit | grep -i "0.11[3-9]"
