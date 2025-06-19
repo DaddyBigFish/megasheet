@@ -87,12 +87,13 @@ nbtscan-unixwiz 10.0.5.0/24 -m -n -w 0 | sort -k2
 netdiscover
 
 # Information Gathering
-## Nessus
+## Initial Enumeration
+[*] Nessus
 systemctl status nessusd
 systemctl start nessusd
 chromium "https://localhost:8834"
 
-## Nmap
+[*] Nmap
 (PORTS=$(cat TCP_*$TARGET.nmap | cut -d '/' -f 1 | sort -nu | awk '/^[0-9]/ {printf "%s,", $1}' | sed 's/,$//'); sudo nmap -Pn -n -sC "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'SCRIPTS_TCP_$TARGET' &)
 (PORTS=$(cat TCP_*$TARGET.nmap | cut -d '/' -f 1 | sort -nu | awk '/^[0-9]/ {printf "%s,", $1}' | sed 's/,$//'); sudo nmap -Pn -n -sV "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VERSIONS_TCP_$TARGET' &)
 (PORTS=$(cat TCP_*$TARGET.nmap | cut -d '/' -f 1 | sort -nu | awk '/^[0-9]/ {printf "%s,", $1}' | sed 's/,$//'); sudo nmap -Pn -n --script=vuln "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VULN_TCP_$TARGET' &)
@@ -101,24 +102,19 @@ chromium "https://localhost:8834"
 (PORTS=$(cat UDP_*$TARGET.nmap | cut -d '/' -f 1 | sort -nu | awk '/^[0-9]/ {printf "%s,", $1}' | sed 's/,$//'); sudo nmap -Pn -n -sU --script=vuln "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VULN_UDP_$TARGET' &)
 (PORTS=$(cat TCP_*$TARGET.nmap | cut -d '/' -f 1 | sort -nu | awk '/^[0-9]/ {printf "%s,", $1}' | sed 's/,$//'); sudo nmap -Pn -n -sV --script vulners --script-args mincvss=9 "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 | grep -vE '0.0|/cve/|/githubexploit/|/packetstorm/|/cnvd/|/httpd/|/zdt/' | tee 'vulners_$TARGET' &)
 
-## Opening Nmap Scans
-cat *TCP*1000*nmap | grep -E 'open|report for' | grep -vE '///|#|shown:' | sed 's/Nmap scan/\nNmap scan/g'
-cat *UDP*1000*nmap | grep -E 'open|report for' | grep -vE '///|#|shown:' | sed 's/Nmap scan/\nNmap scan/g'
-cat *TCP*ALL*nmap | grep -E 'open|report for' | grep -vE '///|#|shown:' | sed 's/Nmap scan/\nNmap scan/g'
-cat *UDP*ALL*nmap | grep -E 'open|report for' | grep -vE '///|#|shown:' | sed 's/Nmap scan/\nNmap scan/g'
-cat *SCRIPTS*nmap | grep -E 'open|report for|script results||' | grep -vE '///|#|shown:|Status:|done:|latency|scanned in' | sed 's/Nmap scan/\nNmap scan/g'
-cat *VULN*nmap | grep -E 'open|report for|script results||' | grep -vE '///|#|shown:|Status:|done:|latency|scanned in|ratelimit' | sed '/Pre-scan/,/vulnerable)\./d' | sed 's/Nmap scan/\nNmap scan/g'
-cat *VERSIONS*nmap | grep -E 'open|report for|script results||' | grep -vE '///|#|shown:|Status:|done:|latency|scanned in|unrecognized|report any|\(\)|SF-|SF:' | sed 's/Nmap scan/\nNmap scan/g'
-
-# Exploitation
-## Initial Enumeration
+[*] Web
+curl http://$TARGET -s -I | grep 'Location:' | cut -d ' ' -f 2
+curl https://$TARGET -s -k -I | grep 'Location:' | cut -d ' ' -f 2
 dirsearch -u http://$TARGET --exclude-sizes 0
 ffuf -u https://$DOM/ -H "Host: FUZZ.$DOM" -w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt -fs 0 -t 50 -rate 5000
+
+[*] Infrastructure
 nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET' | grep -Ei 'dns'
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
 impacket-lookupsid 'anonymous'@$TARGET 10000 -no-pass | cut -d '\' -f 2 | grep 'SidTypeUser' | cut -d ' ' -f 1 | tr '[:upper:]' '[:lower:]' | tee usernames
 impacket-getTGT -dc-ip $TARGET $DOM/Guest -no-pass; export KRB5CCNAME=`pwd`/Guest.ccache
 
+# Exploitation
 ## Valid Creds
 sudo ntpdate -u $TARGET
 impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'; export KRB5CCNAME=`pwd`/$USERNAME.ccache
