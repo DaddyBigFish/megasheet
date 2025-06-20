@@ -437,7 +437,7 @@ bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectCla
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=user)(!(sAMAccountType=805306369)))" | grep -av 'nTSecurityDescriptor:' | tee out_users-info
 
 -->> Members of Groups
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=group)(member=*))" --attr 'member','sAMAccountName' | tee out_membersofgroups-info
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=group)(member=*))" --attr 'member','sAMAccountName' | sed -E '/^member: /{s/member: //;s/; */;\n/g;s/^/member:\n/;}' | tee out_membersofgroups-info
 
 
 
