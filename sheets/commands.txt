@@ -20,12 +20,12 @@ dhcp=true
 ipv6=false
 
 sudo nano /etc/wsl.conf
-[wsl2]
-timeSync = false
-
 [network]
 generateResolvConf = false
 generateHosts = false
+
+[time]
+useWindowsTimezone = false
 
 [boot]
 systemd = true
