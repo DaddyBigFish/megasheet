@@ -2,16 +2,6 @@
 ## New Project
 PROJECT="$HOME/Projects/$TARGET"; sudo -v; mkdir -p "$PROJECT"; cd "$PROJECT"; echo "PROJECT="$PROJECT"" >> ~/.zshrc; echo "cd $PROJECT" >> ~/.zshrc; touch usernames passwords; echo "\nanonymous\nadministrator\nguest\nkrbtgt\nroot\nbin\nnone" > usernames; echo "\nanonymous" > passwords; tmux list-windows -F '#{window_id}' | xargs -I {} tmux list-panes -t {} -F '#{pane_id}' | while read pane_id; do tmux send-keys -t $pane_id 'source ~/.zshrc' C-m; tmux send-keys -t $pane_id C-l; done;
 
-## Create hosts lists
-echo '$TARGET' > hosts
-echo '$TARGET' > dc-hosts
-echo '$TARGET' > pc-hosts
-cat dc-hosts pc-hosts > hosts
-
-## Add domains to hosts file
-echo "$TARGET $DOM $DC" | sudo tee -a /etc/hosts
-C:\Windows\System32\drivers\etc\hosts
-
 ## Configurations
 [*] VMWare
 vmware
@@ -86,6 +76,12 @@ nmap -n -sn -PR 10.0.5.0/24
 nbtscan-unixwiz 10.0.5.0/24 -m -n -w 0 | sort -k2
 netdiscover
 
+## Create hosts lists
+echo '$TARGET' > hosts
+echo '$TARGET' > dc-hosts
+echo '$TARGET' > pc-hosts
+cat dc-hosts pc-hosts > hosts
+
 # Information Gathering
 ## Initial Enumeration
 [*] Nessus
@@ -110,6 +106,7 @@ ffuf -u https://$DOM/ -H "Host: FUZZ.$DOM" -w /usr/share/seclists/Discovery/DNS/
 
 ## Infrastructure
 nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET' | grep -Ei 'dns'
+echo "$TARGET $DOM $DC" | sudo tee -a /etc/hosts # Windows: C:\Windows\System32\drivers\etc\hosts
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
 impacket-lookupsid 'anonymous'@$TARGET 10000 -no-pass | cut -d '\' -f 2 | grep 'SidTypeUser' | cut -d ' ' -f 1 | tr '[:upper:]' '[:lower:]' | tee usernames
 impacket-getTGT -dc-ip $TARGET $DOM/Guest -no-pass; export KRB5CCNAME=`pwd`/Guest.ccache
