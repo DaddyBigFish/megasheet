@@ -430,8 +430,16 @@ bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get object MGTSVC$ | grep -Ei 'pa
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get object DC$ | grep -Ei 'pass|pwd' | grep -vE 'bad|Last|Time' | cat
 
 +---------- Search ----------+
+-->> Computers
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=user)(!(sAMAccountType=805306368)))" | grep -av 'nTSecurityDescriptor:' | tee out_computers-info
+
+-->> Users
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=user)(!(sAMAccountType=805306369)))" | grep -av 'nTSecurityDescriptor:' | tee out_users-info
+
+-->> Members of Groups
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=group)(member=*))" --attr 'member','sAMAccountName' | tee out_membersofgroups-info
+
+
 
 +---------- Permissions ----------+
 adminCount
