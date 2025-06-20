@@ -98,6 +98,20 @@ chromium "https://localhost:8834"
 (PORTS=$(cat UDP_*$TARGET.nmap | cut -d '/' -f 1 | sort -nu | awk '/^[0-9]/ {printf "%s,", $1}' | sed 's/,$//'); sudo nmap -Pn -n -sU --script=vuln "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VULN_UDP_$TARGET' &)
 (PORTS=$(cat TCP_*$TARGET.nmap | cut -d '/' -f 1 | sort -nu | awk '/^[0-9]/ {printf "%s,", $1}' | sed 's/,$//'); sudo nmap -Pn -n -sV --script vulners --script-args mincvss=9 "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 | grep -vE '0.0|/cve/|/githubexploit/|/packetstorm/|/cnvd/|/httpd/|/zdt/' | tee 'vulners_$TARGET' &)
 
+[*] Bloodhound
+-->> Privileges: Groups with Users
+MATCH (g:Group)<-[:MemberOf]-(u:User)-[r1]->(n1)-[r2]->(n2)
+WHERE NOT toLower(u.name) CONTAINS "admin"
+  AND NOT toLower(g.name) CONTAINS "admin"
+  AND NOT toLower(n1.name) CONTAINS "admin"
+  AND NOT toLower(n2.name) CONTAINS "admin"
+  AND NOT n1.name ENDS WITH "DOMAIN USERS@INTELLIGENCE.HTB"
+  AND NOT n2.name ENDS WITH "DOMAIN USERS@INTELLIGENCE.HTB"
+  AND NOT toLower(g.name) CONTAINS "guest"
+  AND NOT toLower(u.name) CONTAINS "guest"
+RETURN u, r1, n1, r2, n2
+LIMIT 1000
+
 ## Web
 curl http://$TARGET -s -I | grep 'Location:' | cut -d ' ' -f 2
 curl https://$TARGET -s -k -I | grep 'Location:' | cut -d ' ' -f 2
@@ -112,20 +126,6 @@ nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
 impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
 impacket-lookupsid 'anonymous'@$TARGET 10000 -no-pass | cut -d '\' -f 2 | grep 'SidTypeUser' | cut -d ' ' -f 1 | tr '[:upper:]' '[:lower:]' | tee usernames
 impacket-getTGT -dc-ip $TARGET $DOM/Guest -no-pass; export KRB5CCNAME=`pwd`/Guest.ccache
-
-[*] Bloodhound
--->> Privileges: Groups with Users
-MATCH (g:Group)<-[:MemberOf]-(u:User)-[r1]->(n1)-[r2]->(n2)
-WHERE NOT toLower(u.name) CONTAINS "admin"
-  AND NOT toLower(g.name) CONTAINS "admin"
-  AND NOT toLower(n1.name) CONTAINS "admin"
-  AND NOT toLower(n2.name) CONTAINS "admin"
-  AND NOT n1.name ENDS WITH "DOMAIN USERS@INTELLIGENCE.HTB"
-  AND NOT n2.name ENDS WITH "DOMAIN USERS@INTELLIGENCE.HTB"
-  AND NOT toLower(g.name) CONTAINS "guest"
-  AND NOT toLower(u.name) CONTAINS "guest"
-RETURN u, r1, n1, r2, n2
-LIMIT 1000
 
 # Exploitation
 ## Spray Services
