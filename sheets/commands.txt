@@ -1073,15 +1073,16 @@ echo -e '\n\n'; cat /proc/self/environ | tr '\0' '\n' | sort
 echo -e '\n\n'; netstat -tuln
 echo -e '\n\n'; sudo -l
 
++---------- Group Files ----------+
+find / -group developer 2>/dev/null
+find / -group sysadm 2>/dev/null
+
 +---------- Find Usernames / Passwords ----------+
 (grep -IrinE '^\s*db[-_]?user\w*\s*=\s*|^\s*db[-_]?pass\w*\s*=\s*' / 2>/dev/null &)
 
 +---------- Polkit Version ----------+
 rpm -qa | grep -i polkit | grep -i "0.11[3-9]"
 apt list --installed 2>/dev/null | grep -i policykit
-
-+---------- Group Files ----------+
-find / -group developer 2>/dev/null
 
 +---------- Services Running ----------+
 systemctl list-units --type=service --state=running
