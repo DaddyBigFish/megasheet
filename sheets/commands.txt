@@ -446,8 +446,8 @@ bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add dnsRecord 'xxx.domain.example
 
 +---------- Get ----------+
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get writable --detail
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get object MGTSVC$ | grep -Ei 'pass|pwd' | grep -vE 'bad|Last|Time' | cat
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get object DC$ | grep -Ei 'pass|pwd' | grep -vE 'bad|Last|Time' | cat
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get object SVC_ACC$ --attr msDS-ManagedPassword
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get object User | grep -Ei 'pass|pwd' | grep -vE 'bad|Last|Time' | cat
 
 +---------- Search ----------+
 -->> Computers
@@ -459,7 +459,8 @@ bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectCla
 -->> Members of Groups
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=group)(member=*))" --attr 'member','sAMAccountName' | sed -E '/^member: /{s/member: //;s/; */;\n/g;s/^/member:\n/;}' | tee out_membersofgroups-info
 
-
+-->> Passwords and Keys
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=*))" | grep -a -Ei 'pass|pwd|key'
 
 +---------- Permissions ----------+
 adminCount
