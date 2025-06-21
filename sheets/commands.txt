@@ -1210,6 +1210,7 @@ powershell -c "Get-Service | Where-Object { $_.CanStop -eq $true -and $_.Display
 powershell -c "Import-Module ActiveDirectory"
 powershell -c "Get-ADComputer DC1 -property *"
 powershell -c "Get-ADObject -Filter 'isDeleted -eq $true' -IncludeDeletedObjects"
+powershell -c "Get-ADObject -filter { SAMAccountName -eq 'TempAdmin' } -includeDeletedObjects -property *"
 powershell -c "(Get-WmiObject Win32_ComputerSystem).Domain"
 powershell -c "if ([Environment]::Is64BitOperatingSystem) { '64-bit' } else { '32-bit' }"
 
