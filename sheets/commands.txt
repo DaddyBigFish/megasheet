@@ -1077,6 +1077,10 @@ echo -e '\n\n'; sudo -l
 find / -group developer 2>/dev/null
 find / -group sysadm 2>/dev/null
 
++---------- Change to Group ----------+
+newgrp developer
+newgrp sysadm
+
 +---------- Find Usernames / Passwords ----------+
 (grep -IrinE '^\s*db[-_]?user\w*\s*=\s*|^\s*db[-_]?pass\w*\s*=\s*' / 2>/dev/null &)
 
