@@ -120,7 +120,7 @@ ffuf -u https://$DOM/ -H "Host: FUZZ.$DOM" -w /usr/share/seclists/Discovery/DNS/
 
 ## Infrastructure
 windapsearch --dc-ip $TARGET --full --computers | grep -Ei 'dns'
-windapsearch --dc-ip $TARGET --full --users --computers | grep -Ei 'passw|pwd|key|secret|desc' | grep -Evi 'bad|LastSet'
+windapsearch --dc-ip $TARGET --full --users --computers | grep -Evi 'bad|LastSet' | grep -Ei 'passw|pwd|key|secret|desc'
 echo "$TARGET $DOM $DC" | sudo tee -a /etc/hosts # Windows: C:\Windows\System32\drivers\etc\hosts
 rpcclient -U "" -N $TARGET -c "enumdomusers" | grep -oP 'user:\[\K[^]]+' | tr '[:upper:]' '[:lower:]' | tee usernames
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
