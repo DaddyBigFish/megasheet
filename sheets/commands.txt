@@ -105,11 +105,14 @@ WHERE NOT toLower(u.name) CONTAINS "admin"
   AND NOT toLower(g.name) CONTAINS "admin"
   AND NOT toLower(n1.name) CONTAINS "admin"
   AND NOT toLower(n2.name) CONTAINS "admin"
-  AND NOT n1.name ENDS WITH "DOMAIN USERS@INTELLIGENCE.HTB"
-  AND NOT n2.name ENDS WITH "DOMAIN USERS@INTELLIGENCE.HTB"
+  AND NOT n1.name ENDS WITH "DOMAIN USERS"
+  AND NOT n2.name ENDS WITH "DOMAIN USERS"
   AND NOT toLower(g.name) CONTAINS "guest"
   AND NOT toLower(u.name) CONTAINS "guest"
-RETURN u, r1, n1, r2, n2
+OPTIONAL MATCH (n2)-[r3]->(connected)
+WITH g, u, r1, n1, r2, n2, r3, connected
+MATCH (u)-[m:MemberOf]->(g)
+RETURN DISTINCT g, u, m, r1, n1, r2, n2, r3, connected
 LIMIT 1000
 
 ## Web
