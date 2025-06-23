@@ -133,6 +133,7 @@ impacket-lookupsid 'anonymous'@$TARGET 10000 -no-pass | cut -d '\' -f 2 | grep '
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
 impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
 tshark -r FILE.pcap -V | grep -iE 'cipher:|enctype:' | cut -d ':' -f2 | xargs -n1
+echo '$krb5pa$18$<CNameString>$<realm>$<cipher>' > hashes; hashcat hashes $rockyou
 
 # Exploitation
 ## Decoding
