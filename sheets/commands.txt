@@ -118,7 +118,7 @@ LIMIT 1000
 ## Web
 curl http://$TARGET -s -I | grep 'Location:' | cut -d ' ' -f 2
 curl https://$TARGET -s -k -I | grep 'Location:' | cut -d ' ' -f 2
-dirsearch -u http://$TARGET --exclude-sizes 0
+dirsearch -u http://$TARGET --exclude-sizes 0 --recursive --crawl -t 50
 ffuf -u http://$DOM/ -H "Host: FUZZ.$DOM" -w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt -fs 0 -t 50 -rate 5000
 
 ## Infrastructure
