@@ -119,13 +119,12 @@ LIMIT 1000
 curl http://$TARGET -s -I | grep 'Location:' | cut -d ' ' -f 2
 curl https://$TARGET -s -k -I | grep 'Location:' | cut -d ' ' -f 2
 dirsearch -u http://$TARGET --exclude-sizes 0
-ffuf -u https://$DOM/ -H "Host: FUZZ.$DOM" -w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt -fs 0 -t 50 -rate 5000
+ffuf -u http://$DOM/ -H "Host: FUZZ.$DOM" -w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt -fs 0 -t 50 -rate 5000
 
 ## Infrastructure
-windapsearch --dc-ip $TARGET --full --users --computers | grep -Evi 'bad|LastSet' | grep -Ei 'passw|pwd|key|secret|desc'
-windapsearch --dc-ip $TARGET --full --computers | grep -Ei 'dnsHostName' | cut -d ':' -f2 | xargs
 nmap $TARGET --script "ldap* and not brute" -p 389 | grep -Ei 'dnsHostName' | cut -d ':' -f2 | xargs
 echo "$TARGET $DOM $DC" | sudo tee -a /etc/hosts # Windows: C:\Windows\System32\drivers\etc\hosts
+windapsearch --dc-ip $TARGET --full --users --computers | grep -Evi 'bad|LastSet' | grep -Ei 'passw|pwd|key|secret|desc'
 (kerbrute userenum --dc $TARGET -d $DOM /usr/share/wordlists/seclists/Usernames/xato-net-10-million-usernames.txt -t 50 --delay 0 -o $TARGET_userenum.kerbrute &)
 cat *.kerbrute | grep '[+]' | cut -d ':' -f4 | cut -d '@' -f1 | xargs -n1 | tr '[:upper:]' '[:lower:]' | sort -u | tee usernames
 rpcclient -U "" -N $TARGET -c "enumdomusers" | grep -oP 'user:\[\K[^]]+' | tr '[:upper:]' '[:lower:]' | tee usernames
