@@ -466,9 +466,10 @@ https://datafetcher.com/graphql-json-body-converter
 
 ## Infrastructure
 [*] Active Directory
++---------- Guide ----------+
 https://github.com/CravateRouge/bloodyAD/wiki/User-Guide
 
-+---------- TGT .ccache ----------+
++---------- .ccache ----------+
 impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'; export KRB5CCNAME=`pwd`/$USERNAME.ccache
 
 +---------- AddSelf ----------+
@@ -569,6 +570,9 @@ WriteDacl
 WriteOwner
 
 [*] Active Directory: CS
++---------- Guide ----------+
+https://github.com/ly4k/Certipy/wiki/05-%E2%80%90-Usage
+
 +---------- .ccache ----------+
 impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'; export KRB5CCNAME=`pwd`/$USERNAME.ccache
 impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME' -hashes ':'; export KRB5CCNAME=`pwd`/$USERNAME.ccache
