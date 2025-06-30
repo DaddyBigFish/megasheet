@@ -147,7 +147,7 @@ ffuf -u http://$DOM/ -H "Host: FUZZ.$DOM" -w /usr/share/seclists/Discovery/DNS/b
 
 ## Infrastructure
 nmap $TARGET --script "ldap* and not brute" -p 389 | grep -Ei 'dnsHostName' | cut -d ':' -f2 | xargs
-echo "$TARGET $DOM $DC" | sudo tee -a /etc/hosts # Windows: C:\Windows\System32\drivers\etc\hosts
+echo "$TARGET $DC $DOM" | sudo tee -a /etc/hosts # Windows: C:\Windows\System32\drivers\etc\hosts
 smbnull -i $TARGET
 impacket-lookupsid 'anonymous'@$TARGET 10000 -no-pass | cut -d '\' -f 2 | grep 'SidTypeUser' | cut -d ' ' -f 1 | tr '[:upper:]' '[:lower:]' | tee usernames
 rpcclient -U "" -N $TARGET -c "enumdomusers" | grep -oP 'user:\[\K[^]]+' | tr '[:upper:]' '[:lower:]' | tee usernames
