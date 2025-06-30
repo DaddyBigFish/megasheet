@@ -137,6 +137,8 @@ cat passwords | sort -u | tee passwords
 
 ## Web
 nmap $TARGET --script "ssl-cert" --open -p 80,443
+whatweb http://$TARGET
+wafw00f http://$TARGET
 echo "$TARGET $DOM" | sudo tee -a /etc/hosts # Windows: C:\Windows\System32\drivers\etc\hosts
 dirsearch -u http://$TARGET --exclude-sizes 0 --recursive --crawl -t 50
 ffuf -u http://$DOM/ -H "Host: FUZZ.$DOM" -w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt -fs 0 -t 50 -rate 5000
@@ -294,11 +296,6 @@ sqlmap \
 
 +---------- Verify Session ID ----------+
 curl -X POST http://$TARGET/zabbix/api_jsonrpc.php -H "Content-Type: application/json-rpc" -d '{"jsonrpc": "2.0","method": "user.checkAuthentication","params": {"sessionid": "fdcfbcb99704cba0bf030d626d671510"},"id": 1}'
-
-[*] Technologies
-whatweb http://$TARGET
-wafw00f http://$TARGET
-
 
 [*] Curl
 cat urls | jq -r 'fromjson | .data-block[] | [.id, .clientName, .identityServerUrl, .url] | @csv'
