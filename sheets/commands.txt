@@ -112,17 +112,19 @@ admin:RANDOM_PASSWORD
 MATCH (g:Group)<-[:MemberOf]-(e)-[r1]->(n1)-[r2]->(n2)
 WHERE (e:User OR e:Computer)
   AND NOT toLower(e.name) CONTAINS "admin"
-  AND NOT toLower(g.name) CONTAINS "admin"
-  AND NOT toLower(n1.name) CONTAINS "admin"
-  AND NOT toLower(n2.name) CONTAINS "admin"
-  AND NOT n1.name ENDS WITH "DOMAIN USERS"
-  AND NOT n2.name ENDS WITH "DOMAIN USERS"
-  AND NOT toLower(g.name) CONTAINS "guest"
   AND NOT toLower(e.name) CONTAINS "guest"
+  AND NOT toLower(g.name) CONTAINS "admin"
+  AND NOT toLower(g.name) CONTAINS "guest"
+  AND NOT toLower(g.name) CONTAINS "domain users"
+  AND NOT toLower(n1.name) CONTAINS "admin"
+  AND NOT toLower(n1.name) CONTAINS "domain users"
+  AND NOT toLower(n2.name) CONTAINS "admin"
+  AND NOT toLower(n2.name) CONTAINS "domain users"
+  AND NOT (n1:Container AND toLower(n1.name) CONTAINS "users")
+  AND NOT (n2:Container AND toLower(n2.name) CONTAINS "users")
+WITH e, r1, n1, r2, n2
 OPTIONAL MATCH (n2)-[r3]->(connected)
-WITH g, e, r1, n1, r2, n2, r3, connected
-MATCH (e)-[m:MemberOf]->(g)
-RETURN DISTINCT g, e, m, r1, n1, r2, n2, r3, connected
+RETURN DISTINCT e, r1, n1, r2, n2, r3, connected
 LIMIT 1000
 
 ## Create Custom Usernames List
