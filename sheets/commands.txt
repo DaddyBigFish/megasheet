@@ -147,6 +147,7 @@ ffuf -u http://$DOM/ -H "Host: FUZZ.$DOM" -w /usr/share/seclists/Discovery/DNS/b
 
 ## Infrastructure
 nmap $TARGET --script "ldap* and not brute" -p 389 | grep -Ei 'dnsHostName' | cut -d ':' -f2 | xargs
+KDOM=${$DOM^^}; KDC=${$DC^^}; echo -e "[libdefaults]\n default_realm = $KDOM\n dns_lookup_kdc = false\n dns_lookup_realm = false\n forwardable = true\n\n[realms]\n $KDOM = {\n  kdc = $KDC\n  admin_server = $KDC\n }\n\n[domain_realm]\n .$DOM = $KDOM\n $DOM = $KDOM" | sudo tee /etc/krb5.conf
 echo "$TARGET $DC $DOM" | sudo tee -a /etc/hosts # Windows: C:\Windows\System32\drivers\etc\hosts
 smbnull -i $TARGET
 impacket-lookupsid 'anonymous'@$TARGET 10000 -no-pass | cut -d '\' -f 2 | grep 'SidTypeUser' | cut -d ' ' -f 1 | tr '[:upper:]' '[:lower:]' | tee usernames
