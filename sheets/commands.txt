@@ -149,7 +149,7 @@ ffuf -u http://$DOM/ -H "Host: FUZZ.$DOM" -w /usr/share/seclists/Discovery/DNS/b
 nmap $TARGET --script "ldap* and not brute" -p 389 | grep -Ei 'dnsHostName' | cut -d ':' -f2 | xargs
 KDOM=$(bash -c 'echo "${0^^}"' $DOM);KDC=$(bash -c 'echo "${0^^}"' $DC); echo -e "[libdefaults]\n default_realm = $KDOM\n dns_lookup_kdc = false\n dns_lookup_realm = false\n forwardable = true\n\n[realms]\n $KDOM = {\n  kdc = $KDC\n  admin_server = $KDC\n }\n\n[domain_realm]\n .$DOM = $KDOM\n $DOM = $KDOM" | sudo tee /etc/krb5.conf
 echo "$TARGET $DC $DOM" | sudo tee -a /etc/hosts # Windows: C:\Windows\System32\drivers\etc\hosts
-smbnull -i $TARGET
+smbme $TARGET
 impacket-lookupsid 'anonymous'@$TARGET 10000 -no-pass | cut -d '\' -f 2 | grep 'SidTypeUser' | cut -d ' ' -f 1 | tr '[:upper:]' '[:lower:]' | tee usernames
 rpcclient -U "" -N $TARGET -c "enumdomusers" | grep -oP 'user:\[\K[^]]+' | tr '[:upper:]' '[:lower:]' | tee usernames
 (kerbrute userenum --dc $TARGET -d $DOM /usr/share/wordlists/seclists/Usernames/xato-net-10-million-usernames.txt -t 50 --delay 0 -o $TARGET_userenum.kerbrute &)
