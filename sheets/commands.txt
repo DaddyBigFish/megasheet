@@ -138,12 +138,12 @@ cat usernames | sort -u | tee usernames
 cat passwords | sort -u | tee passwords
 
 ## Web
-nmap $TARGET --script "ssl-cert" --open -p 80,443
-whatweb http://$TARGET
-wafw00f http://$TARGET
+nmap $TARGET --script "ssl-cert" --open -p 443
+whatweb ://$TARGET
+wafw00f ://$TARGET
 echo "$TARGET $DOM" | sudo tee -a /etc/hosts # Windows: C:\Windows\System32\drivers\etc\hosts
-dirsearch -u http://$TARGET --exclude-sizes 0 --recursive --crawl -t 50
-ffuf -u http://$DOM/ -H "Host: FUZZ.$DOM" -w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt -fs 0 -t 50 -rate 5000
+dirsearch -u ://$TARGET --exclude-sizes 0 --recursive --crawl -t 50
+ffuf -u ://$DOM/ -H "Host: FUZZ.$DOM" -w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt -fs 0 -t 50 -rate 5000
 
 ## Infrastructure
 nmap $TARGET --script "ldap* and not brute" -p 389 | grep -Ei 'dnsHostName' | cut -d ':' -f2 | xargs
