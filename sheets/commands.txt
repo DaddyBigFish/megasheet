@@ -269,8 +269,7 @@ curl -s "http://$TARGET/api/index.php/v1/config/application?public=True" | jq
 
 [*] Git / Gitlab
 +---------- Git ----------+
-export GIT_SSL_NO_VERIFY=true
-git clone https://SITE/USER/REPO.git ./git
+export GIT_SSL_NO_VERIFY=true; git clone https://$USERNAME:$PASSWORD@$DOM/USER/REPO.git ./git
 tree ./git -a -f
 git rev-list --all
 git cat-file -p acb753dd975a639f2dbc28ee8fd4d67adc50e609
