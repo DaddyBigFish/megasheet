@@ -131,6 +131,7 @@ LIMIT 1000
 username-anarchy --input-file usernames --select-format first,flast,f.last,first.last,firstlast > .tmp; cat .tmp | tee usernames; rm .tmp
 
 ## Create Custom Passwords List
+cewler -d 0 http://$TARGET/ -r 50
 psudohash.py -w phantom -y 2023-2025 -cpb -cpa -cpo -ap '~,`,!,@,#,$,%,^,&,*,(,),_,+,{,},|,:,",<,>,?,,,.,/,;,[,],\,-' -o passwords
 
 ## Sorting Lists
