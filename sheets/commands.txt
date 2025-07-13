@@ -153,7 +153,7 @@ nmap $TARGET --script "ssl-cert" --open -p 443
 whatweb ://$TARGET
 wafw00f ://$TARGET
 echo "$TARGET $DOM" | sudo tee -a /etc/hosts # Windows: C:\Windows\System32\drivers\etc\hosts
-dirsearch -u ://$TARGET --exclude-sizes 0 --exclude-status 404 --recursive --crawl -t 50
+dirsearch -u ://$TARGET --exclude-sizes 0 --exclude-status 403,404 --recursive --crawl -t 50
 ffuf -u ://$DOM/ -H "Host: FUZZ.$DOM" -w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt -fs 0 -fc 404 -t 50 -rate 5000
 portnock $TARGET 3456 8234 62431 -v
 
