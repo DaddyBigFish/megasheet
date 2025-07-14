@@ -900,11 +900,13 @@ ssh-keygen -t dsa -f id_dsa -N ''; chmod 600 id_dsa id_dsa.pub; cat id_dsa.pub
 echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDAS3I0GV78pbzK7Kd3m44tFBbqX1sXRpCv6LPjle3yW root@hostname' > TARGET > ~/.ssh/authorized_keys
 
 +---------- Login to Service ----------+
-$USERNAME@$TARGET -i id_ed25519 -oHostKeyAlgorithms=+ssh-ed25519 -oPubkeyAcceptedKeyTypes=+ssh-ed25519
-$USERNAME@$TARGET -i id_rsa -oHostKeyAlgorithms=+ssh-rsa -oPubkeyAcceptedKeyTypes=+ssh-rsa
-$USERNAME@$TARGET -i id_dsa -oHostKeyAlgorithms=+ssh-dss -oPubkeyAcceptedKeyTypes=+ssh-dss
+sshuttle --ssh-cmd "ssh -i $HOME/.ssh/id_ed25519" -r $USERNAME@$TARGET 0.0.0.0/0 -v
+ssh $USERNAME@$TARGET -i id_ed25519 -oHostKeyAlgorithms=+ssh-ed25519 -oPubkeyAcceptedKeyTypes=+ssh-ed25519
+ssh $USERNAME@$TARGET -i id_rsa -oHostKeyAlgorithms=+ssh-rsa -oPubkeyAcceptedKeyTypes=+ssh-rsa
+ssh $USERNAME@$TARGET -i id_dsa -oHostKeyAlgorithms=+ssh-dss -oPubkeyAcceptedKeyTypes=+ssh-dss
 
 +---------- Port Forwarding ----------+
+sshuttle --ssh-cmd "ssh -i $HOME/.ssh/id_ed25519" -r $USERNAME@$TARGET 0.0.0.0/0 -v
 ssh $USERNAME@$TARGET -i id_ed25519 -L 33060:Localhost:33060 -L 5000:Localhost:5000
 ssh $USERNAME@$TARGET -i id_rsa -L 33060:Localhost:33060 -L 5000:Localhost:5000
 ssh $USERNAME@$TARGET -i id_dsa -L 33060:Localhost:33060 -L 5000:Localhost:5000
