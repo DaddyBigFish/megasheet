@@ -149,9 +149,8 @@ cat passwords | sort -u | tee passwords
 ) | grep -a --line-buffered -oP '\d{1,3}(?:\.\d{1,3}){3}\s+\d+\s+\S+\s.*$DOM\\\S.*' | sed -E '/\[\+\]|CHANGE/ { s/($DOM\\)([^:]+:[^ ].*)/\1\x1b[1;33m\2\x1b[0m/; /\x1b\[1;33m/!d }' | grep --color=always -P '\x1b\[1;33m.*\x1b\[0m'
 
 ## Web
-nmap $TARGET --script "ssl-cert" --open -p 443
 whatweb ://$TARGET
-wafw00f ://$TARGET
+echo | openssl s_client -connect $TARGET:443 2>/dev/null | awk '/subject=|issuer=/'
 echo "$TARGET $DOM" | sudo tee -a /etc/hosts # Windows: C:\Windows\System32\drivers\etc\hosts
 dirsearch -u ://$TARGET --exclude-sizes 0 --exclude-status 403,404 --recursive --crawl -t 50
 ffuf -u ://$DOM/ -H "Host: FUZZ.$DOM" -w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt -fs 0 -fc 404 -t 50 -rate 5000
