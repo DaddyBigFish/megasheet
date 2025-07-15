@@ -1052,6 +1052,9 @@ nxc ldap $TARGET -u '$USERNAME' -p '$PASSWORD' --query "(SAMAccountType=80530636
 (hydra -I smb://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 (hydra -I smb2://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 
++---------- Banner ----------+
+nmap $TARGET -sS -T5 --script="smb*protocols,smb*security-mode" -p445
+
 +---------- Spider Share for Files ----------+
 NXCSPIDER=$(nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' -M spider_plus | grep -oP '(?<=Saved share-file metadata to ")[^"]+');cat $NXCSPIDER | grep -vE 'epoch|size' | sed -E 's/[{}\",:]//g' | sed '/^        $/d' | tee smbfiles_$USERNAME
 
