@@ -1,6 +1,6 @@
 # Setup
 ## New Project
-PROJECT="$HOME/Projects/Nest"; sudo -v; [ "$(tmux display-message -p '#W')" != "Shells" ] && mkdir -p "$PROJECT" && cd "$PROJECT" && echo "PROJECT=$PROJECT" >> ~/.zshrc && echo "cd $PROJECT" >> ~/.zshrc && touch usernames passwords && echo "\nanonymous\nadministrator\nguest\nkrbtgt\nroot\nbin\nnone" > usernames && echo "\nanonymous" > passwords && tmux list-windows -F '#{window_id}:#{window_name}' | awk -F: '$2!="Shells"{print $1}' | xargs -I {} tmux list-panes -t {} -F '#{pane_id}' | while read pane_id; do tmux send-keys -t $pane_id 'source ~/.zshrc' C-m; tmux send-keys -t $pane_id C-l; done
+PROJECT="$HOME/Projects/$TARGET"; sudo -v; [ "$(tmux display-message -p '#W')" != "Shells" ] && mkdir -p "$PROJECT" && cd "$PROJECT" && echo "PROJECT=$PROJECT" >> ~/.zshrc && echo "cd $PROJECT" >> ~/.zshrc && touch usernames passwords && echo "\nanonymous\nadministrator\nguest\nkrbtgt\nroot\nbin\nnone" > usernames && echo "\nanonymous" > passwords && tmux list-windows -F '#{window_id}:#{window_name}' | awk -F: '$2!="Shells"{print $1}' | xargs -I {} tmux list-panes -t {} -F '#{pane_id}' | while read pane_id; do tmux send-keys -t $pane_id 'source ~/.zshrc' C-m; tmux send-keys -t $pane_id C-l; done
 
 ## Configurations
 [*] VMWare
