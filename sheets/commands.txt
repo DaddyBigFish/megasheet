@@ -150,6 +150,7 @@ cat passwords | sort -u | tee passwords
 
 ## Web
 whatweb ://$TARGET
+chromium ://$TARGET
 echo | openssl s_client -connect $TARGET:443 2>/dev/null | awk '/subject=|issuer=/'
 echo "$TARGET $DOM" | sudo tee -a /etc/hosts # Windows: C:\Windows\System32\drivers\etc\hosts
 dirsearch -u ://$TARGET --exclude-sizes 0 --exclude-status 403,404 --recursive --crawl -t 50
