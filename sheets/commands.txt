@@ -159,6 +159,7 @@ ffuf -u ://$DOM/ -H "Host: FUZZ.$DOM" -w /usr/share/seclists/Discovery/DNS/bitqu
 portnock $TARGET 3456 8234 62431 -v
 
 ## Infrastructure
+bannerme *.nmap
 nmap $TARGET --script "ssl* and not brute" -p 443
 nmap $TARGET --script "ldap* and not brute" -p 389 | grep -Ei 'dnsHostName' | cut -d ':' -f2 | xargs
 KDOM=$(bash -c 'echo "${0^^}"' $DOM);KDC=$(bash -c 'echo "${0^^}"' $DC); echo -e "[libdefaults]\n default_realm = $KDOM\n dns_lookup_kdc = false\n dns_lookup_realm = false\n forwardable = true\n\n[realms]\n $KDOM = {\n  kdc = $KDC\n  admin_server = $KDC\n }\n\n[domain_realm]\n .$DOM = $KDOM\n $DOM = $KDOM" | sudo tee /etc/krb5.conf
