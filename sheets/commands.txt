@@ -903,8 +903,10 @@ get file.txt -
 +---------- Spray Service ----------+
 (hydra -I ssh://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 
-+---------- Key Types ----------+
++---------- View Key Types ----------+
 ssh -Q key
+
++---------- List of Key Types ----------+
 ssh-ed25519
 ssh-rsa
 ssh-dss
