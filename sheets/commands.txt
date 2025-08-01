@@ -157,7 +157,7 @@ echo | openssl s_client -connect $TARGET:443 2>/dev/null | awk '/subject=|issuer
 echo "$TARGET $DOM" | sudo tee -a /etc/hosts # Windows: C:\Windows\System32\drivers\etc\hosts
 dirsearch -e conf,config,bak,backup,swp,old,db,sql,asp,aspx,aspx~,asp~,py,py~,rb,rb~,php,php~,bak,bkp,cache,cgi,conf,csv,html,inc,jar,js,json,jsp,jsp~,lock,log,rar,old,sql,sql.gz,sql.zip,sql.tar.gz,sql~,swp,swp~,tar,tar.bz2,tar.gz,txt,wadl,zip,log,xml,js,json -u ://$TARGET
 dirsearch -u ://$TARGET --exclude-sizes 0 --exclude-status 403,404 --recursive --crawl -t 50
-ffuf -u ://$DOM/ -H "Host: FUZZ.$DOM" -w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt -fs 0 -fc 404 -t 50 -rate 5000
+ffuf -H "Host: FUZZ.$DOM" -w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt -fc 404 -t 50 -rate 5000 -fs 0 -fw 0 -u ://$DOM/
 portnock $TARGET 3456 8234 62431 -v
 
 ## Infrastructure
