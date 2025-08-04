@@ -151,7 +151,7 @@ cat passwords | sort -u | tee passwords
 ) | grep -a --line-buffered -oP '\d{1,3}(?:\.\d{1,3}){3}\s+\d+\s+\S+\s.*$DOM\\\S.*' | sed -E '/\[\+\]|CHANGE/ { s/($DOM\\)([^:]+:[^ ].*)/\1\x1b[1;33m\2\x1b[0m/; /\x1b\[1;33m/!d }' | grep --color=always -P '\x1b\[1;33m.*\x1b\[0m'
 
 ## Web
-curl -sI $TARGET | grep -oP 'https?://\S+'
+curl -sI $TARGET | grep -oP '(?<=https?://)[^" \r\n]+'
 whatweb ://$TARGET
 chromium ://$TARGET
 echo | openssl s_client -connect $TARGET:443 2>/dev/null | awk '/subject=|issuer=/'
