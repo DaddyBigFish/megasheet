@@ -152,6 +152,7 @@ cat passwords | sort -u | tee passwords
 
 ## Web
 curl -sI $TARGET | grep -oP '(?<=https?://)[^/\s]+'
+domme ://$TARGET
 echo | openssl s_client -connect $TARGET:443 2>/dev/null | awk '/subject=|issuer=/'
 echo "$TARGET $DOM" | sudo tee -a /etc/hosts # Windows: C:\Windows\System32\drivers\etc\hosts
 whatweb ://$DOM
