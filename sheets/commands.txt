@@ -1412,14 +1412,16 @@ interface_create --name ligolo
 tunnel_start --tun ligolo
 ifconfig
 interface_add_route --name ligolo --route 240.0.0.1/32
-interface_add_route --name ligolo --route 192.168.99.0/24
+interface_add_route --name ligolo --route 192.168.110.51/24
 
 -->> Single Host: Attack Forwarded Ports
 chromium 240.0.0.1:3000
 curl 240.0.0.1:5000
 
 -->> Multiple Hosts: Scan Network Range
-fping -ag 192.168.99.0/24 | tee internal-ips
+nbtscan-unixwiz 192.168.110.51/24
+fping -ag 192.168.110.51/24
+sudo nmap -n -Pn -sS '192.168.110.51/24' -F --open --max-rate 100 -D 1.1.1.1 -g53 --spoof-mac Cloudflare --mtu 32 --data-length 0
 
 ## Linux
 [*] Initial Shell
