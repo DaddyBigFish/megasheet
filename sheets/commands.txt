@@ -72,9 +72,13 @@ sudo systemctl restart networking.service
 (enum4linux-ng -A $TARGET | tee enum4linux_$TARGET &)
 
 ## Internal scans
-nmap -n -sn -PR 10.0.5.0/24
-nbtscan-unixwiz 10.0.5.0/24 -m -n -w 0 | sort -k2
 netdiscover
+nbtscan-unixwiz 192.168.110.51/24 -m -n -w 0 | sort -k2
+fping -ag 192.168.110.51/24
+sudo nmap -n -Pn -sS '192.168.110.51/24' -p21,22,23,25,53,79,80,88,135,139,389,445,512,513,514,1433,1521,2049,2375,3306,3389,5985,10249,10250 --open --min-rate 250 --max-rate 500
+echo -e '192.168.110.1,51-56' > hosts
+sudo nmap -n -Pn -sS '192.168.110.1,51-56' --open --max-rate 50
+sudo nmap -n -Pn -sS '192.168.110.51/24' --excludefile hosts -F --open --max-rate 50
 
 ## Create hosts lists
 echo '$TARGET' > hosts
@@ -1422,7 +1426,10 @@ curl 240.0.0.1:5000
 -->> Multiple Hosts: Scan Network Range
 nbtscan-unixwiz 192.168.110.51/24
 fping -ag 192.168.110.51/24
-sudo nmap -n -Pn -sS '192.168.110.51/24' -F --open --max-rate 100 -D 1.1.1.1 -g53 --spoof-mac Cloudflare --mtu 32 --data-length 0
+sudo nmap -n -Pn -sS '192.168.110.51/24' -p21,22,23,25,53,79,80,88,135,139,389,445,512,513,514,1433,1521,2049,2375,3306,3389,5985,10249,10250 --open --min-rate 250 --max-rate 500
+sudo nmap -n -Pn -sS '192.168.110.1,51-56' --open --max-rate 50
+echo -e '192.168.110.1,51-56' > hosts
+sudo nmap -n -Pn -sS '192.168.110.51/24' --excludefile hosts -F --open --max-rate 50
 
 ## Linux
 [*] Initial Shell
