@@ -113,6 +113,13 @@ admin:RANDOM_PASSWORD
 
 +---------- Queries ----------+
 -->> Privileges: Groups with Users and Computers
+MATCH p=(n)-[r*1..]-(m)
+WHERE (n:User OR n:Computer)
+  AND (m:User OR m:Computer)
+  AND ALL(x IN nodes(p) WHERE x:User OR x:Computer)
+RETURN p
+LIMIT 1000
+
 MATCH (g:Group)<-[:MemberOf]-(e)-[r1]->(n1)-[r2]->(n2)
 WHERE (e:User OR e:Computer)
   AND NOT toLower(e.name) CONTAINS "admin"
