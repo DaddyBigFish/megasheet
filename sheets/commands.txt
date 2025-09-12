@@ -1450,6 +1450,15 @@ stop
 interface_delete --name ligolo
 start
 
+-->> Change Session Pivot Point
+session_list
+session
+1
+stop
+session
+2
+start
+
 -->> Single Host: Attack Forwarded Host
 chromium 240.0.0.1:3000
 curl 240.0.0.1:5000
