@@ -159,6 +159,8 @@ curl -sI $TARGET | grep -oP '(?<=https?://)[^/\s]+'
 domme ://$TARGET
 echo | openssl s_client -connect $TARGET:443 2>/dev/null | awk '/subject=|issuer=/'
 echo "$TARGET $DOM" | sudo tee -a /etc/hosts # Windows: C:\Windows\System32\drivers\etc\hosts
+creds search pfsense
+creds search tomcat
 URL=http://$DOM; whatweb $URL; nuclei -u $URL
 dirsearch -e conf,config,bak,backup,swp,old,db,sql,asp,aspx,aspx~,asp~,py,py~,rb,rb~,php,php~,bak,bkp,cache,cgi,conf,csv,html,inc,jar,js,json,jsp,jsp~,lock,log,rar,old,sql,sql.gz,sql.zip,sql.tar.gz,sql~,swp,swp~,tar,tar.bz2,tar.gz,txt,wadl,zip,log,xml,js,json --exclude-sizes 0 --exclude-status 404 --recursive --crawl -t 50 -o dirsearch.txt --format json -w /usr/share/wordlists/assetnote/assetnote_directories.txt -u ://$DOM
 ffuf -H "Host: FUZZ.$DOM" -w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt -fc 404 -t 50 -rate 5000 -fs 0 -fw 0 -u ://$DOM
@@ -171,6 +173,7 @@ nmap $TARGET --script "ssl* and not brute" -p 443
 nmap $TARGET --script "ldap* and not brute" -p 389 | grep -Ei 'dnsHostName' | cut -d ':' -f2 | xargs
 KDOM=$(bash -c 'echo "${0^^}"' $DOM);KDC=$(bash -c 'echo "${0^^}"' $DC); echo -e "[libdefaults]\n default_realm = $KDOM\n dns_lookup_kdc = false\n dns_lookup_realm = false\n forwardable = true\n\n[realms]\n $KDOM = {\n  kdc = $KDC\n  admin_server = $KDC\n }\n\n[domain_realm]\n .$DOM = $KDOM\n $DOM = $KDOM" | sudo tee /etc/krb5.conf
 echo "$TARGET $DC $DOM" | sudo tee -a /etc/hosts # Windows: C:\Windows\System32\drivers\etc\hosts
+creds search ftp
 nxc ftp "$TARGET" -u 'anonymous' -p '' --ls
 wget ftp://$TARGET --ftp-user='anonymous' --ftp-password='' -np -nH -m -q -P ftp
 nxc smb "$TARGET" -u 'anonymous' -p '' --shares
