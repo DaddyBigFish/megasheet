@@ -167,6 +167,7 @@ while true; do ssltest.py $TARGET |grep -v '00 00 00 00 00 00 00 00 00 00 00 00 
 ## Infrastructure
 nxc smb hosts -u 'anonymous' -p '' --shares
 nxc ftp hosts -u 'anonymous' -p '' --ls
+nmap -iL hosts --script "ldap* and not brute" -p 389 | awk '/Nmap scan report/{ip=$NF} /dnsHostName/{h[ip]=h[ip] ? h[ip]" "$3 : $3} END{for (i in h) print i, h[i]}' | sort -t. -k1,1n -k2,2n -k3,3n -k4,4n
 creds search ftp
 nmap $TARGET --script "ssl* and not brute" -p 443
 nmap $TARGET --script "ldap* and not brute" -p 389 | grep -Ei 'dnsHostName' | cut -d ':' -f2 | xargs
