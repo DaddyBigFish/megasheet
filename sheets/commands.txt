@@ -139,11 +139,14 @@ RETURN DISTINCT e, r1, n1, r2, n2, r3, connected
 LIMIT 1000
 
 ## Create Custom Usernames List
-username-anarchy --input-file usernames --select-format first,flast,f.last,first.last,firstlast > .tmp; cat .tmp | tee usernames; rm .tmp
+username-anarchy --input-file usernames --select-format first,flast,f.last,first.last,firstlast > .tmp; cat .tmp | tee usernames_custom; rm .tmp
 
 ## Create Custom Passwords List
 cewler -d 0 http://$TARGET/ -r 50
-psudohash.py -w phantom -y 2023-2025 -cpb -cpa -cpo -ap '~,`,!,@,#,$,%,^,&,*,(,),_,+,{,},|,:,",<,>,?,,,.,/,;,[,],\,-' -o passwords
+YEAR=$(date +%Y)
+psudohash.py -w Spring,Summer,Autumn,Winter -y $((YEAR-1))-$YEAR -o passwords_custom_seasons_1_year
+psudohash.py -w Spring,Summer,Autumn,Winter -y $((YEAR-5))-$YEAR -o passwords_custom_seasons_5_years
+psudohash.py -w Spring,Summer,Autumn,Winter -y $((YEAR-10))-$YEAR -o passwords_custom_seasons_10_years
 
 ## Sorting Lists
 cat usernames | sort -u | tee usernames
@@ -153,8 +156,8 @@ cat pwned | sort -u | sort -k5,5
 ## Web
 bannerme
 curl -sI $TARGET | grep -oP '(?<=https?://)[^/\s]+'
-domme ://$TARGET
 echo | openssl s_client -connect $TARGET:443 2>/dev/null | awk '/subject=|issuer=/'
+domme ://$TARGET
 echo "$TARGET $DOM" | sudo tee -a /etc/hosts # Windows: C:\Windows\System32\drivers\etc\hosts
 creds search pfsense
 creds search tomcat
