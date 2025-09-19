@@ -92,6 +92,7 @@ cat dc-hosts pc-hosts > hosts
 # Information Gathering (Pre-creds)
 ## Create Custom Usernames List
 username-anarchy --input-file usernames --select-format first,flast,f.last,first.last,firstlast > .tmp; cat .tmp | tee usernames_custom; rm .tmp
+username-anarchy Joe Kerr --select-format first,flast,f.last,first.last,firstlast > .tmp; cat .tmp | tee usernames_custom; rm .tmp
 
 ## Create Custom Passwords List
 cewler -d 0 http://$TARGET/ -r 50
