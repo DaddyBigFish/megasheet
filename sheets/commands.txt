@@ -63,6 +63,9 @@ sudo systemctl restart NetworkManager.service
 sudo systemctl restart networking.service
 
 # Discovery
+## Nesus
+systemctl status nessusd; systemctl start nessusd; chromium "https://localhost:8834"
+
 ## External scans
 (sudo nmap -n -Pn -sS "$TARGET" -oA 'TCP_1000_$TARGET' --open --min-rate 250 --max-rate 500 -D 1.1.1.1 -g53 --spoof-mac Cloudflare --mtu 32 --data-length 0 &)
 (sudo nmap -n -Pn -sU "$TARGET" -oA 'UDP_1000_$TARGET' --open --min-rate 250 --max-rate 500 -D 1.1.1.1 -g53 --spoof-mac Cloudflare --data-length 0 &)
@@ -87,57 +90,6 @@ echo '$TARGET' > pc-hosts
 cat dc-hosts pc-hosts > hosts
 
 # Information Gathering (Pre-creds)
-## Initial Enumeration
-[*] Nessus
-systemctl status nessusd
-systemctl start nessusd
-chromium "https://localhost:8834"
-
-[*] Nmap
-(PORTS=$(cat TCP_*$TARGET.nmap | cut -d '/' -f 1 | sort -nu | awk '/^[0-9]/ {printf "%s,", $1}' | sed 's/,$//'); sudo nmap -Pn -n -sC "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'SCRIPTS_TCP_$TARGET' &)
-(PORTS=$(cat TCP_*$TARGET.nmap | cut -d '/' -f 1 | sort -nu | awk '/^[0-9]/ {printf "%s,", $1}' | sed 's/,$//'); sudo nmap -Pn -n -sV "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VERSIONS_TCP_$TARGET' &)
-(PORTS=$(cat TCP_*$TARGET.nmap | cut -d '/' -f 1 | sort -nu | awk '/^[0-9]/ {printf "%s,", $1}' | sed 's/,$//'); sudo nmap -Pn -n --script=vuln "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VULN_TCP_$TARGET' &)
-(PORTS=$(cat UDP_*$TARGET.nmap | cut -d '/' -f 1 | sort -nu | awk '/^[0-9]/ {printf "%s,", $1}' | sed 's/,$//'); sudo nmap -Pn -n -sU -sC "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'SCRIPTS_UDP_$TARGET' &)
-(PORTS=$(cat UDP_*$TARGET.nmap | cut -d '/' -f 1 | sort -nu | awk '/^[0-9]/ {printf "%s,", $1}' | sed 's/,$//'); sudo nmap -Pn -n -sU -sV "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VERSIONS_UDP_$TARGET' &)
-(PORTS=$(cat UDP_*$TARGET.nmap | cut -d '/' -f 1 | sort -nu | awk '/^[0-9]/ {printf "%s,", $1}' | sed 's/,$//'); sudo nmap -Pn -n -sU --script=vuln "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 -oA 'VULN_UDP_$TARGET' &)
-(PORTS=$(cat TCP_*$TARGET.nmap | cut -d '/' -f 1 | sort -nu | awk '/^[0-9]/ {printf "%s,", $1}' | sed 's/,$//'); sudo nmap -Pn -n -sV --script vulners --script-args mincvss=9 "$TARGET" --open -p"$PORTS" -g53 --min-rate 500 --max-rate 1500 | grep -vE '0.0|/cve/|/githubexploit/|/packetstorm/|/cnvd/|/httpd/|/zdt/' | tee 'vulners_$TARGET' &)
-
-[*] Bloodhound
-+---------- Start ----------+
-Set-Location "$env:USERPROFILE\Downloads"; docker compose down; docker volume rm @(docker volume ls -q | Select-String neo4j-data); docker compose up
-.\bloodhound-cli resetpwd
-http://127.0.0.1:7474
-neo4j:bloodhoundcommunityedition
-http://127.0.0.1:8080
-admin:RANDOM_PASSWORD
-
-+---------- Queries ----------+
--->> Privileges: Groups with Users and Computers
-MATCH p=(n)-[r*1..]-(m)
-WHERE (n:User OR n:Computer)
-  AND (m:User OR m:Computer)
-  AND ALL(x IN nodes(p) WHERE x:User OR x:Computer)
-RETURN p
-LIMIT 1000
-
-MATCH (g:Group)<-[:MemberOf]-(e)-[r1]->(n1)-[r2]->(n2)
-WHERE (e:User OR e:Computer)
-  AND NOT toLower(e.name) CONTAINS "admin"
-  AND NOT toLower(e.name) CONTAINS "guest"
-  AND NOT toLower(g.name) CONTAINS "admin"
-  AND NOT toLower(g.name) CONTAINS "guest"
-  AND NOT toLower(g.name) CONTAINS "domain users"
-  AND NOT toLower(n1.name) CONTAINS "admin"
-  AND NOT toLower(n1.name) CONTAINS "domain users"
-  AND NOT toLower(n2.name) CONTAINS "admin"
-  AND NOT toLower(n2.name) CONTAINS "domain users"
-  AND NOT (n1:Container AND toLower(n1.name) CONTAINS "users")
-  AND NOT (n2:Container AND toLower(n2.name) CONTAINS "users")
-WITH e, r1, n1, r2, n2
-OPTIONAL MATCH (n2)-[r3]->(connected)
-RETURN DISTINCT e, r1, n1, r2, n2, r3, connected
-LIMIT 1000
-
 ## Create Custom Usernames List
 username-anarchy --input-file usernames --select-format first,flast,f.last,first.last,firstlast > .tmp; cat .tmp | tee usernames_custom; rm .tmp
 
@@ -187,11 +139,46 @@ tshark -r FILE.pcap -V | grep -iE 'cipher:|enctype:' | cut -d ':' -f2 | xargs -n
 echo '$krb5pa$18$<CNameString>$<realm>$<cipher>' > hashes; hashcat hashes $rockyou
 
 # Exploitation (Post-creds)
-## Decoding
+## Initial Enumeration
+[*] Bloodhound
++---------- Start ----------+
+Set-Location "$env:USERPROFILE\Downloads"; docker compose down; docker volume rm @(docker volume ls -q | Select-String neo4j-data); docker compose up
+.\bloodhound-cli resetpwd
+http://127.0.0.1:7474
+neo4j:bloodhoundcommunityedition
+http://127.0.0.1:8080
+admin:RANDOM_PASSWORD
+
++---------- Queries ----------+
+-->> Privileges: Groups with Users and Computers
+MATCH p=(n)-[r*1..]-(m)
+WHERE (n:User OR n:Computer)
+  AND (m:User OR m:Computer)
+  AND ALL(x IN nodes(p) WHERE x:User OR x:Computer)
+RETURN p
+LIMIT 1000
+
+MATCH (g:Group)<-[:MemberOf]-(e)-[r1]->(n1)-[r2]->(n2)
+WHERE (e:User OR e:Computer)
+  AND NOT toLower(e.name) CONTAINS "admin"
+  AND NOT toLower(e.name) CONTAINS "guest"
+  AND NOT toLower(g.name) CONTAINS "admin"
+  AND NOT toLower(g.name) CONTAINS "guest"
+  AND NOT toLower(g.name) CONTAINS "domain users"
+  AND NOT toLower(n1.name) CONTAINS "admin"
+  AND NOT toLower(n1.name) CONTAINS "domain users"
+  AND NOT toLower(n2.name) CONTAINS "admin"
+  AND NOT toLower(n2.name) CONTAINS "domain users"
+  AND NOT (n1:Container AND toLower(n1.name) CONTAINS "users")
+  AND NOT (n2:Container AND toLower(n2.name) CONTAINS "users")
+WITH e, r1, n1, r2, n2
+OPTIONAL MATCH (n2)-[r3]->(connected)
+RETURN DISTINCT e, r1, n1, r2, n2, r3, connected
+LIMIT 1000
+
+## Decoding and Decompressing
 echo -n '6b,cf,2a,4b,6e,5a,ca,0f' | xxd -r -p | openssl enc -des-cbc -nopad -nosalt -K e84ad660c4721ae0 -iv 0000000000000000 -d
 echo -n 'cGFzc3dvcmRpc2dvb2Q=' | base64 -d
-
-## Decompressing
 tar -xzvf backup.tar.gz -C .
 unzip backup.zip -d .
 
