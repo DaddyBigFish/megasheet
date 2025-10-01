@@ -3,6 +3,13 @@
 PROJECT="$HOME/Projects/$TARGET"; sudo -v; [ "$(tmux display-message -p '#W')" != "Shells" ] && mkdir -p "$PROJECT" && cd "$PROJECT" && echo "PROJECT=$PROJECT" >> ~/.zshrc && echo "cd $PROJECT" >> ~/.zshrc && touch usernames passwords && echo "\nanonymous\nadministrator\nguest\nkrbtgt\nroot\nbin\nnone" > usernames && echo "\nanonymous" > passwords && tmux list-windows -F '#{window_id}:#{window_name}' | awk -F: '$2!="Shells"{print $1}' | xargs -I {} tmux list-panes -t {} -F '#{pane_id}' | while read pane_id; do tmux send-keys -t $pane_id 'source ~/.zshrc' C-m; tmux send-keys -t $pane_id C-l; done
 
 ## Configurations
+[*] Bitlocker
+Run PowerShell as Administrator
+(Get-BitLockerVolume -MountPoint C:).KeyProtector
+Unlock-BitLocker -MountPoint C: -RecoveryPassword "123456-789012-345678-901234-567890-123456-789012-345678"
+Disable-BitLocker -MountPoint C:
+Clone Drive
+
 [*] VMWare
 vmware
 Edit ➜ Virtual Network Adapter ➜ Change Settings ➜ Add Network ➜ VMnet10
