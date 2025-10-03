@@ -1073,16 +1073,15 @@ username-anarchy --input-file names --select-format first,flast,f.last,first.las
 username-anarchy Joe Kerr --select-format first,flast,f.last,first.last,firstlast | tee usernames_custom
 
 ## Create Custom Passwords List
+psudohash.py -w Password -cpo -cpa -ap '!,!!,?,%,$' -o passwords_custom_password_extended
 sudo kwp -z /usr/local/bin/basechars/full.base /usr/local/bin/keymaps/en-us.keymap /usr/local/bin/routes/2-to-16-max-3-direction-changes.route > /usr/share/wordlists/keywalk.txt
-cewler -d 0 http://$TARGET/ -r 50
-psudohash.py -w Password -o passwords_custom_password
 spraygen.py --type seasons --mode years --year_start $(($(date +%Y)-1)) --iter ascii -p -o passwords_custom_seasons_1_year
 spraygen.py --type seasons --mode years --year_start $(($(date +%Y)-5)) --iter ascii -p -o passwords_custom_seasons_5_years
 spraygen.py --type seasons --mode years --year_start $(($(date +%Y)-10)) --iter ascii -p -o passwords_custom_seasons_10_years
-psudohash.py -w Password -cpo -cpa -ap '!,?,%' -o passwords_custom_password_extended
 psudohash.py -w Spring,Summer,Autumn,Winter,Fall -y $(($(date +%Y)-1))-$(date +%Y) -o passwords_custom_seasons_1_year_extended
 psudohash.py -w Spring,Summer,Autumn,Winter,Fall -y $(($(date +%Y)-5))-$(date +%Y) -o passwords_custom_seasons_5_years_extended
 psudohash.py -w Spring,Summer,Autumn,Winter,Fall -y $(($(date +%Y)-10))-$(date +%Y) -o passwords_custom_seasons_10_years_extended
+cewler -d 0 http://$TARGET/ -r 50
 
 ## Sorting Lists
 cat usernames | sort -u | tee usernames
