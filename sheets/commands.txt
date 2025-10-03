@@ -1621,6 +1621,8 @@ certutil -CATemplates -config mist-DC01-CA
 certutil -Template User
 
 +---------- File Permissions ----------+
+icacls "flag.txt"
+icacls "flag.txt" /grant "Everyone:(F)"
 powershell -c "(Get-Acl 'C:\secret.txt').Access | Format-Table"
 takeown /f "C:\secret.txt" && icacls "C:\secret.txt" /grant %USERNAME%:F /inheritance:e
 
