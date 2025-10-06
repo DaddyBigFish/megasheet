@@ -95,8 +95,8 @@ sudo nmap -n -Pn -sS '$TARGET/24' -p21,22,23,25,53,79,80,88,135,139,389,443,445,
 sort -nu -t . -k1,1 -k2,2 -k3,3 -k4,4 tmp.hosts | tee hosts_$TARGET__24
 
 ## Default and Full Port Scans
-sudo nmap -n -Pn -sS -iL hosts_$TARGET__24 --open --max-rate 50 -D 1.1.1.1 -g53 --spoof-mac Cloudflare -oA 'TCP_$TARGET__24'
-sudo nmap -n -Pn -sS '$TARGET/24' --excludefile hosts_ -F --open --max-rate 50 -oA 'TCP_ALL_$TARGET__24'
+sudo nmap -n -Pn -sS -iL hosts_$TARGET__24 -oA 'TCP_1000_$TARGET__24' --open --min-rate 250 --max-rate 500 -D 1.1.1.1 -g53 --spoof-mac Cloudflare --mtu 32 --data-length 0
+sudo nmap -n -Pn -sS -iL hosts_$TARGET__24 -oA 'TCP_ALL_$TARGET__24' --open --min-rate 250 --max-rate 500 -D 1.1.1.1 -g53 --spoof-mac Cloudflare --mtu 32 --data-length 0 -p-
 
 # Tech and Protocols
 ## Web
