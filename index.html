@@ -198,6 +198,10 @@ document.addEventListener('DOMContentLoaded', function () {
     function parseSections(content) {
         const sections = content.split(/^#\s+/gm);
         sections.shift();
+	   const checkboxes = document.querySelectorAll('.toggle-checkbox');
+        checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', toggleVisibility);
+        });
         return sections.map(section => {
             const sectionLines = section.split('\n');
             const sectionHeader = sectionLines.shift().trim();
@@ -404,25 +408,25 @@ function createTabs(content) {
         toggleVisibility();
     }
 
-    function toggleVisibility() {
-        const checkboxes = document.querySelectorAll('.toggle-checkbox');
-        checkboxes.forEach(checkbox => {
-            const sectionType = checkbox.getAttribute('data-toggle');
-            const headers = document.querySelectorAll('h2');
-            headers.forEach(header => {
-                if (header.textContent === sectionType) {
-                    const contentDiv = header.nextElementSibling;
-                    if (checkbox.checked) {
-                        header.style.display = 'block';
-                        contentDiv.style.display = 'block';
-                    } else {
-                        header.style.display = 'none';
-                        contentDiv.style.display = 'none';
-                    }
+function toggleVisibility() {
+    const checkboxes = document.querySelectorAll('.toggle-checkbox');
+    checkboxes.forEach(checkbox => {
+        const sectionType = checkbox.getAttribute('data-toggle');
+        const headers = document.querySelectorAll('h2');
+        headers.forEach(header => {
+            if (header.textContent.trim() === sectionType) {
+                const contentDiv = header.nextElementSibling;
+                if (checkbox.checked) {
+                    header.style.display = 'block';
+                    contentDiv.style.display = 'block';
+                } else {
+                    header.style.display = 'none';
+                    contentDiv.style.display = 'none';
                 }
-            });
+            }
         });
-    }
+    });
+}
 
     document.getElementById('targetInput').addEventListener('input', updateDynamicTargets);
     document.getElementById('domainInput').addEventListener('input', updateDynamicTargets);
