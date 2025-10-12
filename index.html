@@ -26,26 +26,23 @@
             font-size: 2rem;
             color: #ffffff;
         }
-        h2 {
-			font-size: 0.86em;
-            color: #ff0000d9;
-	    margin: 8px 0 -7px 0;
+        h2, h3 {
+    font-size: 1.06em;
+    color: #ff0000d9;
+    margin: 12px 0 -3px 0;
         }
-
-        .accordion {
+       .accordion {
             background-color: #1e1e1e;
             border: 1px solid #333;
             margin: 10px 0;
             border-radius: 5px;
         }
-
         .accordion-content {
             display: none;
             background-color: #121212;
             padding: 10px;
             border-top: 1px solid #333;
         }
-
         .accordion-button {
             background-color: #1e1e1e;
             color: #e0e0e0;
@@ -58,11 +55,9 @@
             font-weight: 600;
             border-radius: 5px;
         }
-
         .accordion-button:hover {
             background-color: #333;
         }
-
         code {
             display: block;
             color: #f1f1f1;
@@ -75,20 +70,17 @@
             margin: 0;
             line-height: 1.4;
         }
-
         .tab-container {
             margin-top: 10px;
             border: 1px solid #333;
             background-color: #242424;
             border-radius: 5px;
         }
-
         .tab-buttons {
             display: flow;
             border-bottom: 1px solid #333;
             background-color: #1e1e1e;
         }
-
         .tab-button {
             flex: 1;
             padding: 10px;
@@ -100,23 +92,19 @@
             color: #e0e0e0;
 	    padding: 16px;
         }
-
         .tab-button.active {
             background-color: #333;
             font-weight: bold;
             color: #ffffff;
         }
-
         .tab-content {
             display: none;
             padding: 10px;
             background-color: #121212;
         }
-
         .tab-content.active {
             display: block;
         }
-
         button.copy-btn {
             background-color: #008CBA;
             color: white;
@@ -126,11 +114,9 @@
             margin-top: 10px;
             border-radius: 5px;
         }
-
         button.copy-btn:hover {
             background-color: #005f6b;
         }
-
         #targetInput, #domainInput, #dcInput, #myIpInput, #usernameInput, #passwordInput, #hashInput {
             padding: 5px;
             border: 1px solid #333;
@@ -139,7 +125,6 @@
             background-color: #1e1e1e;
             color: #e0e0e0;
         }
-
         #targetInput::placeholder, #domainInput::placeholder, #dcInput::placeholder, #myIpInput::placeholder {
             color: #888;
         }
@@ -149,13 +134,11 @@ input[type="text"] {
   overflow: hidden;
 }
 #fileInput{
-/* 	    display:none;*/
 	    width: 90px;
-	    }
+}
 .checkbox-container {
   margin-bottom: 10px;
 }
-
 .checkbox-container label {
   margin-right: 15px;
 }
@@ -176,33 +159,24 @@ input[type="checkbox"] {
   			<label><input type="checkbox" class="toggle-checkbox" data-toggle="Web" checked> Web</label>
   			<label><input type="checkbox" class="toggle-checkbox" data-toggle="Infrastructure" checked> Infrastructure</label>
 		</div>
-
 		<label class="input-header" for="targetInput">Target:</label>
 		<input type="text" id="targetInput" placeholder="" />
-		
 		<label for="domainInput">Domain:</label>
 		<input type="text" id="domainInput" placeholder="" />
-		
 		<label for="dcInput">DC:</label>
 		<input type="text" id="dcInput" placeholder="" />
-		
 		<label for="myIpInput">My IP:</label>
 		<input type="text" id="myIpInput" placeholder="" />
-		
         <label for="usernameInput">Username:</label>
         <input type="text" id="usernameInput" placeholder="" />
-      
         <label for="passwordInput">Password:</label>
         <input type="text" id="passwordInput" placeholder="" />
-        
         <label for="hashInput">Hash:</label>
         <input type="text" id="hashInput" placeholder="" />		
-        
 		<input type="file" id="fileInput" accept=".txt" />
 		<select id="fileDropdown">
         	<option>Loading...</option>
-                </select>
-
+        </select>
 	</div>
 <script>
 document.querySelectorAll('input[type="text"]').forEach(input => {
@@ -213,18 +187,223 @@ document.querySelectorAll('input[type="text"]').forEach(input => {
 });
 </script>
     <div id="accordionContainer"></div>
-
     <script>
-    
 document.addEventListener('DOMContentLoaded', function () {
-    // Save the initial state of the checkboxes
-    const checkboxStates = {};
-    const checkboxes = document.querySelectorAll('.toggle-checkbox');
-    checkboxes.forEach(checkbox => {
-        checkboxStates[checkbox.getAttribute('data-toggle')] = checkbox.checked;
+    const fileInput = document.getElementById('fileInput');
+    const accordionContainer = document.getElementById('accordionContainer');
+    let originalContent = '';
+    let globalSections = [];
+    let openAccordions = {};
+
+    function parseSections(content) {
+        const sections = content.split(/^#\s+/gm);
+        sections.shift();
+        return sections.map(section => {
+            const sectionLines = section.split('\n');
+            const sectionHeader = sectionLines.shift().trim();
+            const subSections = parseSubSections(sectionLines);
+            return { header: sectionHeader, subSections };
+        });
+    }
+
+function parseSubSections(lines) {
+    const subSections = [];
+    let currentSubHeader = '';
+    let currentCode = '';
+    let hasTabs = false;
+
+    lines.forEach(line => {
+        if (line.startsWith('## ')) {
+            if (currentSubHeader) {
+                subSections.push({ header: currentSubHeader, code: currentCode, hasTabs });
+            }
+            currentSubHeader = line.slice(3).trim();
+            currentCode = '';
+            hasTabs = false;
+        } else if (line.startsWith('[*]')) {
+            hasTabs = true;
+            currentCode += line + '\n';
+        } else {
+            currentCode += line + '\n';
+        }
     });
 
-    // Function to toggle visibility based on checkbox status
+    if (currentSubHeader) {
+        subSections.push({ header: currentSubHeader, code: currentCode, hasTabs });
+    }
+
+    return subSections;
+}
+
+function createTabs(content) {
+    const tabContainer = document.createElement('div');
+    tabContainer.classList.add('tab-container');
+    const tabButtons = document.createElement('div');
+    tabButtons.classList.add('tab-buttons');
+    const tabContent = document.createElement('div');
+
+    const tabs = content.split(/^\[\*\]/gm).filter(Boolean);
+
+    tabs.forEach((tab, index) => {
+        const tabLines = tab.split('\n');
+        const tabHeader = tabLines.shift().trim();
+        const tabBody = tabLines.join('\n').trim();
+
+        const button = document.createElement('button');
+        button.classList.add('tab-button');
+        button.textContent = tabHeader;
+        button.addEventListener('click', function() {
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            button.classList.add('active');
+            tabContent.children[index].classList.add('active');
+        });
+
+        const contentDiv = document.createElement('div');
+        contentDiv.classList.add('tab-content');
+
+        // Check if tabBody contains [###]
+        if (tabBody.includes('[###]')) {
+            // Split by [###] for sub-headers
+            const sections = tabBody.split(/^\[###\]/gm).filter(Boolean);
+            sections.forEach((section, sectionIndex) => {
+                const sectionLines = section.split('\n');
+                const sectionHeader = sectionLines.shift().trim();
+                const sectionCode = sectionLines.join('\n').trim();
+
+                // Create sub-header
+                const subHeader = document.createElement('h3');
+                subHeader.textContent = sectionHeader;
+                contentDiv.appendChild(subHeader);
+
+                // Create code block for the section
+                if (sectionCode) {
+                    const codeBlock = document.createElement('code');
+                    codeBlock.textContent = sectionCode;
+                    contentDiv.appendChild(codeBlock);
+                }
+            });
+        } else {
+            // No [###], treat entire tabBody as code
+            const codeBlock = document.createElement('code');
+            codeBlock.textContent = tabBody;
+            contentDiv.appendChild(codeBlock);
+        }
+
+        if (index === 0) {
+            button.classList.add('active');
+            contentDiv.classList.add('active');
+        }
+
+        tabButtons.appendChild(button);
+        tabContent.appendChild(contentDiv);
+    });
+
+    tabContainer.appendChild(tabButtons);
+    tabContainer.appendChild(tabContent);
+    return tabContainer;
+}
+
+    function renderAccordion(sections) {
+        accordionContainer.innerHTML = '';
+        sections.forEach((section, sectionIndex) => {
+            const accordion = document.createElement('div');
+            accordion.classList.add('accordion');
+            const button = document.createElement('button');
+            button.classList.add('accordion-button');
+            button.textContent = section.header;
+            const contentDiv = document.createElement('div');
+            contentDiv.classList.add('accordion-content');
+            section.subSections.forEach((subSection) => {
+                const subHeader = document.createElement('h2');
+                subHeader.textContent = subSection.header;
+                if (subSection.hasTabs) {
+                    const tabContainer = createTabs(subSection.code.trim());
+                    contentDiv.appendChild(subHeader);
+                    contentDiv.appendChild(tabContainer);
+                } else {
+                    const codeBlock = document.createElement('code');
+                    codeBlock.textContent = subSection.code.trim();
+                    contentDiv.appendChild(subHeader);
+                    contentDiv.appendChild(codeBlock);
+                }
+            });
+            button.addEventListener('click', function() {
+                document.querySelectorAll('.accordion-content').forEach(content => {
+                    content.style.display = 'none';
+                });
+                document.querySelectorAll('.tab-button').forEach(tab => tab.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+                if (contentDiv.style.display === 'block') {
+                    contentDiv.style.display = 'none';
+                } else {
+                    contentDiv.style.display = 'block';
+                }
+            });
+            accordion.appendChild(button);
+            accordion.appendChild(contentDiv);
+            accordionContainer.appendChild(accordion);
+        });
+    }
+
+    function updateDynamicTargets() {
+        const checkboxes = document.querySelectorAll('.toggle-checkbox');
+        const currentCheckboxStates = {};
+        checkboxes.forEach(checkbox => {
+            currentCheckboxStates[checkbox.getAttribute('data-toggle')] = checkbox.checked;
+        });
+        let openAccordionIndex = -1;
+        document.querySelectorAll('.accordion-content').forEach((content, index) => {
+            if (content.style.display === 'block') {
+                openAccordionIndex = index;
+            }
+        });
+        const activeTabs = new Map();
+        document.querySelectorAll('.tab-container').forEach((tabContainer, index) => {
+            const activeTab = tabContainer.querySelector('.tab-button.active');
+            if (activeTab) {
+                activeTabs.set(index, [...tabContainer.querySelectorAll('.tab-button')].indexOf(activeTab));
+            }
+        });
+        const target = document.getElementById('targetInput').value;
+        const domain = document.getElementById('domainInput').value;
+        const dc = document.getElementById('dcInput').value;
+        const myIp = document.getElementById('myIpInput').value;
+        const username = document.getElementById('usernameInput').value;
+        const password = document.getElementById('passwordInput').value;
+        const hash = document.getElementById('hashInput').value;
+        let KRB5DOM = domain.toUpperCase();
+        let updatedContent = originalContent
+            .replace(/\$TARGET/g, target)
+            .replace(/\$DOM/g, domain)
+            .replace(/\$DC/g, dc)
+            .replace(/\$MYIP/g, myIp)
+            .replace(/\$USERNAME/g, username)
+            .replace(/\$PASSWORD/g, password)
+            .replace(/\$HASH/g, hash)
+            .replace(/\$KRB5DOM/g, KRB5DOM);
+        globalSections = parseSections(updatedContent);
+        renderAccordion(globalSections);
+        document.querySelectorAll('.accordion-content').forEach((content, index) => {
+            content.style.display = index === openAccordionIndex ? 'block' : 'none';
+        });
+        document.querySelectorAll('.tab-container').forEach((tabContainer, index) => {
+            const tabButtons = tabContainer.querySelectorAll('.tab-button');
+            const tabContents = tabContainer.querySelectorAll('.tab-content');
+            tabButtons.forEach((btn, btnIndex) => btn.classList.remove('active'));
+            tabContents.forEach((content, contentIndex) => content.classList.remove('active'));
+            if (activeTabs.has(index)) {
+                tabButtons[activeTabs.get(index)].classList.add('active');
+                tabContents[activeTabs.get(index)].classList.add('active');
+            }
+        });
+        checkboxes.forEach(checkbox => {
+            const sectionType = checkbox.getAttribute('data-toggle');
+            checkbox.checked = currentCheckboxStates[sectionType];
+        });
+        toggleVisibility();
+    }
+
     function toggleVisibility() {
         const checkboxes = document.querySelectorAll('.toggle-checkbox');
         checkboxes.forEach(checkbox => {
@@ -245,84 +424,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Function to update dynamic targets
-    function updateDynamicTargets() {
-        // Get the current checkbox states
-        const currentCheckboxStates = {};
-        checkboxes.forEach(checkbox => {
-            currentCheckboxStates[checkbox.getAttribute('data-toggle')] = checkbox.checked;
-        });
-
-        // Store the currently open accordion index
-        let openAccordionIndex = -1;
-        document.querySelectorAll('.accordion-content').forEach((content, index) => {
-            if (content.style.display === 'block') {
-                openAccordionIndex = index;
-            }
-        });
-
-        // Store the active tab indices for each tab container
-        const activeTabs = new Map();
-        document.querySelectorAll('.tab-container').forEach((tabContainer, index) => {
-            const activeTab = tabContainer.querySelector('.tab-button.active');
-            if (activeTab) {
-                activeTabs.set(index, [...tabContainer.querySelectorAll('.tab-button')].indexOf(activeTab));
-            }
-        });
-
-        // Update content dynamically
-        const target = document.getElementById('targetInput').value;
-        const domain = document.getElementById('domainInput').value;
-        const dc = document.getElementById('dcInput').value;
-        const myIp = document.getElementById('myIpInput').value;
-        const username = document.getElementById('usernameInput').value;
-        const password = document.getElementById('passwordInput').value;
-        const hash = document.getElementById('hashInput').value;
-
-        let KRB5DOM = domain.toUpperCase();
-        let updatedContent = originalContent
-            .replace(/\$TARGET/g, target)
-            .replace(/\$DOM/g, domain)
-            .replace(/\$DC/g, dc)
-            .replace(/\$MYIP/g, myIp)
-            .replace(/\$USERNAME/g, username)
-            .replace(/\$PASSWORD/g, password)
-            .replace(/\$HASH/g, hash)
-            .replace(/\$KRB5DOM/g, KRB5DOM);
-
-        globalSections = parseSections(updatedContent);
-        renderAccordion(globalSections);
-
-        // Restore the previously open accordion
-        document.querySelectorAll('.accordion-content').forEach((content, index) => {
-            content.style.display = index === openAccordionIndex ? 'block' : 'none';
-        });
-
-        // Restore the active tabs while collapsing inactive ones
-        document.querySelectorAll('.tab-container').forEach((tabContainer, index) => {
-            const tabButtons = tabContainer.querySelectorAll('.tab-button');
-            const tabContents = tabContainer.querySelectorAll('.tab-content');
-
-            tabButtons.forEach((btn, btnIndex) => btn.classList.remove('active'));
-            tabContents.forEach((content, contentIndex) => content.classList.remove('active'));
-
-            if (activeTabs.has(index)) {
-                tabButtons[activeTabs.get(index)].classList.add('active');
-                tabContents[activeTabs.get(index)].classList.add('active');
-            }
-        });
-
-        // Restore checkbox states
-        checkboxes.forEach(checkbox => {
-            const sectionType = checkbox.getAttribute('data-toggle');
-            checkbox.checked = currentCheckboxStates[sectionType];
-        });
-
-        // Re-run toggle visibility after content update to ensure the correct sections are shown
-        toggleVisibility();
-    }
-
-    // Attach event listeners to inputs
     document.getElementById('targetInput').addEventListener('input', updateDynamicTargets);
     document.getElementById('domainInput').addEventListener('input', updateDynamicTargets);
     document.getElementById('dcInput').addEventListener('input', updateDynamicTargets);
@@ -331,188 +432,14 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('passwordInput').addEventListener('input', updateDynamicTargets);
     document.getElementById('hashInput').addEventListener('input', updateDynamicTargets);
 
-    // Initial call to set visibility based on default checked state
-    toggleVisibility();
-});
-
-
-        const fileInput = document.getElementById('fileInput');
-        const accordionContainer = document.getElementById('accordionContainer');
-        let originalContent = '';
-        let globalSections = [];
-        let openAccordions = {}; // Track the open state of each accordion
-
-        fileInput.addEventListener('change', handleFileSelect, false);
-        document.getElementById('targetInput').addEventListener('input', updateDynamicTargets);
-        document.getElementById('domainInput').addEventListener('input', updateDynamicTargets);
-        document.getElementById('dcInput').addEventListener('input', updateDynamicTargets);
-        document.getElementById('myIpInput').addEventListener('input', updateDynamicTargets);
-        document.getElementById('usernameInput').addEventListener('input', updateDynamicTargets);
-        document.getElementById('passwordInput').addEventListener('input', updateDynamicTargets);
-        document.getElementById('hashInput').addEventListener('input', updateDynamicTargets);
-
-        function handleFileSelect(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                originalContent = e.target.result;
-                globalSections = parseSections(originalContent);
-                renderAccordion(globalSections);
-            };
-            reader.readAsText(file);
-        }
-
-        function parseSections(content) {
-            const sections = content.split(/^#\s+/gm);
-            sections.shift();
-            return sections.map(section => {
-                const sectionLines = section.split('\n');
-                const sectionHeader = sectionLines.shift().trim();
-                const subSections = parseSubSections(sectionLines);
-                return { header: sectionHeader, subSections };
-            });
-        }
-
-        function parseSubSections(lines) {
-            const subSections = [];
-            let currentSubHeader = '';
-            let currentCode = '';
-            let hasTabs = false;
-
-            lines.forEach(line => {
-                if (line.startsWith('## ')) {
-                    if (currentSubHeader) {
-                        subSections.push({ header: currentSubHeader, code: currentCode, hasTabs });
-                    }
-                    currentSubHeader = line.slice(3).trim();
-                    currentCode = '';
-                    hasTabs = false;
-                } else if (line.startsWith('[*]')) {
-                    hasTabs = true;
-                    currentCode += line + '\n';
-                } else {
-                    currentCode += line + '\n';
-                }
-            });
-
-            if (currentSubHeader) {
-                subSections.push({ header: currentSubHeader, code: currentCode, hasTabs });
-            }
-
-            return subSections;
-        }
-
-function renderAccordion(sections) {
-    accordionContainer.innerHTML = '';
-
-    sections.forEach((section, sectionIndex) => {
-        const accordion = document.createElement('div');
-        accordion.classList.add('accordion');
-
-        const button = document.createElement('button');
-        button.classList.add('accordion-button');
-        button.textContent = section.header;
-
-        const contentDiv = document.createElement('div');
-        contentDiv.classList.add('accordion-content');
-
-        section.subSections.forEach((subSection) => {
-            const subHeader = document.createElement('h2');
-            subHeader.textContent = subSection.header;
-
-            if (subSection.hasTabs) {
-                const tabContainer = createTabs(subSection.code.trim());
-                contentDiv.appendChild(subHeader);
-                contentDiv.appendChild(tabContainer);
-            } else {
-                const codeBlock = document.createElement('code');
-                codeBlock.textContent = subSection.code.trim();
-                contentDiv.appendChild(subHeader);
-                contentDiv.appendChild(codeBlock);
-            }
-        });
-
-        button.addEventListener('click', function() {
-            // Close all accordions first
-            document.querySelectorAll('.accordion-content').forEach(content => {
-                content.style.display = 'none';
-            });
-
-            // Close all tabs by removing active classes
-            document.querySelectorAll('.tab-button').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-
-            // Toggle only the clicked accordion (if it was closed)
-            if (contentDiv.style.display === 'block') {
-                contentDiv.style.display = 'none';
-            } else {
-                contentDiv.style.display = 'block';
-            }
-        });
-
-        accordion.appendChild(button);
-        accordion.appendChild(contentDiv);
-        accordionContainer.appendChild(accordion);
-    });
-}
-        function createTabs(content) {
-            const tabContainer = document.createElement('div');
-            tabContainer.classList.add('tab-container');
-
-            const tabButtons = document.createElement('div');
-            tabButtons.classList.add('tab-buttons');
-            const tabContent = document.createElement('div');
-
-            const tabs = content.split(/^\[\*\]/gm).filter(Boolean);
-
-            tabs.forEach((tab, index) => {
-                const tabLines = tab.split('\n');
-                const tabHeader = tabLines.shift().trim();
-                const tabBody = tabLines.join('\n').trim();
-
-                const button = document.createElement('button');
-                button.classList.add('tab-button');
-                button.textContent = tabHeader;
-                button.addEventListener('click', function() {
-                    document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-                    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-                    button.classList.add('active');
-                    tabContent.children[index].classList.add('active');
-                });
-
-                const contentDiv = document.createElement('div');
-                contentDiv.classList.add('tab-content');
-
-                const codeBlock = document.createElement('code');
-                codeBlock.textContent = tabBody;
-                contentDiv.appendChild(codeBlock);
-
-                if (index === 0) {
-                    button.classList.add('active');
-                    contentDiv.classList.add('active');
-                }
-
-                tabButtons.appendChild(button);
-                tabContent.appendChild(contentDiv);
-            });
-
-            tabContainer.appendChild(tabButtons);
-            tabContainer.appendChild(tabContent);
-
-            return tabContainer;
-        }
-    </script>
- <script>
-        async function fetchTxtFiles() {
-            const url = "https://api.github.com/repos/DaddyBigFish/megasheet/contents/sheets";
+    async function fetchTxtFiles() {
+        const url = "https://api.github.com/repos/DaddyBigFish/megasheet/contents/sheets";
+        try {
             const response = await fetch(url);
+            if (!response.ok) throw new Error('Network response was not ok');
             const files = await response.json();
-            
             const dropdown = document.getElementById("fileDropdown");
             dropdown.innerHTML = "<option value=''>Load from repo...</option>";
-
             files
                 .filter(file => file.name.endsWith(".txt"))
                 .forEach(file => {
@@ -521,70 +448,41 @@ function renderAccordion(sections) {
                     option.textContent = file.name;
                     dropdown.appendChild(option);
                 });
+        } catch (error) {
+            console.error('Error fetching files:', error);
         }
-	 
-        document.getElementById("fileDropdown").addEventListener("change", async function() {
-            const fileName = this.value;
-            if (!fileName) return;
+    }
 
-            const url = `https://raw.githubusercontent.com/DaddyBigFish/megasheet/refs/heads/main/sheets/${fileName}`;
-            const response = await fetch(url);
-            const content = await response.text();
-
-            originalContent = content;
-            globalSections = parseSections(content);
-            renderAccordion(globalSections);
-	    document.getElementById("usernameInput").value = "anonymous"; document.getElementById("usernameInput").dispatchEvent(new Event("input", { bubbles: true }));
-        });
-	 
-        fetchTxtFiles();
-    </script>
-
-<script>
-
-document.addEventListener('DOMContentLoaded', function () {
-  // Function to toggle visibility based on checkbox status
-  function toggleVisibility() {
-    // Get all checkboxes
-    const checkboxes = document.querySelectorAll('.toggle-checkbox');
-
-    checkboxes.forEach(checkbox => {
-      const sectionType = checkbox.getAttribute('data-toggle');
-      
-      // Find all h2 elements
-      const headers = document.querySelectorAll('h2');
-
-      headers.forEach(header => {
-        // Check if the header's text content matches the checkbox
-        if (header.textContent === sectionType) {
-          const contentDiv = header.nextElementSibling;
-
-          // If checkbox is checked, show content
-          if (checkbox.checked) {
-            header.style.display = 'block';
-            contentDiv.style.display = 'block';
-          } else {
-            header.style.display = 'none';
-            contentDiv.style.display = 'none';
-          }
-        }
-      });
-    });
-  }
-
-  // Attach event listeners to checkboxes
-  const checkboxes = document.querySelectorAll('.toggle-checkbox');
-  checkboxes.forEach(checkbox => {
-    checkbox.addEventListener('change', toggleVisibility);
-  });
-
-  // Initial call to set visibility based on default checked state
-  toggleVisibility();
+document.getElementById("fileDropdown").addEventListener("change", async function() {
+    const fileName = this.value;
+    if (!fileName) return;
+    const url = `https://raw.githubusercontent.com/DaddyBigFish/megasheet/refs/heads/main/sheets/${fileName}`;
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Network response was not ok');
+        const content = await response.text();
+        originalContent = content;
+        updateDynamicTargets();
+    } catch (error) {
+        console.error('Error loading file:', error);
+    }
 });
 
+fileInput.addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        originalContent = e.target.result;
+        updateDynamicTargets();
+    };
+    reader.readAsText(file);
+});
 
-</script>
-
-    <h5>Version 2.0 by DaddyBigFish</h5>
+    fetchTxtFiles();
+    toggleVisibility();
+});
+    </script>
+    <h5>Version 3.0 by DaddyBigFish, 2024-2025</h5>
 </body>
 </html>
