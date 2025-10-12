@@ -1,6 +1,3 @@
-<img width="1098" height="1207" alt="image" src="https://github.com/user-attachments/assets/" />
-
-
 ![image](https://github.com/user-attachments/assets/93f730e7-da58-4f64-8e0a-027a0d2c8b80)
 
 # How to
