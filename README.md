@@ -11,4 +11,5 @@ $TARGET   $DC   $DOM   $MYIP  $USERNAME  $PASSWORD  $HASH
 #     (Single hash to create a new collapsable box)
 ##    (Double hash to create a heading inside the box)
 [*]   (Enclosed asterix to create tabs within the box)
+[###] (Enclosed triple hash to create header inside a tab [*])
 ```
