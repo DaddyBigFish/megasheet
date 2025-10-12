@@ -1,7 +1,7 @@
-<img width="1098" height="1207" alt="image" src="https://github.com/user-attachments/assets/93f730e7-da58-4f64-8e0a-027a0d2c8b80" />
+<img width="1098" height="1207" alt="image" src="https://github.com/user-attachments/assets/" />
 
 
-![image](https://github.com/user-attachments/assets/9042b7d4-aa70-480f-b0fc-7bd44bf91d72)
+![image](https://github.com/user-attachments/assets/93f730e7-da58-4f64-8e0a-027a0d2c8b80)
 
 # How to
 Simply create interactive cheatsheets / notes that will automatically adapt to the variables below using the input fields. The project MegaSheet is a single simple HTML page with JavaScript controlling the interactivity. You can feed the MegaSheet with an offline .txt file known as a 'sheet', or alternatively you can add the sheet to the 'sheets' directory in GitHub and it will automatically recognise it using the dynamic file loading via GitHub's public API.
