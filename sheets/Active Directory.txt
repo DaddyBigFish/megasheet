@@ -19,7 +19,7 @@ cat /Upload/bloodhound/*_users.json | jq -r '.. | .samaccountname? // empty' | t
 cat /Upload/bloodhound/*_computers.json | jq -r '.. | .samaccountname? // empty' | tee computers_$DC
 
 ## Computers and SIDs
-bloodyAD --dc-ip $TARGET --host $DC -k get search --filter '(objectClass=user)' --attr distinguishedName --attr objectSid | grep -vE "^\s*$" | cut -d' ' -f2- | python3 -c "from sys import stdin; from rich.table import Table; from rich.console import Console; l=stdin.read().splitlines(); t=Table(show_lines=False); t.add_column('DN'); t.add_column('SID'); [t.add_row(l[i],l[i+1]) for i in range(0,len(l),2)]; Console().print(t)"
+bloodyAD --dc-ip $TARGET --host $DC -k get search --filter '(objectClass=computer)' --attr distinguishedName --attr objectSid | grep -vE "^\s*$" | cut -d' ' -f2- | python3 -c "from sys import stdin; from rich.table import Table; from rich.console import Console; l=stdin.read().splitlines(); t=Table(show_lines=False); t.add_column('DN'); t.add_column('SID'); [t.add_row(l[i],l[i+1]) for i in range(0,len(l),2)]; Console().print(t)"
 
 ## Users and SIDs
 bloodyAD --dc-ip $TARGET --host $DC -k get search --filter '(objectClass=user)' --attr distinguishedName --attr objectSid | grep -vE "^\s*$" | cut -d' ' -f2- | python3 -c "from sys import stdin; from rich.table import Table; from rich.console import Console; l=stdin.read().splitlines(); t=Table(show_lines=False); t.add_column('DN'); t.add_column('SID'); [t.add_row(l[i],l[i+1]) for i in range(0,len(l),2)]; Console().print(t)"
