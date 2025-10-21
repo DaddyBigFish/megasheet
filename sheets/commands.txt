@@ -730,7 +730,7 @@ snmp-check $TARGET -c COMMUNITY_STRING -v 2c
 (hydra -I ldap2://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 
 [###] Domain: DC Hostname
-nmap $TARGET --script "ldap* and not brute" -p 389 | awk '/Nmap scan report/{ip=$NF} /dnsHostName/{h[ip]=h[ip] ? h[ip]" "$3 : $3} END{for (i in h) print i, h[i]}' | sort -t. -k1,1n -k2,2n -k3,3n -k4,4n
+nmap -n -Pn $TARGET --script "ldap* and not brute" -p 389 | grep 'dnsHostName:' | cut -d ' ' -f9
 
 [###] Domain: SID
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --get-sid
