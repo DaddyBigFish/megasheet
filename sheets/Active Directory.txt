@@ -5,6 +5,9 @@ https://github.com/CravateRouge/bloodyAD/wiki/User-Guide
 ## Clock Skew Sync
 sudo skewme $TARGET
 
+## DC Hostname (FQDN)
+nmap -n -Pn $TARGET --script "ldap* and not brute" -p 389 | grep 'dnsHostName:' | cut -d ' ' -f9
+
 ## Ticket Granting Ticket
 impacket-getTGT -dc-ip $TARGET '$DOM/$USERNAME:$PASSWORD'; kcme
 
