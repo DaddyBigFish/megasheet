@@ -311,6 +311,10 @@ node {
   }
 }
 
+[*] F5-BigIP
+[###] Get Version From Logos
+curl -sI --insecure https://$TARGET/tmui/tmui/login/images/logo_f5.png | grep -i "Last-Modified"
+curl -sI --insecure https://$TARGET/tmui/tmui/login/images/logo_f5_new.png | grep -i "Last-Modified"
 
 [*] Pluck
 [###] Set Password
