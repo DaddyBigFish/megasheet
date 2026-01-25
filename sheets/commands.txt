@@ -133,6 +133,7 @@ portnock $TARGET 3456 8234 62431 -v
 while true; do ssltest.py $TARGET |grep -v '00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00' || true; sleep 2; done
 
 ## Infrastructure
+echo '$TARGET' | tee hosts_
 nxc smb hosts_ -u 'anonymous' -p '' --shares
 nxc ftp hosts_ -u 'anonymous' -p '' --ls
 cat computers | cut -d '$' -f1 > passwords_computers
